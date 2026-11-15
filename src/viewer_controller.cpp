@@ -1,0 +1,168 @@
+#include "memdbviewer/viewer_controller.hpp"
+
+#include "memdbviewer/database_model.hpp"
+
+#include <memdb/change_event.hpp>
+#include <memdb/collection.hpp>
+#include <memdb/exceptions.hpp>
+
+#include <QTimer>
+
+#include <algorithm>
+
+namespace memdb::viewer {
+
+ViewerController::ViewerController(QObject* parent)
+    : QObject(parent), model_(new DatabaseModel(this)), autoSyncTimer_(new QTimer(this)) {
+    connect(this, &ViewerController::collectionChanged, model_, &DatabaseModel::refresh);
+    autoSyncTimer_->setInterval(250); // Auto-Sync: neue/geloeschte Collections erkennen
+    connect(autoSyncTimer_, &QTimer::timeout, this, &ViewerController::checkAutoSync);
+}
+
+ViewerController::~ViewerController() {
+    unregisterObservers();
+}
+
+void ViewerController::setDatabase(memdb::Database& db) {
+    unregisterObservers();
+    ownedDb_.reset();
+    db_ = &db;
+    model_->setDatabase(db_);
+    registerObservers();
+    startAutoSync();
+    emit databaseChanged();
+}
+
+bool ViewerController::openSnapshot(const QString& path) {
+    try {
+        adoptDatabase(std::make_unique<memdb::Database>(memdb::Database::loadFromFile(path.toStdString())));
+        lastError_.clear();
+        return true;
+    } catch (const memdb::Error& e) {
+        lastError_ = QString::fromStdString(e.what());
+        return false;
+    }
+}
+
+bool ViewerController::openSnapshotEncrypted(const QString& path, const QString& password) {
+    try {
+        adoptDatabase(std::make_unique<memdb::Database>(
+            memdb::Database::loadFromFileEncrypted(path.toStdString(), password.toStdString())));
+        lastError_.clear();
+        return true;
+    } catch (const memdb::Error& e) {
+        lastError_ = QString::fromStdString(e.what());
+        return false;
+    }
+}
+
+void ViewerController::selectCollection(const QString& collectionName) {
+    if (db_ && db_->hasCollection(collectionName.toStdString()))
+        emit collectionSelected(collectionName);
+}
+
+void ViewerController::adoptDatabase(std::unique_ptr<memdb::Database> db) {
+    unregisterObservers();
+    ownedDb_ = std::move(db);
+    db_ = ownedDb_.get();
+    model_->setDatabase(db_);
+    registerObservers();
+    startAutoSync();
+    emit databaseChanged();
+}
+
+void ViewerController::refresh() {
+    registerObservers(); // auch zwischenzeitlich neu angelegte Collections abonnieren
+    model_->refresh();
+    emit databaseChanged();
+}
+
+void ViewerController::setAutoSyncEnabled(bool enabled) {
+    if (enabled && db_)
+        autoSyncTimer_->start();
+    else
+        autoSyncTimer_->stop();
+}
+
+bool ViewerController::isAutoSyncEnabled() const {
+    return autoSyncTimer_->isActive();
+}
+
+void ViewerController::setAutoSyncInterval(int msec) {
+    if (msec <= 0) {
+        setAutoSyncEnabled(false);
+        return;
+    }
+    autoSyncTimer_->setInterval(msec);
+    if (db_)
+        autoSyncTimer_->start();
+}
+
+int ViewerController::autoSyncInterval() const {
+    return autoSyncTimer_->interval();
+}
+
+void ViewerController::registerObservers() {
+    if (!db_)
+        return;
+    for (const std::string& name : db_->collectionNames()) {
+        if (observerHandles_.count(name))
+            continue;
+        Collection coll = db_->collection(name);
+        const std::uint64_t handle = coll.onChange([this](const ChangeEvent& e) {
+            // Events feuern ggf. aus Nicht-GUI-Threads: queued in den GUI-Thread heben (NFA-04)
+            QMetaObject::invokeMethod(
+                this,
+                [this, collection = e.collection] {
+                    emit collectionChanged(QString::fromStdString(collection));
+                },
+                Qt::QueuedConnection);
+        });
+        observerHandles_[name] = handle;
+    }
+}
+
+void ViewerController::unregisterObservers() {
+    if (!db_)
+        return;
+    for (const auto& [name, handle] : observerHandles_) {
+        if (db_->hasCollection(name))
+            db_->collection(name).offChange(handle);
+    }
+    observerHandles_.clear();
+}
+
+void ViewerController::syncObservers() {
+    if (!db_)
+        return;
+    registerObservers();
+    // Handles auf zwischenzeitlich geloeschte Collections entfernen.
+    for (auto it = observerHandles_.begin(); it != observerHandles_.end();) {
+        if (!db_->hasCollection(it->first))
+            it = observerHandles_.erase(it);
+        else
+            ++it;
+    }
+}
+
+void ViewerController::checkAutoSync() {
+    if (!db_)
+        return;
+    const std::vector<std::string> names = db_->collectionNames();
+    if (names == knownCollections_)
+        return; // nichts zu tun (Arbeit im Timer-Intervall minimal halten)
+    knownCollections_ = names;
+    syncObservers();
+    model_->refresh();
+    emit databaseChanged();
+}
+
+void ViewerController::startAutoSync() {
+    if (!db_)
+        return;
+    knownCollections_ = db_->collectionNames();
+    if (autoSyncTimer_->interval() > 0)
+        autoSyncTimer_->start();
+}
+
+} // namespace memdb::viewer
