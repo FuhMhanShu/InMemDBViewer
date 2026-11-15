@@ -3,6 +3,7 @@
 #include <memdb/document_id.hpp>
 #include <memdb/exceptions.hpp>
 #include <memdb/metrics.hpp>
+#include <memdb/qt/memdb_qt_model.hpp>
 #include <memdb/query_dsl.hpp>
 #include <memdb/value.hpp>
 

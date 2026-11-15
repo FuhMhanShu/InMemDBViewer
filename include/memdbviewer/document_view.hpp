@@ -2,7 +2,6 @@
 
 #include <memdb/aggregate.hpp>
 #include <memdb/collection.hpp>
-#include <memdb/qt/memdb_qt_model.hpp>
 #include <memdb/query.hpp>
 
 #include <QWidget>
@@ -15,6 +14,10 @@ class QLineEdit;
 class QLabel;
 class QPushButton;
 class QTableView;
+
+namespace memdb::qt {
+class MemDbTableModel;
+}
 
 namespace memdb::viewer {
 
