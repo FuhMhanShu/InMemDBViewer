@@ -14,17 +14,12 @@ jobs:
     if: github.event.workflow_run.conclusion == 'failure'
     runs-on: ubuntu-latest
     steps:
-      - name: Job-IDs der fehlgeschlagenen Jobs ermitteln
-        id: jobs
+      - name: Fehlgeschlagene Jobs ermitteln
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          IDS=$(curl -s -H "Authorization: Bearer $GH_TOKEN" \
-            "${{ github.api_url }}/repos/${{ github.event.workflow_run.repository.full_name }}/actions/runs/${{ github.event.workflow_run.id }}/jobs?per_page=50" \
-            | jq -r '.jobs[] | select(.conclusion=="failure") | (.id|tostring) + " " + (.name | gsub("[^A-Za-z0-9._-]"; "_"))')
-          echo "ids<<EOF" >> "$GITHUB_OUTPUT"
-          echo "$IDS" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          curl -s -H "Authorization: Bearer $GH_TOKEN" "${{ github.api_url }}/repos/${{ github.event.workflow_run.repository.full_name }}/actions/runs/${{ github.event.workflow_run.id }}/jobs?per_page=50" | jq -r '.jobs[] | select(.conclusion=="failure") | (.id|tostring) + " " + (.name | gsub("[^A-Za-z0-9._-]"; "_"))' > ids.txt
+          echo "IDs:"; cat ids.txt
       - name: Logs herunterladen
         env:
           GH_TOKEN: ${{ github.token }}
@@ -32,11 +27,9 @@ jobs:
           mkdir -p logs
           while read -r JID NAME; do
             [ -z "$JID" ] && continue
-            echo "Lade Log von Job $JID ($NAME)"
-            curl -sL -H "Authorization: Bearer $GH_TOKEN" \
-              "${{ github.api_url }}/repos/${{ github.event.workflow_run.repository.full_name }}/actions/jobs/$JID/logs" \
-              -o "logs/$JID-$NAME.txt"
-          done < "${{ steps.jobs.outputs.ids }}"
+            echo "=== Lade Log von Job $JID ($NAME)"
+            curl -sL -H "Authorization: Bearer $GH_TOKEN" "${{ github.api_url }}/repos/${{ github.event.workflow_run.repository.full_name }}/actions/jobs/$JID/logs" -o "logs/$JID-$NAME.txt"
+          done < ids.txt
           ls -la logs
       - name: Auf Branch ci-logs pushen
         env:
@@ -49,7 +42,7 @@ jobs:
           git config user.name "ci-diagnose"
           git config user.email "actions@users.noreply.github.com"
           git checkout -q -B ci-logs
-          mkdir -p logs && cp -f ../logs/* logs/
+          mkdir -p logs && cp -f ../logs/*.txt logs/
           git add logs
           git commit -q -m "CI-Logs von Run $RUN_ID" || echo "keine Aenderungen"
           git push -q origin ci-logs --force
