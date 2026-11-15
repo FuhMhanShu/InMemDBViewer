@@ -57,6 +57,8 @@ void DocumentTreeView::appendValue(QStandardItem* parent, const QString& key,
         valItem->setText(QStringLiteral("[ %1 Element(e) ]").arg(arr.size()));
         for (std::size_t i = 0; i < arr.size(); ++i)
             appendValue(keyItem, QStringLiteral("[%1]").arg(i), arr[i]);
+    } else if (value.isString()) {
+        valItem->setText(QString::fromStdString(value.asString()));
     } else {
         valItem->setText(QString::fromStdString(memdb::toString(value)));
     }

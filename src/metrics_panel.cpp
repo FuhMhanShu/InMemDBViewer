@@ -38,7 +38,7 @@ void MetricsPanel::showDatabase(memdb::Database& db) {
 }
 
 QString MetricsPanel::bodyText() const {
-    return body_->text();
+    return title_->text() + QLatin1Char('\n') + body_->text();
 }
 
 void MetricsPanel::refresh() {

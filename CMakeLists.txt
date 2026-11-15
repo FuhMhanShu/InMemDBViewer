@@ -45,6 +45,18 @@ add_library(InMemDBViewer STATIC
     src/document_tree_view.cpp
     src/metrics_panel.cpp
 )
+# AUTOMOC: Header mit Q_OBJECT explizit als Quellen listen, damit moc sie verarbeitet
+target_sources(InMemDBViewer PRIVATE
+    include/memdbviewer/collection_item.hpp
+    include/memdbviewer/database_model.hpp
+    include/memdbviewer/document_tree_view.hpp
+    include/memdbviewer/document_view.hpp
+    include/memdbviewer/metrics_panel.hpp
+    include/memdbviewer/schema_scene.hpp
+    include/memdbviewer/schema_view.hpp
+    include/memdbviewer/viewer.hpp
+    include/memdbviewer/viewer_controller.hpp
+)
 target_include_directories(InMemDBViewer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(InMemDBViewer PUBLIC memdb ${QT_WIDGETS})
 if(NOT MSVC)
