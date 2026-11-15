@@ -195,12 +195,4 @@ bool SchemaScene::renderTo(QPaintDevice& device, const QRectF& r) {
     return true;
 }
 
-QString SchemaScene::json() const {
-    return QString::fromStdString(graph_.toJson());
-}
-
-QString SchemaScene::markdown() const {
-    return QString::fromStdString(graph_.toMarkdown());
-}
-
 } // namespace memdb::viewer
