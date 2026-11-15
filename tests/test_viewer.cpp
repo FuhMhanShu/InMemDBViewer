@@ -447,3 +447,34 @@ void TestDocumentView::documentSelectedSignal() {
     view.onCellClicked(QModelIndex()); // ungueltig -> kein Signal
     QCOMPARE(spy.count(), 0);
 }
+
+void TestViewerController::autoSyncDetectsNewAndDroppedCollection() {
+    Database db("t");
+    db.createCollection("users");
+
+    viewer::ViewerController controller;
+    controller.setDatabase(db);
+    QSignalSpy dbSpy(&controller, &viewer::ViewerController::databaseChanged);
+    dbSpy.clear(); // setDatabase emittiert bereits
+    QVERIFY(controller.isAutoSyncEnabled());
+
+    // createCollection feuert keinen Collection-Observer -> Auto-Sync-Timer muss es erkennen
+    db.createCollection("orders");
+    QVERIFY(dbSpy.wait(2000));
+    QCOMPARE(controller.databaseModel()->rowCount(), 2);
+
+    // dropCollection ebenfalls ohne Observer-Event -> Auto-Sync
+    db.dropCollection("users");
+    QVERIFY(dbSpy.wait(2000));
+    QCOMPARE(controller.databaseModel()->rowCount(), 1);
+
+    // Auto-Sync abschalten -> keine Signale mehr
+    controller.setAutoSyncEnabled(false);
+    QVERIFY(!controller.isAutoSyncEnabled());
+    db.createCollection("logs");
+    QVERIFY(!dbSpy.wait(600));
+    QCOMPARE(controller.databaseModel()->rowCount(), 1); // erst nach refresh() sichtbar
+
+    controller.refresh();
+    QCOMPARE(controller.databaseModel()->rowCount(), 2);
+}

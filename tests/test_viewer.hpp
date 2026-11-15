@@ -29,6 +29,7 @@ private slots:
     void observerTriggersSignal();
     void modelFollowsObserver();
     void selectCollection();
+    void autoSyncDetectsNewAndDroppedCollection();
 };
 
 class TestMetricsPanel : public QObject {
