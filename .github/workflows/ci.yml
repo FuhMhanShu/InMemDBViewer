@@ -20,12 +20,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: InMemDBViewer
-      - name: InMemDB auschecken (privat; ohne INMEMDB_TOKEN nur bei per GITHUB_TOKEN gewaehrtem Zugriff)
+      - name: InMemDB auschecken (public, kein Secret noetig)
         uses: actions/checkout@v4
         with:
           repository: FuhMhanShu/InMemDB
           path: InMemDBViewer/../InMemDB
-          token: ${{ secrets.INMEMDB_TOKEN && secrets.INMEMDB_TOKEN || github.token }}
       - name: Qt6 installieren
         run: |
           sudo apt-get update
@@ -46,12 +45,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: InMemDBViewer
-      - name: InMemDB auschecken (privat)
+      - name: InMemDB auschecken (public, kein Secret noetig)
         uses: actions/checkout@v4
         with:
           repository: FuhMhanShu/InMemDB
           path: InMemDBViewer/../InMemDB
-          token: ${{ secrets.INMEMDB_TOKEN && secrets.INMEMDB_TOKEN || github.token }}
       - name: Qt5 installieren
         run: |
           sudo apt-get update
@@ -70,12 +68,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: InMemDBViewer
-      - name: InMemDB auschecken (privat)
+      - name: InMemDB auschecken (public, kein Secret noetig)
         uses: actions/checkout@v4
         with:
           repository: FuhMhanShu/InMemDB
           path: InMemDBViewer/../InMemDB
-          token: ${{ secrets.INMEMDB_TOKEN && secrets.INMEMDB_TOKEN || github.token }}
       - name: Qt6 installieren
         run: |
           sudo apt-get update
