@@ -4,7 +4,13 @@ on:
   push:
     branches: [main]
   pull_request:
+    branches: [main]
   workflow_dispatch:
+
+# Minuten sparen: veraltete Laeufe desselben Branches abbrechen (aktuellster gewinnt)
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   cmake-qt6:
