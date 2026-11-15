@@ -28,7 +28,7 @@ jobs:
       - name: Qt6 installieren
         run: |
           sudo apt-get update
-          sudo apt-get install -y qt6-base-dev qt6-base-dev-tools libgl1-mesa-dev
+          sudo apt-get install -y qt6-base-dev qt6-base-dev-tools qt6-svg-dev libgl1-mesa-dev
       - name: Konfigurieren und bauen
         run: |
           cmake -S InMemDBViewer -B build -DINMEMDB_DIR="$GITHUB_WORKSPACE/InMemDB"
@@ -53,7 +53,7 @@ jobs:
       - name: Qt5 installieren
         run: |
           sudo apt-get update
-          sudo apt-get install -y qtbase5-dev qtbase5-dev-tools libgl1-mesa-dev
+          sudo apt-get install -y qtbase5-dev qtbase5-dev-tools libqt5svg5-dev libgl1-mesa-dev
       - name: Konfigurieren und bauen
         run: |
           cmake -S InMemDBViewer -B build -DINMEMDB_DIR="$GITHUB_WORKSPACE/InMemDB"
@@ -76,7 +76,7 @@ jobs:
       - name: Qt6 installieren
         run: |
           sudo apt-get update
-          sudo apt-get install -y qt6-base-dev qt6-base-dev-tools qt6-qmake 2>/dev/null || sudo apt-get install -y qt6-base-dev qt6-base-dev-tools
+          sudo apt-get install -y qt6-base-dev qt6-base-dev-tools qt6-svg-dev qt6-qmake 2>/dev/null || sudo apt-get install -y qt6-base-dev qt6-base-dev-tools qt6-svg-dev
       - name: Bibliothek + Tests + Demo bauen (qmake6)
         run: |
           export QMAKE="$(command -v qmake6 || command -v /usr/lib/qt6/bin/qmake)"

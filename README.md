@@ -26,14 +26,14 @@ Visualisierung zu [InMemDB](https://github.com/FuhMhanShu/InMemDB) – C++/Qt, M
 - Bidirektionale Selektion Baum ↔ Szene über `ViewerController::collectionSelected` (FA-09)
 - Live-Update per Observer (`onChange` → queued Signale, FA-08)
 - Snapshot laden inkl. verschlüsselter Snapshots: `ViewerController::openSnapshot/openSnapshotEncrypted` (FA-12)
-- Export: Szene als PNG (`SchemaScene::exportPng`), Graph als Mermaid (`SchemaScene::mermaid`, FA-15)
+- Export: Szene als PNG und SVG (`SchemaScene::exportPng/exportSvg`, QtSvg), Graph als Mermaid/JSON/Markdown (`SchemaScene::mermaid/json/markdown`, FA-15)
 ### Auto-Sync: neue/gelöschte Collections erkennen (v0.4)
 InMemDB (Stand v0.24) feuert `Collection::onChange` nur für Dokumentänderungen; `createCollection`/`dropCollection`/`clear` erzeugen kein Database-Level-Event. Der `ViewerController` gleicht daher zusätzlich per leichtem QTimer (Default 250 ms, nur `collectionNames()`-Vergleich) den Collection-Stand ab: neue Collections werden automatisch abonniert, gelöschte abgemeldet, Model und Szene aktualisiert. Steuerung: `setAutoSyncEnabled(bool)`, `setAutoSyncInterval(int)`, `isAutoSyncEnabled()`.
 
 ### CI
 GitHub Actions (`.github/workflows/ci.yml`): CMake-Build + QtTest (headless) + Demo-Smoke-Test für Qt 6 (ubuntu-latest) und Qt 5.15 (ubuntu-22.04) sowie ein qmake-Build (Bibliothek, Tests, Demo). Das Schwester-Repositorium InMemDB wird per `actions/checkout` geladen; beide Repositories sind öffentlich, daher ist kein Secret erforderlich und Standard-Runner verbrauchen keine Actions-Minuten.
 
-Voraussetzungen: C++17-Compiler, Qt 5.15+ oder Qt 6 (Widgets), InMemDB (Default: Schwestern-Checkout `../InMemDB`, sonst Pfad setzen).
+Voraussetzungen: C++17-Compiler, Qt 5.15+ oder Qt 6 (Widgets, Svg), InMemDB (Default: Schwestern-Checkout `../InMemDB`, sonst Pfad setzen).
 
 ### Build & Tests (qmake)
 

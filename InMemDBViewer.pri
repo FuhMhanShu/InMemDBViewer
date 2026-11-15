@@ -17,7 +17,7 @@ isEmpty(INMEMDBVIEWER_DIR): INMEMDBVIEWER_DIR = $$PWD
 isEmpty(INMEMDBVIEWER_BUILD_DIR): INMEMDBVIEWER_BUILD_DIR = $$INMEMDBVIEWER_DIR
 isEmpty(INMEMDB_DIR): INMEMDB_DIR = $$clean_path($$INMEMDBVIEWER_DIR/../InMemDB)
 
-QT += widgets
+QT += widgets svg
 CONFIG += c++17
 
 # memdb::qt::MemDbTableModel (InMemDB v0.23) wird von der öffentlichen API genutzt

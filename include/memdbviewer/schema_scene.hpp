@@ -11,6 +11,8 @@
 
 #include <vector>
 
+class QPaintDevice;
+
 namespace memdb::viewer {
 
 class CollectionItem;
@@ -37,10 +39,15 @@ public:
     /// @brief Zuletzt aufgebauter DbGraph (FA-22) – z. B. fuer Mermaid-Export (FA-15).
     const memdb::DbGraph& graph() const { return graph_; }
     QString mermaid() const { return QString::fromStdString(graph_.toMermaid()); }
+    QString json() const { return QString::fromStdString(graph_.toJson()); }
+    QString markdown() const { return QString::fromStdString(graph_.toMarkdown()); }
     /// @brief Szene als PNG rendern (FA-15).
     bool exportPng(const QString& path);
+    /// @brief Szene als SVG rendern (FA-15, QtSvg).
+    bool exportSvg(const QString& path);
 
 private:
+    bool renderTo(QPaintDevice& device, const QRectF& sceneRect);
     std::vector<CollectionItem::FieldRow> buildFieldRows(memdb::Collection& coll) const;
 
     memdb::Database* db_ = nullptr;

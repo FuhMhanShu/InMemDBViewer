@@ -7,7 +7,7 @@
 TEMPLATE = lib
 TARGET = InMemDBViewer
 CONFIG += staticlib c++17
-QT += widgets
+QT += widgets svg
 
 DESTDIR = $$_PRO_FILE_PWD_
 OBJECTS_DIR = $$_PRO_FILE_PWD_/build-qmake/obj

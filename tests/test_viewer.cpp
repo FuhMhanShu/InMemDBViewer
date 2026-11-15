@@ -358,6 +358,36 @@ void TestSnapshotExport::exportPngAndMermaid() {
     QCOMPARE(scene.graph().edges.size(), static_cast<std::size_t>(1));
 }
 
+void TestSnapshotExport::exportSvgJsonMarkdown() {
+    Database db("t");
+    Collection users = db.createCollection("users");
+    const DocumentId u = users.insert({{"name", "Ada"}});
+    Collection orders = db.createCollection("orders");
+    const DocumentId o = orders.insert({{"total", 1}});
+    ReferenceIndex refs(db);
+    refs.link("orders", o, "users", u, "kunde");
+
+    viewer::SchemaScene scene;
+    scene.setDatabase(db, &refs);
+
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    const QString svg = dir.path() + QStringLiteral("/scene.svg");
+    QVERIFY(scene.exportSvg(svg)); // FA-15: SVG-Export (QtSvg)
+    QFile f(svg);
+    QVERIFY(f.open(QIODevice::ReadOnly));
+    const QString svgText = QString::fromUtf8(f.readAll());
+    QVERIFY(svgText.contains(QStringLiteral("<svg")));
+
+    // FA-15: JSON-/Markdown-Export ueber den DbGraph
+    const QString js = scene.json();
+    QVERIFY(js.contains(QStringLiteral("\"references\"")));
+    QVERIFY(js.contains(QStringLiteral("kunde")));
+    const QString md = scene.markdown();
+    QVERIFY(md.contains(QStringLiteral("# Datenbank-Graph")));
+    QVERIFY(md.contains(QStringLiteral("kunde")));
+}
+
 void TestDocumentTreeView::nestedDocument() {
     Document doc({{"name", "Ada"},
                   {"age", 36},

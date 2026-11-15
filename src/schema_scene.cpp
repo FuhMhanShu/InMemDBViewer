@@ -5,11 +5,13 @@
 #include <memdb/collection.hpp>
 #include <memdb/schema.hpp>
 
+#include <QFileInfo>
 #include <QGraphicsLineItem>
 #include <QGraphicsSimpleTextItem>
 #include <QImage>
 #include <QPainter>
 #include <QPen>
+#include <QSvgGenerator>
 
 #include <algorithm>
 #include <cmath>
@@ -170,10 +172,35 @@ bool SchemaScene::exportPng(const QString& path) {
         return false;
     QImage img(r.size().toSize(), QImage::Format_ARGB32_Premultiplied);
     img.fill(Qt::white);
-    QPainter painter(&img);
+    renderTo(img, r);
+    return img.save(path);
+}
+
+bool SchemaScene::exportSvg(const QString& path) {
+    const QRectF r = sceneRect();
+    if (r.isNull() || r.width() <= 0 || r.height() <= 0)
+        return false;
+    QSvgGenerator generator;
+    generator.setFileName(path);
+    generator.setSize(QSize(std::max(1, int(r.width())), std::max(1, int(r.height()))));
+    generator.setViewBox(QRect(0, 0, std::max(1, int(r.width())), std::max(1, int(r.height()))));
+    renderTo(generator, r);
+    return QFileInfo::exists(path);
+}
+
+bool SchemaScene::renderTo(QPaintDevice& device, const QRectF& r) {
+    QPainter painter(&device);
     painter.setRenderHint(QPainter::Antialiasing, true);
     render(&painter, QRectF(QPointF(0, 0), r.size()), r);
-    return img.save(path);
+    return true;
+}
+
+QString SchemaScene::json() const {
+    return QString::fromStdString(graph_.toJson());
+}
+
+QString SchemaScene::markdown() const {
+    return QString::fromStdString(graph_.toMarkdown());
 }
 
 } // namespace memdb::viewer

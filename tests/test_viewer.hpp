@@ -46,6 +46,7 @@ private slots:
     void openSnapshotEncrypted();
     void wrongPasswordFails();
     void exportPngAndMermaid();
+    void exportSvgJsonMarkdown();
 };
 
 class TestDocumentTreeView : public QObject {
