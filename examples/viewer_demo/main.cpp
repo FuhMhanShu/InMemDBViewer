@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
     mainSplitter->setStretchFactor(1, 2);
     window.setCentralWidget(mainSplitter);
 
-    auto* rebuildScene = [&] {
+    auto rebuildScene = [&] {
         if (controller.database())
             scene->setDatabase(*controller.database(), refs.get());
         schemaView->setSchemaScene(scene);

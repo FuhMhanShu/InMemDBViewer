@@ -36,19 +36,19 @@ void TestDatabaseModel::overview() {
     QVERIFY(orders.sibling(0, 1).data().toString().contains(QStringLiteral("Schema: nein")));
     QCOMPARE(model.rowCount(orders), 0); // schema-los, keine Indizes -> keine Kind-Zeilen
 
-    const QModelIndex users = model.index(1, 0);
-    QCOMPARE(users.data().toString(), QStringLiteral("users"));
-    const QString details = users.sibling(1, 1).data().toString();
+    const QModelIndex usersIdx = model.index(1, 0);
+    QCOMPARE(usersIdx.data().toString(), QStringLiteral("usersIdx"));
+    const QString details = usersIdx.sibling(1, 1).data().toString();
     QVERIFY(details.contains(QStringLiteral("2 Dokument(e)")));
     QVERIFY(details.contains(QStringLiteral("Schema: ja")));
     QVERIFY(details.contains(QStringLiteral("1 Index")));
 
-    QCOMPARE(model.rowCount(users), 2); // Felder age, name (std::map: sortiert)
-    const QModelIndex age = model.index(0, 0, users);
+    QCOMPARE(model.rowCount(usersIdx), 2); // Felder age, name (std::map: sortiert)
+    const QModelIndex age = model.index(0, 0, usersIdx);
     QCOMPARE(age.data().toString(), QStringLiteral("age"));
     QVERIFY(age.sibling(0, 1).data().toString().contains(QStringLiteral("int")));
     QVERIFY(age.sibling(0, 1).data().toString().contains(QStringLiteral("unique index")));
-    const QModelIndex name = model.index(1, 0, users);
+    const QModelIndex name = model.index(1, 0, usersIdx);
     QCOMPARE(name.data().toString(), QStringLiteral("name"));
     QVERIFY(name.sibling(1, 1).data().toString().contains(QStringLiteral("string")));
     QVERIFY(name.sibling(1, 1).data().toString().contains(QStringLiteral("notNull")));
