@@ -4,6 +4,7 @@
 
 #include <memdb/change_event.hpp>
 #include <memdb/collection.hpp>
+#include <memdb/exceptions.hpp>
 
 namespace memdb::viewer {
 
@@ -17,7 +18,45 @@ ViewerController::~ViewerController() {
 
 void ViewerController::setDatabase(memdb::Database& db) {
     unregisterObservers();
+    ownedDb_.reset();
     db_ = &db;
+    model_->setDatabase(db_);
+    registerObservers();
+    emit databaseChanged();
+}
+
+bool ViewerController::openSnapshot(const QString& path) {
+    try {
+        adoptDatabase(std::make_unique<memdb::Database>(memdb::Database::loadFromFile(path.toStdString())));
+        lastError_.clear();
+        return true;
+    } catch (const memdb::Error& e) {
+        lastError_ = QString::fromStdString(e.what());
+        return false;
+    }
+}
+
+bool ViewerController::openSnapshotEncrypted(const QString& path, const QString& password) {
+    try {
+        adoptDatabase(std::make_unique<memdb::Database>(
+            memdb::Database::loadFromFileEncrypted(path.toStdString(), password.toStdString())));
+        lastError_.clear();
+        return true;
+    } catch (const memdb::Error& e) {
+        lastError_ = QString::fromStdString(e.what());
+        return false;
+    }
+}
+
+void ViewerController::selectCollection(const QString& collectionName) {
+    if (db_ && db_->hasCollection(collectionName.toStdString()))
+        emit collectionSelected(collectionName);
+}
+
+void ViewerController::adoptDatabase(std::unique_ptr<memdb::Database> db) {
+    unregisterObservers();
+    ownedDb_ = std::move(db);
+    db_ = ownedDb_.get();
     model_->setDatabase(db_);
     registerObservers();
     emit databaseChanged();

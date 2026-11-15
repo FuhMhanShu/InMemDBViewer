@@ -37,6 +37,7 @@ add_library(InMemDBViewer STATIC
     src/schema_scene.cpp
     src/schema_view.cpp
     src/document_view.cpp
+    src/metrics_panel.cpp
 )
 target_include_directories(InMemDBViewer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(InMemDBViewer PUBLIC memdb ${QT_WIDGETS})

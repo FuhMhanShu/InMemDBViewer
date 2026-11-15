@@ -8,3 +8,4 @@
 #include "schema_scene.hpp"
 #include "schema_view.hpp"
 #include "document_view.hpp"
+#include "metrics_panel.hpp"

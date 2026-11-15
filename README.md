@@ -3,7 +3,7 @@ Visualisierung zu [InMemDB](https://github.com/FuhMhanShu/InMemDB) – C++/Qt, M
 
 - [Anforderungen](anforderungen.md) (v0.1)
 
-## Bibliothek (v0.2)
+## Bibliothek (v0.3)
 
 Öffentliche API unter `include/memdbviewer/`, Namespace `memdb::viewer` (MVC, FA-01/FA-02):
 
@@ -14,6 +14,14 @@ Visualisierung zu [InMemDB](https://github.com/FuhMhanShu/InMemDB) – C++/Qt, M
 | `viewer::SchemaScene` + `viewer::CollectionItem` | View | QGraphicsFramework (FA-04): Collection-Knoten mit Schema-Metadaten, FA-18-Referenzen als Kanten (FA-05) |
 | `viewer::SchemaView` | View | `QGraphicsView` mit Pan/Zoom (FA-09) |
 | `viewer::DocumentView` | View | Dokument-Tabelle auf `memdb::qt::MemDbTableModel` (v0.23) mit DSL-Query-Filter und Index-Diagnose (FA-07/FA-10) |
+| `viewer::MetricsPanel` | View | Metriken (`CollectionMetrics`/`DatabaseMetrics`, v0.22) inkl. Hybrid-/Overflow-Info (FA-11/FA-13) |
+
+### Features (v0.3)
+- Schema-Szene (QGraphicsFramework): Collection-Knoten mit rekursivem, per Doppelklick auf-/zuklappbarem Schema (FA-06), FA-18-Referenzen als Kanten mit Dangling-Markierung (FA-05)
+- Bidirektionale Selektion Baum ↔ Szene über `ViewerController::collectionSelected` (FA-09)
+- Live-Update per Observer (`onChange` → queued Signale, FA-08)
+- Snapshot laden inkl. verschlüsselter Snapshots: `ViewerController::openSnapshot/openSnapshotEncrypted` (FA-12)
+- Export: Szene als PNG (`SchemaScene::exportPng`), Graph als Mermaid (`SchemaScene::mermaid`, FA-15)
 
 Voraussetzungen: C++17-Compiler, Qt 5.15+ oder Qt 6 (Widgets), InMemDB (Default: Schwestern-Checkout `../InMemDB`, sonst Pfad setzen).
 

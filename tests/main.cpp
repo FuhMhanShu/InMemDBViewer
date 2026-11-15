@@ -18,5 +18,17 @@ int main(int argc, char** argv) {
         TestViewerController t;
         status |= QTest::qExec(&t, argc, argv);
     }
+    {
+        TestCollectionItem t;
+        status |= QTest::qExec(&t, argc, argv);
+    }
+    {
+        TestMetricsPanel t;
+        status |= QTest::qExec(&t, argc, argv);
+    }
+    {
+        TestSnapshotExport t;
+        status |= QTest::qExec(&t, argc, argv);
+    }
     return status;
 }

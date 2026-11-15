@@ -3,8 +3,12 @@
 #include <memdb/memdb.hpp>
 #include <memdbviewer/viewer.hpp>
 
+#include <QFile>
 #include <QSignalSpy>
+#include <QTemporaryDir>
 #include <QtTest>
+
+#include <memory>
 
 using namespace memdb;
 
@@ -78,6 +82,8 @@ void TestSchemaScene::nodesAndEdges() {
     QCOMPARE(scene.edgeItemCount(), 1);       // eine Referenz-Kante
     for (const viewer::CollectionItem* item : scene.collectionItems())
         QVERIFY(item->title() != QStringLiteral("__references"));
+    QVERIFY(scene.itemForCollection(QStringLiteral("users")) != nullptr);
+    QVERIFY(scene.itemForCollection(QStringLiteral("unbekannt")) == nullptr);
 }
 
 void TestSchemaScene::schemaFieldsRendered() {
@@ -113,6 +119,71 @@ void TestSchemaScene::schemaFieldsRendered() {
     QVERIFY(foundAge);
 }
 
+void TestSchemaScene::nestedSchemaInScene() {
+    Database db("t");
+    Collection users = db.createCollection("users");
+    Schema sub;
+    sub.add("plz", Value::Type::String);
+    Schema s;
+    s.add("name", Value::Type::String).notNull();
+    s.add("adresse", Value::Type::Document).subSchema(sub);
+    users.setSchema(s);
+    users.insert({{"name", "Ada"},
+                  {"adresse", Value(std::make_shared<Document>(Document{{"plz", "10115"}}))}});
+
+    viewer::SchemaScene scene;
+    scene.setDatabase(db);
+    QCOMPARE(scene.collectionItemCount(), 1);
+
+    // FA-06: Unter-Schema erscheint als eigene, eingerueckte Zeile (adresse.plz, depth 1)
+    auto* item = scene.collectionItems().front();
+    QCOMPARE(item->fields().size(), static_cast<std::size_t>(3)); // adresse, adresse.plz, name
+    bool foundPlz = false;
+    for (const auto& f : item->fields())
+        if (f.path == QStringLiteral("adresse.plz")) {
+            foundPlz = true;
+            QCOMPARE(f.depth, 1);
+            QCOMPARE(f.type, QStringLiteral("string"));
+        }
+    QVERIFY(foundPlz);
+
+    // Collapse von "adresse" (erste Zeile) versteckt die Unter-Zeile
+    QCOMPARE(item->visibleRowCount(), 3);
+    const QPointF row0(viewer::CollectionItem::kPadding,
+                       viewer::CollectionItem::kHeaderHeight + viewer::CollectionItem::kPadding / 2 + 1);
+    QCOMPARE(item->rowAt(row0), 0);
+    item->toggleCollapseAt(row0);
+    QCOMPARE(item->visibleRowCount(), 2);
+    QVERIFY(item->isCollapsed(QStringLiteral("adresse")));
+}
+
+void TestCollectionItem::collapseExpand() {
+    viewer::CollectionItem item(QStringLiteral("users"), QStringLiteral("1 Dokument(e)"), {
+        {QStringLiteral("adresse"), QStringLiteral("adresse"), QStringLiteral("document"), QString(), 0},
+        {QStringLiteral("plz"), QStringLiteral("adresse.plz"), QStringLiteral("string"), QString(), 1},
+        {QStringLiteral("name"), QStringLiteral("name"), QStringLiteral("string"), QStringLiteral("notNull"), 0},
+    });
+    QCOMPARE(item.visibleRowCount(), 3);
+    const QPointF firstRow(viewer::CollectionItem::kPadding,
+                           viewer::CollectionItem::kHeaderHeight + viewer::CollectionItem::kPadding / 2 + 1);
+    QCOMPARE(item.rowAt(firstRow), 0);
+    item.toggleCollapseAt(firstRow);
+    QVERIFY(item.isCollapsed(QStringLiteral("adresse")));
+    QCOMPARE(item.visibleRowCount(), 2);
+    item.toggleCollapseAt(firstRow);
+    QVERIFY(!item.isCollapsed(QStringLiteral("adresse")));
+    QCOMPARE(item.visibleRowCount(), 3);
+
+    // Zeile ohne Kinder (name, dritte Zeile) reagiert nicht auf Toggle
+    const QPointF thirdRow(viewer::CollectionItem::kPadding,
+                           viewer::CollectionItem::kHeaderHeight + viewer::CollectionItem::kPadding / 2 +
+                               2 * viewer::CollectionItem::kRowHeight + 1);
+    QCOMPARE(item.rowAt(thirdRow), 2);
+    item.toggleCollapseAt(thirdRow);
+    QCOMPARE(item.visibleRowCount(), 3);
+    QVERIFY(item.rowAt(QPointF(-5, 100)) == -1);
+}
+
 void TestViewerController::observerTriggersSignal() {
     Database db("t");
     Collection users = db.createCollection("users");
@@ -145,4 +216,142 @@ void TestViewerController::modelFollowsObserver() {
     // collectionChanged -> DatabaseModel::refresh (direkte Verbindung im GUI-Thread)
     QVERIFY(controller.databaseModel()->index(0, 0).sibling(0, 1).data().toString().contains(
         QStringLiteral("1 Dokument(e)")));
+}
+
+void TestViewerController::selectCollection() {
+    Database db("t");
+    db.createCollection("users");
+    db.createCollection("orders");
+
+    viewer::ViewerController controller;
+    controller.setDatabase(db);
+    QSignalSpy spy(&controller, &viewer::ViewerController::collectionSelected);
+
+    controller.selectCollection(QStringLiteral("orders"));
+    QCOMPARE(spy.count(), 1);
+    QCOMPARE(spy.takeFirst().at(0).toString(), QStringLiteral("orders"));
+
+    controller.selectCollection(QStringLiteral("unbekannt")); // existiert nicht -> kein Signal
+    QCOMPARE(spy.count(), 0);
+}
+
+void TestMetricsPanel::showsCollectionMetrics() {
+    Database db("t");
+    Collection users = db.createCollection("users");
+    users.createIndex("age");
+    users.insert({{"age", 36}});
+    users.insert({{"age", 17}});
+    users.count("age >= 18");
+
+    viewer::MetricsPanel panel;
+    panel.showCollection(users);
+    const QString text = panel.bodyText();
+    QVERIFY(text.contains(QStringLiteral("docs: 2")));
+    QVERIFY(text.contains(QStringLiteral("inserts: 2")));
+    QVERIFY(text.contains(QStringLiteral("queries: 1")));
+    QVERIFY(text.contains(QStringLiteral("indexCount: 1")));
+
+    panel.refresh(); // Abdeckung des Slots
+    QVERIFY(panel.bodyText().contains(QStringLiteral("Collection \"users\"")));
+}
+
+void TestMetricsPanel::showsOverflowInfo() {
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    Database db("t");
+    Collection c = db.createCollection("c");
+    c.setOverflow((dir.path() + QStringLiteral("/spill.log")).toStdString(), 1);
+    c.insert({{"n", 1}});
+    c.insert({{"n", 2}}); // aeltestes Dokument wird ausgespillt
+    QVERIFY(c.overflowInfo().enabled);
+
+    viewer::MetricsPanel panel;
+    panel.showCollection(c);
+    QVERIFY(panel.bodyText().contains(QStringLiteral("OVERFLOW aktiv")));
+    QVERIFY(panel.bodyText().contains(QStringLiteral("spilled=1")));
+
+    // Database-Modus (aggregierte Metriken)
+    panel.showDatabase(db);
+    QVERIFY(panel.bodyText().contains(QStringLiteral("Collections: 1")));
+}
+
+void TestSnapshotExport::openSnapshotRoundtrip() {
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    const QString path = dir.path() + QStringLiteral("/snap.json");
+    {
+        Database db("snap");
+        db.createCollection("a").insert({{"x", 1}});
+        db.createCollection("b");
+        db.saveToFile(path.toStdString());
+    }
+
+    viewer::ViewerController controller;
+    QVERIFY(controller.openSnapshot(path)); // FA-12
+    QVERIFY(controller.database() != nullptr);
+    QCOMPARE(controller.databaseModel()->rowCount(), 2);
+    QCOMPARE(controller.lastError(), QString());
+
+    // Datei existiert nicht -> false + lastError
+    QVERIFY(!controller.openSnapshot(dir.path() + QStringLiteral("/fehlt.json")));
+    QVERIFY(!controller.lastError().isEmpty());
+}
+
+void TestSnapshotExport::openSnapshotEncrypted() {
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    const QString path = dir.path() + QStringLiteral("/snap.enc");
+    {
+        Database db("snap");
+        db.createCollection("a").insert({{"x", 1}});
+        db.saveToFileEncrypted(path.toStdString(), "geheim");
+    }
+
+    viewer::ViewerController controller;
+    QVERIFY(controller.openSnapshotEncrypted(path, QStringLiteral("geheim")));
+    QCOMPARE(controller.databaseModel()->rowCount(), 1);
+}
+
+void TestSnapshotExport::wrongPasswordFails() {
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    const QString path = dir.path() + QStringLiteral("/snap.enc");
+    {
+        Database db("snap");
+        db.createCollection("a");
+        db.saveToFileEncrypted(path.toStdString(), "geheim");
+    }
+
+    viewer::ViewerController controller;
+    QVERIFY(!controller.openSnapshotEncrypted(path, QStringLiteral("falsch")));
+    QVERIFY(!controller.lastError().isEmpty());
+    QVERIFY(controller.database() == nullptr); // vorherige Database bleibt unberuehrt
+}
+
+void TestSnapshotExport::exportPngAndMermaid() {
+    Database db("t");
+    Collection users = db.createCollection("users");
+    const DocumentId u = users.insert({{"name", "Ada"}});
+    Collection orders = db.createCollection("orders");
+    const DocumentId o = orders.insert({{"total", 1}});
+    ReferenceIndex refs(db);
+    refs.link("orders", o, "users", u, "kunde");
+
+    viewer::SchemaScene scene;
+    scene.setDatabase(db, &refs);
+
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    const QString png = dir.path() + QStringLiteral("/scene.png");
+    QVERIFY(scene.exportPng(png)); // FA-15
+    QFile f(png);
+    QVERIFY(f.open(QIODevice::ReadOnly));
+    QVERIFY(f.size() > 0);
+
+    // FA-15: Mermaid-Export ueber den DbGraph
+    const QString mmd = scene.mermaid();
+    QVERIFY(mmd.contains(QStringLiteral("graph")));
+    QVERIFY(mmd.contains(QStringLiteral("kunde")));
+    QCOMPARE(scene.graph().nodes.size(), static_cast<std::size_t>(2));
+    QCOMPARE(scene.graph().edges.size(), static_cast<std::size_t>(1));
 }
