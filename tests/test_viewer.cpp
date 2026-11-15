@@ -1,6 +1,7 @@
 #include "test_viewer.hpp"
 
 #include <memdb/memdb.hpp>
+#include <memdb/qt/memdb_qt_model.hpp>
 #include <memdbviewer/viewer.hpp>
 
 #include <QFile>

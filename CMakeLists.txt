@@ -33,7 +33,9 @@ add_subdirectory("${INMEMDB_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/InMemDB")
 target_link_libraries(memdb PUBLIC ${QT_CORE})
 target_compile_definitions(memdb PUBLIC INMEMDB_WITH_QT)
 set_target_properties(memdb PROPERTIES AUTOMOC ON)
-target_sources(memdb PUBLIC "${INMEMDB_DIR}/include/memdb/qt/memdb_qt_model.hpp")
+# PRIVATE: Header nur in libmemdb.a moccen, nicht an verbrauchende Targets propagieren
+# (sonst moccen Viewer-Bibliothek/Demo/Tests ihn zusaetzlich -> Mehrfachdefinition beim Link).
+target_sources(memdb PRIVATE "${INMEMDB_DIR}/include/memdb/qt/memdb_qt_model.hpp")
 
 add_library(InMemDBViewer STATIC
     src/viewer_controller.cpp
