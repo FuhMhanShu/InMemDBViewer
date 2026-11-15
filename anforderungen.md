@@ -5,8 +5,8 @@
 | Feld | Wert |
 |---|---|
 | Projekttitel | InMemDBViewer – grafische Visualisierung von InMemDB-Datenbanken |
-| Version | 0.1 |
-| Status | Entwurf |
+| Version | 0.2 |
+| Status | v0.1 Entwurf; **v0.2 umgesetzt:** FA-01, FA-02, FA-03, FA-04, FA-05, FA-07 (Tabellenansicht), FA-08, FA-16 sowie NFA-01, NFA-02, NFA-04, NFA-05, NFA-06 – Rest offen |
 | Sprache | Deutsch |
 | Technologie | C++17, Qt (Widgets + Graphics View Framework), qmake (.pro/.pri) **und** CMake |
 | Bereitstellungsform | Wiederverwendbare **C++/Qt-Bibliothek** (statische Library mit Pimpl-Idiom, öffentliche Header unter `include/memdbviewer/`, Implementierung in `src/`), einbindbar via `InMemDBViewer.pri` (qmake) oder CMake-Target; plus schlanke Demo-App unter `examples/`. Namespace `memdb::viewer`. |
