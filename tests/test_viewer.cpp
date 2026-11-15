@@ -37,7 +37,7 @@ void TestDatabaseModel::overview() {
     QCOMPARE(model.rowCount(orders), 0); // schema-los, keine Indizes -> keine Kind-Zeilen
 
     const QModelIndex usersIdx = model.index(1, 0);
-    QCOMPARE(usersIdx.data().toString(), QStringLiteral("usersIdx"));
+    QCOMPARE(usersIdx.data().toString(), QStringLiteral("users"));
     const QString details = usersIdx.sibling(1, 1).data().toString();
     QVERIFY(details.contains(QStringLiteral("2 Dokument(e)")));
     QVERIFY(details.contains(QStringLiteral("Schema: ja")));
