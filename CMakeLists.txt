@@ -7,12 +7,14 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_AUTOMOC ON)
 
 # Qt 6 bevorzugt, sonst Qt 5 (>= 5.15) – NFA-01
-find_package(Qt6 COMPONENTS Widgets Test QUIET)
+find_package(Qt6 COMPONENTS Core Widgets Test QUIET)
 if(Qt6_FOUND)
+    set(QT_CORE Qt6::Core)
     set(QT_WIDGETS Qt6::Widgets)
     set(QT_TEST Qt6::Test)
 else()
-    find_package(Qt5 5.15 REQUIRED COMPONENTS Widgets Test)
+    find_package(Qt5 5.15 REQUIRED COMPONENTS Core Widgets Test)
+    set(QT_CORE Qt5::Core)
     set(QT_WIDGETS Qt5::Widgets)
     set(QT_TEST Qt5::Test)
 endif()
@@ -26,6 +28,9 @@ add_subdirectory("${INMEMDB_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/InMemDB")
 
 # Optionaler Qt-Modell-Adapter von InMemDB aktivieren (v0.23, nur QtCore):
 # INMEMDB_WITH_QT + moc fuer memdb/qt/memdb_qt_model.hpp.
+# Wichtig: memdb kompiliert den moc-Output selbst (AUTOMOC), benoetigt daher
+# QtCore-Header/Includes am memdb-Target (InMemDBs CMake kennt kein INMEMDB_WITH_QT).
+target_link_libraries(memdb PUBLIC ${QT_CORE})
 target_compile_definitions(memdb PUBLIC INMEMDB_WITH_QT)
 set_target_properties(memdb PROPERTIES AUTOMOC ON)
 target_sources(memdb PUBLIC "${INMEMDB_DIR}/include/memdb/qt/memdb_qt_model.hpp")
