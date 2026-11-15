@@ -70,6 +70,9 @@ int main(int argc, char** argv) {
     auto* docView = new viewer::DocumentView(leftSplitter);
     leftSplitter->addWidget(docView);
 
+    auto* docTree = new viewer::DocumentTreeView(leftSplitter); // FA-07: Dokument-Detailbaum
+    leftSplitter->addWidget(docTree);
+
     auto* metricsPanel = new viewer::MetricsPanel(leftSplitter);
     leftSplitter->addWidget(metricsPanel);
 
@@ -89,9 +92,11 @@ int main(int argc, char** argv) {
     rebuildScene();
 
     const auto currentDb = [&]() -> Database& { return *controller.database(); };
+    QString currentCollection;
     const auto showCollection = [&](const QString& name) {
         if (!controller.database() || !currentDb().hasCollection(name.toStdString()))
             return;
+        currentCollection = name;
         docView->showCollection(currentDb().collection(name.toStdString()));
         metricsPanel->showCollection(currentDb().collection(name.toStdString()));
     };
@@ -118,6 +123,17 @@ int main(int argc, char** argv) {
         if (const QModelIndex idx = findTopLevel(name); idx.isValid())
             tree->selectionModel()->select(
                 idx, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Current);
+    });
+
+    // FA-07: Klick auf Dokument-Zeile -> Detailbaum (verschachtelte Dokumente/Arrays)
+    QObject::connect(docView, &viewer::DocumentView::documentSelected, [&](quint64 id) {
+        if (currentCollection.isEmpty() || !controller.database())
+            return;
+        auto doc = currentDb().collection(currentCollection.toStdString()).findById(DocumentId(id));
+        if (doc)
+            docTree->showDocument(*doc);
+        else
+            docTree->clearDocument();
     });
 
     // FA-08: Live-Update – Observer-Event -> Model (im Controller), Szene und Metriken

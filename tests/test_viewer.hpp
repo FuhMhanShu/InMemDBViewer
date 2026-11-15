@@ -46,3 +46,17 @@ private slots:
     void wrongPasswordFails();
     void exportPngAndMermaid();
 };
+
+class TestDocumentTreeView : public QObject {
+    Q_OBJECT
+private slots:
+    void nestedDocument();
+};
+
+class TestDocumentView : public QObject {
+    Q_OBJECT
+private slots:
+    void insertAndDelete();
+    void aggregate();
+    void documentSelectedSignal();
+};

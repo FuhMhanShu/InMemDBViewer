@@ -30,5 +30,13 @@ int main(int argc, char** argv) {
         TestSnapshotExport t;
         status |= QTest::qExec(&t, argc, argv);
     }
+    {
+        TestDocumentTreeView t;
+        status |= QTest::qExec(&t, argc, argv);
+    }
+    {
+        TestDocumentView t;
+        status |= QTest::qExec(&t, argc, argv);
+    }
     return status;
 }

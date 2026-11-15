@@ -3,7 +3,7 @@ Visualisierung zu [InMemDB](https://github.com/FuhMhanShu/InMemDB) – C++/Qt, M
 
 - [Anforderungen](anforderungen.md) (v0.1)
 
-## Bibliothek (v0.3)
+## Bibliothek (v0.4)
 
 Öffentliche API unter `include/memdbviewer/`, Namespace `memdb::viewer` (MVC, FA-01/FA-02):
 
@@ -15,8 +15,13 @@ Visualisierung zu [InMemDB](https://github.com/FuhMhanShu/InMemDB) – C++/Qt, M
 | `viewer::SchemaView` | View | `QGraphicsView` mit Pan/Zoom (FA-09) |
 | `viewer::DocumentView` | View | Dokument-Tabelle auf `memdb::qt::MemDbTableModel` (v0.23) mit DSL-Query-Filter und Index-Diagnose (FA-07/FA-10) |
 | `viewer::MetricsPanel` | View | Metriken (`CollectionMetrics`/`DatabaseMetrics`, v0.22) inkl. Hybrid-/Overflow-Info (FA-11/FA-13) |
+| `viewer::DocumentTreeView` | View | Detailbaum eines Dokuments: Felder mit Typ/Wert, verschachtelte Dokumente/Arrays rekursiv (FA-07) |
 
-### Features (v0.3)
+### Weitere Features (v0.4)
+- FA-14 CRUD-Editing in `DocumentView`: Zellen editierbar (schreibt via `updateById`), „Neu (leer)“/„Löschen“, Auto-Refresh per Observer
+- FA-17 Aggregationen in `DocumentView`: count/min/max/sum/avg über optionalen DSL-Filter (`Collection::aggregate`)
+
+### Features (v0.3/v0.4)
 - Schema-Szene (QGraphicsFramework): Collection-Knoten mit rekursivem, per Doppelklick auf-/zuklappbarem Schema (FA-06), FA-18-Referenzen als Kanten mit Dangling-Markierung (FA-05)
 - Bidirektionale Selektion Baum ↔ Szene über `ViewerController::collectionSelected` (FA-09)
 - Live-Update per Observer (`onChange` → queued Signale, FA-08)

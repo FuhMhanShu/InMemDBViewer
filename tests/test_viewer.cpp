@@ -5,6 +5,7 @@
 
 #include <QFile>
 #include <QSignalSpy>
+#include <QStandardItemModel>
 #include <QTemporaryDir>
 #include <QtTest>
 
@@ -354,4 +355,95 @@ void TestSnapshotExport::exportPngAndMermaid() {
     QVERIFY(mmd.contains(QStringLiteral("kunde")));
     QCOMPARE(scene.graph().nodes.size(), static_cast<std::size_t>(2));
     QCOMPARE(scene.graph().edges.size(), static_cast<std::size_t>(1));
+}
+
+void TestDocumentTreeView::nestedDocument() {
+    Document doc({{"name", "Ada"},
+                  {"age", 36},
+                  {"adresse", Value(std::make_shared<Document>(Document{{"plz", "10115"}}))},
+                  {"tags", Value(std::vector<Value>{Value("a"), Value("b")})}});
+
+    viewer::DocumentTreeView view;
+    view.showDocument(doc); // FA-07
+    auto* model = qobject_cast<QStandardItemModel*>(view.model());
+    QVERIFY(model != nullptr);
+    QCOMPARE(model->rowCount(), 1); // Dokument-Wurzel
+    const QModelIndex root = model->index(0, 0);
+    QVERIFY(root.data().toString().contains(QStringLiteral("Dokument #")));
+    QCOMPARE(model->rowCount(root), 4); // name, age, adresse, tags
+
+    QModelIndex adresse, tags;
+    for (int i = 0; i < model->rowCount(root); ++i) {
+        const QModelIndex idx = model->index(i, 0, root);
+        if (idx.data().toString() == QStringLiteral("adresse"))
+            adresse = idx;
+        if (idx.data().toString() == QStringLiteral("tags"))
+            tags = idx;
+    }
+    QVERIFY(adresse.isValid());
+    QVERIFY(tags.isValid());
+    QCOMPARE(model->rowCount(adresse), 1); // Unter-Dokument: plz
+    QCOMPARE(model->index(0, 0, adresse).data().toString(), QStringLiteral("plz"));
+    QCOMPARE(model->index(0, 1, adresse).data().toString(), QStringLiteral("string"));
+    QCOMPARE(model->index(0, 2, adresse).data().toString(), QStringLiteral("10115"));
+    QCOMPARE(model->rowCount(tags), 2); // Array: [0], [1]
+    QCOMPARE(model->index(0, 0, tags).data().toString(), QStringLiteral("[0]"));
+    QCOMPARE(model->index(0, 2, tags).data().toString(), QStringLiteral("a"));
+
+    view.clearDocument();
+    QCOMPARE(model->rowCount(), 0);
+}
+
+void TestDocumentView::insertAndDelete() {
+    Database db("t");
+    Collection users = db.createCollection("users");
+    users.insert({{"name", "Ada"}});
+    users.insert({{"name", "Bob"}});
+
+    viewer::DocumentView view;
+    QVERIFY(!view.insertEmptyDocument()); // noch keine Collection -> false
+    view.showCollection(users);
+    QCOMPARE(view.model()->rowCount(), 2);
+
+    QVERIFY(view.insertEmptyDocument()); // FA-14: leeres Dokument einfuegen
+    QCOMPARE(users.size(), 3);
+    QTRY_VERIFY(view.model()->rowCount() == 3); // Observer -> queued Auto-Refresh
+
+    view.selectRow(0);
+    QVERIFY(view.deleteSelectedDocument()); // FA-14: selektierte Zeile loeschen
+    QCOMPARE(users.size(), 2);
+    QTRY_VERIFY(view.model()->rowCount() == 2);
+}
+
+void TestDocumentView::aggregate() {
+    Database db("t");
+    Collection users = db.createCollection("users");
+    users.insert({{"age", 36}});
+    users.insert({{"age", 17}});
+    users.insert({{"age", 40}});
+
+    viewer::DocumentView view;
+    view.showCollection(users);
+    QCOMPARE(view.applyAggregate(memdb::AggOp::Count, QString()), QStringLiteral("3")); // FA-17
+    QCOMPARE(view.applyAggregate(memdb::AggOp::Sum, QStringLiteral("age")), QStringLiteral("93"));
+    QCOMPARE(view.applyAggregate(memdb::AggOp::Min, QStringLiteral("age")), QStringLiteral("17"));
+    QCOMPARE(view.applyAggregate(memdb::AggOp::Max, QStringLiteral("age")), QStringLiteral("40"));
+    QVERIFY(view.statusText().contains(QStringLiteral("Agg")));
+}
+
+void TestDocumentView::documentSelectedSignal() {
+    Database db("t");
+    Collection users = db.createCollection("users");
+    const DocumentId id = users.insert({{"name", "Ada"}});
+
+    viewer::DocumentView view;
+    view.showCollection(users);
+    QSignalSpy spy(&view, &viewer::DocumentView::documentSelected);
+
+    view.onCellClicked(view.model()->index(0, 0));
+    QCOMPARE(spy.count(), 1);
+    QCOMPARE(spy.takeFirst().at(0).toULongLong(), static_cast<quint64>(id.value()));
+
+    view.onCellClicked(QModelIndex()); // ungueltig -> kein Signal
+    QCOMPARE(spy.count(), 0);
 }
