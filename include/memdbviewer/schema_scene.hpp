@@ -4,6 +4,8 @@
 #include <memdb/db_graph.hpp>
 #include <memdb/references.hpp>
 
+#include "memdbviewer/collection_item.hpp"
+
 #include <QGraphicsScene>
 #include <QString>
 
@@ -36,7 +38,7 @@ public:
     const memdb::DbGraph& graph() const { return graph_; }
     QString mermaid() const { return QString::fromStdString(graph_.toMermaid()); }
     /// @brief Szene als PNG rendern (FA-15).
-    bool exportPng(const QString& path) const;
+    bool exportPng(const QString& path);
 
 private:
     std::vector<CollectionItem::FieldRow> buildFieldRows(memdb::Collection& coll) const;

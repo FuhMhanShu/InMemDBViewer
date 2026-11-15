@@ -4,6 +4,7 @@
 
 #include <QTreeView>
 
+class QStandardItem;
 class QStandardItemModel;
 
 namespace memdb::viewer {
@@ -21,7 +22,7 @@ public:
     void clearDocument();
 
 private:
-    void appendValue(class QStandardItem* parent, const QString& key, const memdb::Value& value);
+    void appendValue(QStandardItem* parent, const QString& key, const memdb::Value& value);
 
     QStandardItemModel* model_ = nullptr;
 };

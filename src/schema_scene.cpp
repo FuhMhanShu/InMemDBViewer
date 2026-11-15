@@ -164,7 +164,7 @@ CollectionItem* SchemaScene::itemForCollection(const QString& name) const {
     return nullptr;
 }
 
-bool SchemaScene::exportPng(const QString& path) const {
+bool SchemaScene::exportPng(const QString& path) {
     const QRectF r = sceneRect();
     if (r.isNull() || r.width() <= 0 || r.height() <= 0)
         return false;
