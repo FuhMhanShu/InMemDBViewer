@@ -2,6 +2,8 @@
 // Schema-Szene (QGraphicsFramework, FA-04/FA-05/FA-06), Collection-Baum (FA-03),
 // Dokument-Tabelle mit DSL-Filter (FA-07/FA-10) und Metrik-Panel (FA-11/FA-13).
 // Toolbar: Live-Insert (FA-08), Snapshot oeffnen (FA-12), Export PNG/Mermaid (FA-15).
+// Daten laden (FA-12): Snapshot per Datei-Dialog oder Drag & Drop auf das Fenster
+// (verschluesselte Snapshots werden am Magic-Header erkannt, Passwort wird abgefragt).
 // Headless-tauglich: QT_QPA_PLATFORM=offscreen ./viewer_demo (rendert PNG in ein
 // Temp-Dir und beendet sich nach 300 ms selbst).
 #include <memdb/memdb.hpp>
@@ -9,21 +11,64 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QDragEnterEvent>
+#include <QDropEvent>
 #include <QFile>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QGuiApplication>
 #include <QHeaderView>
+#include <QInputDialog>
 #include <QItemSelectionModel>
+#include <QLineEdit>
 #include <QMainWindow>
+#include <QMimeData>
+#include <QMessageBox>
+#include <QStatusBar>
 #include <QSplitter>
 #include <QTemporaryDir>
 #include <QTimer>
 #include <QToolBar>
 #include <QTreeView>
+#include <QUrl>
 
+#include <functional>
 #include <memory>
 
 using namespace memdb;
+
+/// @brief true, wenn die Datei mit dem Magic-Header verschluesselter Snapshots
+///        ("INMEMDB" + 0x01) beginnt (FA-19) – dann Passwort-Abfrage (FA-12).
+bool isEncryptedSnapshot(const QString& path) {
+    QFile f(path);
+    if (!f.open(QIODevice::ReadOnly))
+        return false;
+    return f.read(8) == QByteArray("INMEMDB\x01", 8);
+}
+
+/// @brief Hauptfenster der Demo: nimmt lokale Dateien per Drag & Drop an (FA-12).
+class DemoWindow : public QMainWindow {
+public:
+    explicit DemoWindow(QWidget* parent = nullptr) : QMainWindow(parent) { setAcceptDrops(true); }
+
+    /// @brief Callback fuer eine per Drag & Drop abgelegte lokale Datei.
+    std::function<void(const QString&)> onFileDropped;
+
+protected:
+    void dragEnterEvent(QDragEnterEvent* event) override {
+        const QList<QUrl> urls = event->mimeData()->urls();
+        if (event->mimeData()->hasUrls() && !urls.isEmpty() && urls.first().isLocalFile())
+            event->acceptProposedAction();
+    }
+    void dropEvent(QDropEvent* event) override {
+        const QList<QUrl> urls = event->mimeData()->urls();
+        if (!urls.isEmpty() && urls.first().isLocalFile()) {
+            if (onFileDropped)
+                onFileDropped(urls.first().toLocalFile());
+            event->acceptProposedAction();
+        }
+    }
+};
 
 int main(int argc, char** argv) {
     QApplication app(argc, argv);
@@ -56,7 +101,7 @@ int main(int argc, char** argv) {
     auto refs = std::make_unique<ReferenceIndex>(db);
     refs->link("orders", o1, "users", ada, "kunde");
 
-    QMainWindow window;
+    DemoWindow window;
     window.setWindowTitle(QStringLiteral("InMemDBViewer – Demo"));
 
     auto* mainSplitter = new QSplitter(&window);
@@ -155,6 +200,42 @@ int main(int argc, char** argv) {
             showCollection(QString::fromStdString(currentDb().collectionNames().front()));
     });
 
+    // FA-12: Snapshot laden – gemeinsamer Pfad fuer Datei-Dialog und Drag & Drop.
+    // Verschluesselte Snapshots werden am Magic-Header erkannt (Passwort-Abfrage),
+    // Fehler landen in einer MessageBox mit lastError().
+    const auto loadSnapshotFile = [&](const QString& path) {
+        if (path.isEmpty())
+            return;
+        bool ok = false;
+        if (isEncryptedSnapshot(path)) {
+            QString password;
+            if (!offscreen) {
+                bool entered = false;
+                password = QInputDialog::getText(&window, QStringLiteral("Verschluesselter Snapshot"),
+                                                 QStringLiteral("Passwort:"), QLineEdit::Password,
+                                                 QString(), &entered);
+                if (!entered || password.isEmpty())
+                    return;
+            }
+            ok = controller.openSnapshotEncrypted(path, password);
+        } else {
+            ok = controller.openSnapshot(path);
+        }
+        if (!ok) {
+            if (!offscreen)
+                QMessageBox::warning(&window, QStringLiteral("Snapshot laden"),
+                                     QStringLiteral("Laden fehlgeschlagen:\n%1")
+                                         .arg(controller.lastError()));
+            return;
+        }
+        window.setWindowTitle(
+            QStringLiteral("InMemDBViewer – Demo – %1").arg(QFileInfo(path).fileName()));
+    };
+    window.onFileDropped = loadSnapshotFile;
+    window.statusBar()->showMessage(
+        QStringLiteral("Snapshot-Datei per Drag & Drop auf das Fenster ziehen oder „Snapshot "
+                       "öffnen…“ in der Toolbar klicken"));
+
     // Toolbar: Live-Insert, Snapshot oeffnen (FA-12), Export (FA-15)
     auto* toolBar = window.addToolBar(QStringLiteral("Demo"));
     auto* insertAction = toolBar->addAction(QStringLiteral("Insert in orders (live)"));
@@ -167,10 +248,11 @@ int main(int argc, char** argv) {
     QObject::connect(openAction, &QAction::triggered, [&] {
         if (offscreen)
             return;
-        const QString path = QFileDialog::getOpenFileName(&window, QStringLiteral("Snapshot öffnen"),
-                                                          QString(), QStringLiteral("InMemDB Snapshot (*.json)"));
+        const QString path = QFileDialog::getOpenFileName(
+            &window, QStringLiteral("Snapshot öffnen"), QString(),
+            QStringLiteral("InMemDB Snapshot (*.json *.enc);;Alle Dateien (*)"));
         if (!path.isEmpty())
-            controller.openSnapshot(path); // false -> lastError()
+            loadSnapshotFile(path);
     });
     auto* pngAction = toolBar->addAction(QStringLiteral("Export PNG…"));
     QObject::connect(pngAction, &QAction::triggered, [&] {

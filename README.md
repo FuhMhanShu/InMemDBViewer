@@ -25,7 +25,7 @@ Visualisierung zu [InMemDB](https://github.com/FuhMhanShu/InMemDB) – C++/Qt, M
 - Schema-Szene (QGraphicsFramework): Collection-Knoten mit rekursivem, per Doppelklick auf-/zuklappbarem Schema (FA-06), FA-18-Referenzen als Kanten mit Dangling-Markierung (FA-05)
 - Bidirektionale Selektion Baum ↔ Szene über `ViewerController::collectionSelected` (FA-09)
 - Live-Update per Observer (`onChange` → queued Signale, FA-08)
-- Snapshot laden inkl. verschlüsselter Snapshots: `ViewerController::openSnapshot/openSnapshotEncrypted` (FA-12)
+- Snapshot laden inkl. verschlüsselter Snapshots: `ViewerController::openSnapshot/openSnapshotEncrypted` (FA-12); Demo: Datei-Dialog oder Drag & Drop, verschlüsselte Snapshots werden automatisch erkannt (Passwort-Abfrage)
 - Export: Szene als PNG und SVG (`SchemaScene::exportPng/exportSvg`, QtSvg), Graph als Mermaid/JSON/Markdown (`SchemaScene::mermaid/json/markdown`, FA-15)
 ### Auto-Sync: neue/gelöschte Collections erkennen (v0.4)
 InMemDB (Stand v0.24) feuert `Collection::onChange` nur für Dokumentänderungen; `createCollection`/`dropCollection`/`clear` erzeugen kein Database-Level-Event. Der `ViewerController` gleicht daher zusätzlich per leichtem QTimer (Default 250 ms, nur `collectionNames()`-Vergleich) den Collection-Stand ab: neue Collections werden automatisch abonniert, gelöschte abgemeldet, Model und Szene aktualisiert. Steuerung: `setAutoSyncEnabled(bool)`, `setAutoSyncInterval(int)`, `isAutoSyncEnabled()`.
@@ -67,6 +67,8 @@ include($$INMEMDBVIEWER_DIR/InMemDBViewer.pri)  # Variante A: libInMemDBViewer.a
 qmake examples/viewer_demo/viewer_demo.pro && make -j && ./viewer_demo
 QT_QPA_PLATFORM=offscreen ./viewer_demo        # CI-Smoke-Test, beendet sich selbst
 ```
+
+Snapshots (FA-12) lassen sich in der Demo per Toolbar-Dialog („Snapshot öffnen…“) laden oder per Drag & Drop auf das Fenster ziehen; verschlüsselte Snapshots (`.enc`, Magic-Header) erkennen die App automatisch und fragt das Passwort ab.
 
 ### Mini-Beispiel
 
