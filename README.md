@@ -19,6 +19,24 @@ MainWindow: oben uebergreifend "Daten laden" (Menue/Toolbar/Drag & Drop)
 
 **Daten laden** (übergeordnet, InMemDB FA-21 `ImportRegistry`/`Importer`): CSV, JSON/JSONL/NDJSON, SQL-Dump, BSON, SQLite (optional via `INMEMDB_WITH_SQLITE`), InMemDB-Snapshot (`.inmemdb.json`, inkl. verschlüsselt `.enc` mit Passwort, FA-14/FA-19). Geladene Daten stehen Datenbetrachtung und Analyse zur Verfügung; Änderungen werden live per Observer (FA-15) an alle Widgets verteilt.
 
+## Screenshots
+
+Erzeugt mit der App (`examples/viewer_app`, headless via `QT_QPA_PLATFORM=offscreen` gerendert), Daten: Demo-Daten + CSV- und SQLite-Import:
+
+| Übersicht nach dem Laden | Datenbetrachtung: Struktur (QGraphicsFramework) |
+|---|---|
+| ![App-Übersicht](docs/images/app-overview.png) | ![Struktur-Graph](docs/images/datenbetrachtung-struktur.png) |
+
+| Datenbetrachtung: Tabelle mit DSL-Filter | Analyse: Übersicht + Health-Score |
+|---|---|
+| ![Tabelle mit Query-Filter](docs/images/datenbetrachtung-tabelle.png) | ![Analyse-Übersicht](docs/images/analyse-uebersicht-health.png) |
+
+| Analyse: Feld-Statistik (FA-30) mit Histogramm | Analyse: Discovery (FA-27) Relationen |
+|---|---|
+| ![Feld-Statistik + Histogramm](docs/images/analyse-feldstatistik-histogramm.png) | ![Discovery](docs/images/analyse-discovery.png) |
+
+![Gesamtfenster nach Analyse](docs/images/app-gesamt-nach-analyse.png)
+
 ## Öffentliche API (Namespace `memdb::viewer`, Header unter `include/memdbviewer/`)
 
 | Klasse | Schicht | Zweck |

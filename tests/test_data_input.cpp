@@ -210,6 +210,24 @@ void TestViewerCore::asyncImportWorks() {
     QTRY_VERIFY_WITH_TIMEOUT(!core.isBusy(), 3000);
 }
 
+void TestViewerCore::asyncImportQueue() {
+    // Zwei asynchrone Imports direkt hintereinander (z. B. Mehrfach-Drag&Drop):
+    // der zweite wird gequeued statt abgelehnt.
+    ViewerCore core;
+    QSignalSpy spy(&core, &ViewerCore::importFinished);
+    core.importFileAsync(dataFile(QStringLiteral("personen.csv")));
+    core.importFileAsync(dataFile(QStringLiteral("shop.sql")));
+    QTRY_VERIFY_WITH_TIMEOUT(spy.count() >= 2, 15000);
+    int okCount = 0;
+    for (const auto& call : spy)
+        if (call.at(1).toBool())
+            ++okCount;
+    QCOMPARE(okCount, 2);
+    QVERIFY(core.database().hasCollection("personen"));
+    QVERIFY(core.database().hasCollection("bestellungen"));
+    QTRY_VERIFY_WITH_TIMEOUT(!core.isBusy(), 3000);
+}
+
 void TestImportModel::addUpdateClear() {
     viewer::detail::ImportModel model;
     QCOMPARE(model.rowCount(), 0);

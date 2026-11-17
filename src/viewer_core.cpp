@@ -8,9 +8,11 @@
 #include <QTimer>
 
 #include <atomic>
+#include <deque>
 #include <map>
 #include <mutex>
 #include <thread>
+#include <utility>
 #include <vector>
 
 namespace memdb::viewer {
@@ -73,6 +75,9 @@ struct ViewerCore::Impl {
     std::mutex workersMutex;
     std::atomic<bool> busy{false};
     std::atomic<bool> shuttingDown{false};
+    // Warteschlange fuer asynchrone Ladevorgaenge (z. B. mehrere per Drag & Drop abgelegte Dateien)
+    std::deque<std::pair<QString, std::function<void()>>> pending;
+    std::mutex pendingMutex;
 };
 
 ViewerCore::ViewerCore(QObject* parent) : QObject(parent), impl_(std::make_unique<Impl>(this)) {}
@@ -325,10 +330,15 @@ void ViewerCore::loadDemoData() {
 bool ViewerCore::isBusy() const { return impl_->busy.load(); }
 
 void ViewerCore::runAsync(const QString& path, std::function<void()> job) {
-    bool expected = false;
-    if (!impl_->busy.compare_exchange_strong(expected, true)) {
-        emit importFinished(path, false, QStringLiteral("Es laeuft bereits ein Import/Ladevorgang."));
-        return;
+    {
+        std::lock_guard<std::mutex> lock(impl_->pendingMutex);
+        if (impl_->busy.load()) {
+            // bereits laufend -> an die Warteschlange (z. B. mehrere Drag&Drop-Dateien)
+            impl_->pending.emplace_back(path, std::move(job));
+            emit importStarted(path);
+            return;
+        }
+        impl_->busy.store(true);
     }
     emit importStarted(path);
     auto done = std::make_shared<std::atomic<bool>>(false);
@@ -336,7 +346,18 @@ void ViewerCore::runAsync(const QString& path, std::function<void()> job) {
         job();
         done->store(true);
         QMetaObject::invokeMethod(this, [this] {
-            impl_->busy = false;
+            impl_->busy.store(false);
+            // naechsten wartenden Vorgang starten (GUI-Thread)
+            std::pair<QString, std::function<void()>> next;
+            {
+                std::lock_guard<std::mutex> lock(impl_->pendingMutex);
+                if (!impl_->pending.empty()) {
+                    next = std::move(impl_->pending.front());
+                    impl_->pending.pop_front();
+                }
+            }
+            if (!next.first.isEmpty() || next.second)
+                runAsync(next.first, std::move(next.second));
         }, Qt::QueuedConnection);
     });
     std::lock_guard<std::mutex> lock(impl_->workersMutex);
