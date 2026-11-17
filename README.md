@@ -2,22 +2,30 @@
 
 Visualisierungs- und **Analysetool** für [InMemDB](https://github.com/FuhMhanShu/InMemDB) – C++17/Qt, strikte MVC-Architektur, als Bibliothek + App.
 
-- [Anforderungen](anforderungen.md) (v1.0)
+- [Anforderungen](anforderungen.md) (v1.1)
 
-## Konzept (v1.0)
+## Konzept (v1.1)
 
-Die GUI besteht aus drei **gekapselten MVC-Widgets**, die alle an einem gemeinsamen Model (`ViewerCore`: hält `memdb::Database` + `ReferenceIndex`) hängen:
+Die GUI besteht aus **gekapselten MVC-Widgets**, die alle an einem gemeinsamen Model (`ViewerCore`: hält `memdb::Database` + `ReferenceIndex`) hängen:
 
 ```
-MainWindow: oben uebergreifend "Daten laden" (Menue/Toolbar/Drag & Drop)
-  ├─ DataInputWidget   – Dateneingabe: Datei-Dialog, Drag & Drop, Import-Optionen, Verlauf
-  ├─ DataViewWidget    – Bereich Datenbetrachtung: Struktur (QGraphicsFramework/DbGraph),
-  │                      tabellarische Ansicht (virtualisiert, DSL-Filter), Dokument-Detail
-  └─ AnalysisWidget    – Bereich Analyse: Discovery (FA-27) + Analyse (FA-29..FA-32, v0.33/v0.40),
-                         Worker-Thread, Health-Score, Report-Export
+MainWindow: oben uebergreifend "Daten laden" (Menue/Toolbar/Drag & Drop), unten Ausgabe-Dock
+  ├─ DataInputWidget        – Dateneingabe: Datei-Dialog, Drag & Drop, CSV aus Zwischenablage,
+  │                           Import-Optionen, Verlauf
+  ├─ DataViewWidget         – Bereich Datenbetrachtung: Struktur (QGraphicsFramework/DbGraph),
+  │                           tabellarische Ansicht (virtualisiert, DSL-Filter, Zellen editierbar),
+  │                           Dokument-Detail, Dokument-CRUD
+  ├─ DatabaseDesignWidget   – Bereich Datenbank-Design (v1.1): Collections anlegen/löschen/leeren,
+  │                           Schema definieren (FA-20), Indizes (FA-10, unique), Referenzen (FA-18)
+  ├─ AnalysisWidget         – Bereich Analyse: Discovery (FA-27) + Analyse (FA-29..FA-32, v0.33/v0.40),
+  │                           Confusion-Matrix (v0.42), Worker-Thread, Health-Score, Report-Export,
+  │                           Auto-Analyse nach jeder Datenmanipulation
+  └─ OutputPanel (Dock)     – Ausgabe-Log: jede Operation wird verifiziert, Fehler rot
 ```
 
-**Daten laden** (übergeordnet, InMemDB FA-21 `ImportRegistry`/`Importer`): CSV, JSON/JSONL/NDJSON, SQL-Dump, BSON, SQLite (optional via `INMEMDB_WITH_SQLITE`), InMemDB-Snapshot (`.inmemdb.json`, inkl. verschlüsselt `.enc` mit Passwort, FA-14/FA-19). Geladene Daten stehen Datenbetrachtung und Analyse zur Verfügung; Änderungen werden live per Observer (FA-15) an alle Widgets verteilt.
+**Daten laden** (übergeordnet, InMemDB FA-21 `ImportRegistry`/`Importer`): CSV, JSON/JSONL/NDJSON, SQL-Dump, BSON, SQLite (optional via `INMEMDB_WITH_SQLITE`), InMemDB-Snapshot (`.inmemdb.json`, inkl. verschlüsselt `.enc` mit Passwort, FA-14/FA-19) – sowie **CSV direkt aus der Zwischenablage**. Geladene Daten stehen Datenbetrachtung und Analyse zur Verfügung; Änderungen werden live per Observer (FA-15) an alle Widgets verteilt.
+
+**Design & Bearbeiten (v1.1)**: Neue Datenbank anlegen oder geladene bearbeiten – Collections, Schemas (FA-20), Indizes (FA-10, unique) und Referenzen (FA-18) definieren, Dokumente per Zellen-Edit/JSON-Dialog ändern/löschen, CSV aus der Zwischenablage übernehmen (Zwischenablage-Button im Dateneingabe-Panel). **Jede Operation wird vom Programm verifiziert** (InMemDB-Exceptions werden gefangen, Fehler landen rot im Ausgabe-Dock) und stößt automatisch **Discovery + Analyse** an (`dataMutated()` → Auto-Analyse mit Debounce).
 
 ## Screenshots
 
@@ -41,14 +49,24 @@ Erzeugt mit der App (`examples/viewer_app`, headless via `QT_QPA_PLATFORM=offscr
 
 ![Gesamtfenster nach Analyse](docs/images/app-gesamt-nach-analyse.png)
 
+### Datenbank-Design & Bearbeiten (v1.1)
+
+| Design: Schema-Editor (Collection „users“, FA-20) | Design: Referenzen (FA-18) |
+|---|---|
+| ![Design-Schema](docs/images/design-schema.png) | ![Design-Referenzen](docs/images/design-referenzen.png) |
+
+![Gesamtfenster mit Design-Bereich](docs/images/app-gesamt-design.png)
+
 ## Öffentliche API (Namespace `memdb::viewer`, Header unter `include/memdbviewer/`)
 
 | Klasse | Schicht | Zweck |
 |---|---|---|
 | `ViewerCore` | Model | hält `memdb::Database` + `ReferenceIndex`; Import/Snapshot laden (sync + async), Observer-Bridge → queued Signale (`collectionChanged`, `collectionsChanged`, `databaseLoaded`) |
 | `DataInputWidget` | View | Dateneingabe-Panel (Dialog, Drag & Drop, Formate, Optionen, Verlauf, Status) |
-| `DataViewWidget` | View | Datenbetrachtung: Datenbank-Übersicht, Struktur-Szene (QGraphicsFramework), Dokument-Tabelle, Dokument-Detail |
-| `AnalysisWidget` | View | Analyse: Discovery + Analyse im Worker-Thread, Health-Ampel, Report-Export (Markdown/JSON/Mermaid) |
+| `DataViewWidget` | View | Datenbetrachtung: Datenbank-Übersicht, Struktur-Szene (QGraphicsFramework), Dokument-Tabelle (editierbar), Dokument-Detail, Dokument-CRUD |
+| `DatabaseDesignWidget` | View | Datenbank-Design (v1.1): Collections, Schema-Editor, Indizes, Referenzen – verifiziert über `ViewerCore` |
+| `AnalysisWidget` | View | Analyse: Discovery + Analyse im Worker-Thread, Confusion-Matrix (v0.42), Health-Ampel, Report-Export (Markdown/JSON/Mermaid), Auto-Analyse nach `dataMutated()` |
+| `OutputPanel` | View | Ausgabe-Dock: verifiziertes Log (Fehler rot, Filter „nur Fehler“) |
 
 Interne MVC-Teile (Model/Controller je Widget) liegen gekapselt in `src/` (`ImportModel`, `DataInputController`, …).
 
