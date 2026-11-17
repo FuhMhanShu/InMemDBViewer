@@ -1,17 +1,34 @@
 // Tests fuer Schritt A: verifizierte Mutationen im ViewerCore (Collections, Schema,
 // Indizes, Referenzen, Dokument-CRUD, CSV-Text, Snapshot) + Logging + OutputPanel.
+// Schritt B: DatabaseDesignWidget (MVC). Schritt C: CSV aus Zwischenablage + Dokument-CRUD.
 #include "test_viewer.hpp"
 
 #include <memdb/memdb.hpp>
+#include "../src/database_model.hpp"
 #include "../src/design_controller.hpp"
+#include "../src/document_table_model.hpp"
+#include <memdbviewer/data_input_widget.hpp>
+#include <memdbviewer/data_view_widget.hpp>
 #include <memdbviewer/database_design_widget.hpp>
 #include <memdbviewer/output_panel.hpp>
 #include <memdbviewer/viewer_core.hpp>
 
+#include <QApplication>
+#include <QClipboard>
+#include <QComboBox>
+#include <QDialog>
+#include <QLineEdit>
+#include <QPlainTextEdit>
+#include <QPushButton>
 #include <QSignalSpy>
-#include <QTextBrowser>
+#include <QTableView>
 #include <QTemporaryDir>
 #include <QTest>
+#include <QTextBrowser>
+#include <QTimer>
+#include <QTreeView>
+
+#include <functional>
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 // QVERIFY_THROWS_EXCEPTION erst ab Qt 6 – Qt-5.15-kompatible Variante
@@ -313,4 +330,267 @@ void TestDatabaseDesignWidget::reflectsCoreState() {
     QTRY_VERIFY_WITH_TIMEOUT(widget.schemaRowCount() == 3, 3000);
     QCOMPARE(widget.currentCollection(), QStringLiteral("users"));
     QCOMPARE(widget.indexItemCount(), 1); // unique-Index auf age
+}
+
+// ---------------------------------------------------------------- Schritt C
+
+namespace {
+/// @brief Sucht einen Button anhand eines Text-Fragments.
+QPushButton* findButton(QWidget* w, const QString& fragment) {
+    for (auto* b : w->findChildren<QPushButton*>())
+        if (b->text().contains(fragment))
+            return b;
+    return nullptr;
+}
+
+/// @brief Akzeptiert den aktiven modalen Dialog nach `msec` (Offscreen-Tests) und fuellt ihn aus.
+void acceptModalDialog(int msec, const std::function<void(QDialog*)>& fill) {
+    QTimer::singleShot(msec, [fill] {
+        auto* d = qobject_cast<QDialog*>(QApplication::activeModalWidget());
+        if (!d)
+            return;
+        if (fill)
+            fill(d);
+        d->accept();
+    });
+}
+
+/// @brief DataViewWidget mit Demo-Daten aufgesetzt + Collection "users" ausgewaehlt.
+///        Rueckgabe: table/model ueber out-Parameter; QTRY-Makros nur im Test-Slot verwenden.
+void setupViewWithUsers(ViewerCore& core, DataViewWidget& w, QTableView** tableOut,
+                        viewer::detail::DocumentTableModel** modelOut) {
+    core.loadDemoData();
+    w.setCore(&core);
+    w.show();
+    *tableOut = w.findChild<QTableView*>();
+    *modelOut = *tableOut ? qobject_cast<viewer::detail::DocumentTableModel*>((*tableOut)->model()) : nullptr;
+}
+
+int columnOf(viewer::detail::DocumentTableModel* model, const QString& name) {
+    for (int c = 0; c < model->columnCount(); ++c)
+        if (model->headerData(c, Qt::Horizontal).toString() == name)
+            return c;
+    return -1;
+}
+
+int rowOfName(viewer::detail::DocumentTableModel* model, int nameCol, const QString& value) {
+    for (int r = 0; r < model->rowCount(); ++r)
+        if (model->data(model->index(r, nameCol)).toString() == value)
+            return r;
+    return -1;
+}
+
+/// @brief Uebersichts-Baum (DatabaseModel) im DataViewWidget finden.
+QTreeView* dbTreeOf(DataViewWidget& w) {
+    for (auto* t : w.findChildren<QTreeView*>())
+        if (qobject_cast<viewer::detail::DatabaseModel*>(t->model()))
+            return t;
+    return nullptr;
+}
+
+/// @brief Collection `name` im Uebersichts-Baum selektieren (loest currentRowChanged aus).
+bool selectInDbTree(QTreeView* dbTree, const QString& name) {
+    for (int r = 0; r < dbTree->model()->rowCount(); ++r)
+        if (dbTree->model()->data(dbTree->model()->index(r, 0)).toString() == name) {
+            dbTree->setCurrentIndex(dbTree->model()->index(r, 0));
+            return true;
+        }
+    return false;
+}
+} // namespace
+
+void TestClipboardCsvImport::importsFromClipboardWithDialog() {
+    ViewerCore core;
+    QSignalSpy mutSpy(&core, &ViewerCore::dataMutated);
+    QSignalSpy logSpy(&core, &ViewerCore::logged);
+    QGuiApplication::clipboard()->setText(QStringLiteral("name;age\nAda;36\nBob;41\n"));
+    DataInputWidget w;
+    w.setCore(&core);
+    w.show();
+    QPushButton* btn = findButton(&w, QStringLiteral("Zwischenablage"));
+    QVERIFY(btn);
+    acceptModalDialog(100, [](QDialog* d) {
+        for (auto* le : d->findChildren<QLineEdit*>())
+            if (le->text() == QStringLiteral("clipboard"))
+                le->setText(QStringLiteral("clip"));
+        if (auto* combo = d->findChild<QComboBox*>())
+            combo->setCurrentIndex(1); // ';' (Semikolon)
+    });
+    btn->click();
+    QTRY_VERIFY_WITH_TIMEOUT(core.collectionNames().contains(QStringLiteral("clip")), 3000);
+    auto coll = core.database().collection("clip");
+    QCOMPARE(coll.size(), std::size_t(2));
+    bool foundAda = false;
+    coll.forEach(memdb::Expression{}, [&](const memdb::Document& doc) {
+        const auto* name = doc.findPath("name");
+        if (name && name->asString() == "Ada") {
+            foundAda = true;
+            // ohne Typ-Inferenz sind alle Spalten Text
+            QCOMPARE(doc.findPath("age")->type(), memdb::Value::Type::String);
+        }
+    });
+    QVERIFY(foundAda);
+    QVERIFY(mutSpy.count() >= 1); // dataMutated wurde ausgeloest
+    QVERIFY(logSpy.count() >= 1); // Erfolg im Log
+}
+
+void TestClipboardCsvImport::emptyClipboardReportsStatus() {
+    ViewerCore core;
+    QGuiApplication::clipboard()->clear();
+    DataInputWidget w;
+    w.setCore(&core);
+    w.show();
+    QPushButton* btn = findButton(&w, QStringLiteral("Zwischenablage"));
+    QVERIFY(btn);
+    QSignalSpy statusSpy(&w, &DataInputWidget::statusMessage);
+    btn->click();
+    QVERIFY(statusSpy.count() >= 1);
+    QVERIFY(statusSpy.first().at(0).toString().contains(QStringLiteral("Zwischenablage")));
+    QVERIFY(core.collectionNames().isEmpty()); // nichts importiert
+}
+
+void TestDocumentCrudWidget::cellEditVerifiesAndMutates() {
+    ViewerCore core;
+    QSignalSpy mutSpy(&core, &ViewerCore::dataMutated);
+    DataViewWidget w;
+    QTableView* table = nullptr;
+    viewer::detail::DocumentTableModel* model = nullptr;
+    setupViewWithUsers(core, w, &table, &model);
+    QVERIFY(table && model);
+    QTRY_VERIFY_WITH_TIMEOUT(w.tableRowCount() > 0, 3000);
+    // Collection "users" in der Uebersicht auswaehlen
+    QTreeView* dbTree = dbTreeOf(w);
+    QVERIFY(dbTree);
+    QVERIFY(dbTree->model()->rowCount() >= 2);
+    QVERIFY(selectInDbTree(dbTree, QStringLiteral("users")));
+    QTRY_COMPARE_WITH_TIMEOUT(w.currentCollection(), QStringLiteral("users"), 3000);
+    QTRY_VERIFY_WITH_TIMEOUT(model->rowCount() == 3, 3000);
+    const int nameCol = columnOf(model, QStringLiteral("name"));
+    const int ageCol = columnOf(model, QStringLiteral("age"));
+    QVERIFY(nameCol > 0 && ageCol > 0);
+    // Flags: id-Spalte geschuetzt, Datenzellen editierbar
+    QVERIFY(!(model->flags(model->index(0, 0)) & Qt::ItemIsEditable));
+    QVERIFY(model->flags(model->index(0, nameCol)) & Qt::ItemIsEditable);
+    const int adaRow = rowOfName(model, nameCol, QStringLiteral("Ada"));
+    QVERIFY(adaRow >= 0);
+    const quint64 adaId = model->idAt(adaRow);
+    const int mutBefore = mutSpy.count();
+    // Zelle bearbeiten -> verifizierte Mutation ueber den ViewerCore
+    QVERIFY(model->setData(model->index(adaRow, nameCol), QStringLiteral("Grace"), Qt::EditRole));
+    const auto doc = core.database().collection("users").findById(memdb::DocumentId(adaId));
+    QVERIFY(doc);
+    QCOMPARE(doc->findPath("name")->asString(), std::string("Grace"));
+    QVERIFY(mutSpy.count() > mutBefore); // dataMutated
+}
+
+void TestDocumentCrudWidget::cellEditSchemaErrorIsLogged() {
+    ViewerCore core;
+    QSignalSpy mutSpy(&core, &ViewerCore::dataMutated);
+    QSignalSpy logSpy(&core, &ViewerCore::logged);
+    DataViewWidget w;
+    QTableView* table = nullptr;
+    viewer::detail::DocumentTableModel* model = nullptr;
+    setupViewWithUsers(core, w, &table, &model);
+    QVERIFY(table && model);
+    QTRY_VERIFY_WITH_TIMEOUT(w.tableRowCount() > 0, 3000);
+    QTreeView* dbTree = dbTreeOf(w);
+    QVERIFY(dbTree);
+    QVERIFY(selectInDbTree(dbTree, QStringLiteral("users")));
+    QTRY_COMPARE_WITH_TIMEOUT(w.currentCollection(), QStringLiteral("users"), 3000);
+    QTRY_VERIFY_WITH_TIMEOUT(model->rowCount() == 3, 3000);
+    const int nameCol = columnOf(model, QStringLiteral("name"));
+    const int ageCol = columnOf(model, QStringLiteral("age"));
+    const int adaRow = rowOfName(model, nameCol, QStringLiteral("Ada"));
+    QVERIFY(adaRow >= 0 && ageCol > 0);
+    const quint64 adaId = model->idAt(adaRow);
+    const int logBefore = logSpy.count();
+    const int mutBefore = mutSpy.count();
+    // age ist im Demo-Schema Int -> "abc" (String) muss SchemaError werfen
+    model->setData(model->index(adaRow, ageCol), QStringLiteral("abc"), Qt::EditRole);
+    const auto doc = core.database().collection("users").findById(memdb::DocumentId(adaId));
+    QVERIFY(doc);
+    QCOMPARE(doc->findPath("age")->asInt(), 36); // Wert unveraendert
+    QCOMPARE(mutSpy.count(), mutBefore);         // kein dataMutated bei Fehler
+    bool sawError = false;
+    for (int i = logBefore; i < logSpy.count(); ++i)
+        if (logSpy.at(i).at(1).toBool())
+            sawError = true;
+    QVERIFY(sawError); // Fehler (rot) im Ausgabe-Log
+}
+
+void TestDocumentCrudWidget::insertAndDeleteDocument() {
+    ViewerCore core;
+    QSignalSpy mutSpy(&core, &ViewerCore::dataMutated);
+    DataViewWidget w;
+    QTableView* table = nullptr;
+    viewer::detail::DocumentTableModel* model = nullptr;
+    setupViewWithUsers(core, w, &table, &model);
+    QVERIFY(table && model);
+    QTRY_VERIFY_WITH_TIMEOUT(w.tableRowCount() > 0, 3000);
+    QTreeView* dbTree = dbTreeOf(w);
+    QVERIFY(dbTree);
+    QVERIFY(selectInDbTree(dbTree, QStringLiteral("users")));
+    QTRY_COMPARE_WITH_TIMEOUT(w.currentCollection(), QStringLiteral("users"), 3000);
+    QTRY_VERIFY_WITH_TIMEOUT(model->rowCount() == 3, 3000);
+    const int nameCol = columnOf(model, QStringLiteral("name"));
+    QVERIFY(nameCol > 0);
+    const std::size_t before = core.database().collection("users").size();
+    const int mutBefore = mutSpy.count();
+    // "Dokument neu…" -> JSON-Dialog ausfuellen -> OK
+    QPushButton* newBtn = findButton(&w, QStringLiteral("Dokument neu"));
+    QVERIFY(newBtn);
+    acceptModalDialog(100, [](QDialog* d) {
+        if (auto* pe = d->findChild<QPlainTextEdit*>())
+            pe->setPlainText(QStringLiteral("{\"name\":\"Linus\",\"age\":55}"));
+    });
+    newBtn->click();
+    QTRY_COMPARE_WITH_TIMEOUT(core.database().collection("users").size(), before + 1, 3000);
+    bool found = false;
+    core.database().collection("users").forEach(memdb::Expression{}, [&](const memdb::Document& doc) {
+        const auto* n = doc.findPath("name");
+        if (n && n->asString() == "Linus")
+            found = true;
+    });
+    QVERIFY(found);
+    QVERIFY(mutSpy.count() > mutBefore);
+    // neue Zeile erscheint in der Tabelle (Live-Refresh) und wird geloescht
+    QTRY_VERIFY_WITH_TIMEOUT(rowOfName(model, nameCol, QStringLiteral("Linus")) >= 0, 3000);
+    const int linusRow = rowOfName(model, nameCol, QStringLiteral("Linus"));
+    table->selectRow(linusRow);
+    QPushButton* delBtn = findButton(&w, QStringLiteral("Dokument löschen"));
+    QVERIFY(delBtn);
+    delBtn->click(); // Offscreen: ohne Rueckfrage
+    QTRY_COMPARE_WITH_TIMEOUT(core.database().collection("users").size(), before, 3000);
+    QVERIFY(mutSpy.count() > mutBefore + 1);
+}
+
+void TestDocumentCrudWidget::invalidJsonIsLogged() {
+    ViewerCore core;
+    QSignalSpy logSpy(&core, &ViewerCore::logged);
+    DataViewWidget w;
+    QTableView* table = nullptr;
+    viewer::detail::DocumentTableModel* model = nullptr;
+    setupViewWithUsers(core, w, &table, &model);
+    QVERIFY(table && model);
+    QTRY_VERIFY_WITH_TIMEOUT(w.tableRowCount() > 0, 3000);
+    QTreeView* dbTree = dbTreeOf(w);
+    QVERIFY(dbTree);
+    QVERIFY(selectInDbTree(dbTree, QStringLiteral("users")));
+    QTRY_COMPARE_WITH_TIMEOUT(w.currentCollection(), QStringLiteral("users"), 3000);
+    const std::size_t before = core.database().collection("users").size();
+    const int logBefore = logSpy.count();
+    QPushButton* newBtn = findButton(&w, QStringLiteral("Dokument neu"));
+    QVERIFY(newBtn);
+    acceptModalDialog(100, [](QDialog* d) {
+        if (auto* pe = d->findChild<QPlainTextEdit*>())
+            pe->setPlainText(QStringLiteral("{invalid json"));
+    });
+    newBtn->click();
+    QTest::qWait(150); // synchroner Fehler, kein Warten auf GUI-Events noetig
+    QCOMPARE(core.database().collection("users").size(), before); // nichts eingefuegt
+    bool sawError = false;
+    for (int i = logBefore; i < logSpy.count(); ++i)
+        if (logSpy.at(i).at(1).toBool())
+            sawError = true;
+    QVERIFY(sawError); // JSON-Fehler (rot) im Ausgabe-Log
 }

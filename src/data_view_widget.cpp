@@ -11,19 +11,25 @@
 #include <memdb/memdb.hpp>
 
 #include <QComboBox>
+#include <QDialog>
+#include <QDialogButtonBox>
 #include <QFile>
 #include <QFileDialog>
+#include <QGuiApplication>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QItemSelectionModel>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMessageBox>
+#include <QPlainTextEdit>
 #include <QPushButton>
 #include <QSplitter>
 #include <QTabWidget>
 #include <QTableView>
 #include <QTextBrowser>
+#include <QTimer>
 #include <QTreeView>
 #include <QVBoxLayout>
 
@@ -115,13 +121,31 @@ DataViewWidget::DataViewWidget(QWidget* parent) : QWidget(parent), impl_(std::ma
     filterBar->addWidget(resetBtn);
     filterBar->addWidget(impl_->diagLabel, 1);
     tableLayout->addLayout(filterBar);
+    // Bearbeiten-Leiste (DE-05): neues/loeschen Dokument + Hinweis auf Zellen-Edit
+    auto* docBar = new QHBoxLayout();
+    docBar->addWidget(new QLabel(QStringLiteral("Bearbeiten:"), tableWidget));
+    auto* newDocBtn = new QPushButton(QStringLiteral("Dokument neu…"), tableWidget);
+    newDocBtn->setToolTip(QStringLiteral("Neues Dokument als JSON-Objekt in der aktuellen Collection anlegen (wird geprueft)"));
+    auto* delDocBtn = new QPushButton(QStringLiteral("Dokument löschen"), tableWidget);
+    delDocBtn->setToolTip(QStringLiteral("Ausgewaehlte Zeile (Dokument) loeschen – mit Sicherheitsabfrage"));
+    auto* editHint = new QLabel(
+        QStringLiteral("Doppelklick auf eine Zelle ändert den Wert (vom Programm geprüft und geloggt)."), tableWidget);
+    editHint->setStyleSheet(QStringLiteral("color: palette(mid); font-size: small;"));
+    docBar->addWidget(newDocBtn);
+    docBar->addWidget(delDocBtn);
+    docBar->addStretch();
+    docBar->addWidget(editHint);
+    tableLayout->addLayout(docBar);
     impl_->tableModel = new detail::DocumentTableModel(this);
     impl_->tableView = new QTableView(tableWidget);
     impl_->tableView->setModel(impl_->tableModel);
     impl_->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
     impl_->tableView->setSelectionMode(QAbstractItemView::SingleSelection);
+    impl_->tableView->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::EditKeyPressed);
     impl_->tableView->horizontalHeader()->setStretchLastSection(true);
     tableLayout->addWidget(impl_->tableView, 1);
+    connect(newDocBtn, &QPushButton::clicked, this, &DataViewWidget::insertDocumentDialog);
+    connect(delDocBtn, &QPushButton::clicked, this, &DataViewWidget::deleteSelectedDocument);
     auto* aggBar = new QHBoxLayout();
     aggBar->addWidget(new QLabel(QStringLiteral("Aggregat:"), tableWidget));
     impl_->aggOpBox = new QComboBox(tableWidget);
@@ -294,5 +318,66 @@ void DataViewWidget::refresh() {
 }
 
 bool DataViewWidget::exportStructurePng(const QString& path) { return impl_->scene->exportPng(path); }
+
+void DataViewWidget::insertDocumentDialog() {
+    if (!impl_->core || impl_->controller->currentCollection().isEmpty()) {
+        emit statusMessage(QStringLiteral("Bitte zuerst eine Collection auswählen."));
+        return;
+    }
+    const QString coll = impl_->controller->currentCollection();
+    QDialog dlg(this);
+    dlg.setWindowTitle(QStringLiteral("Neues Dokument in „%1“").arg(coll));
+    auto* layout = new QVBoxLayout(&dlg);
+    layout->addWidget(new QLabel(QStringLiteral("Dokument als JSON-Objekt (Feld: Wert):"), &dlg));
+    auto* edit = new QPlainTextEdit(&dlg);
+    edit->setPlaceholderText(QStringLiteral("{\"name\": \"Ada\", \"age\": 36}"));
+    layout->addWidget(edit, 1);
+    auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dlg);
+    layout->addWidget(buttons);
+    connect(buttons, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
+    if (dlg.exec() != QDialog::Accepted)
+        return;
+    const QString json = edit->toPlainText().trimmed();
+    if (json.isEmpty())
+        return;
+    QString err;
+    quint64 newId = 0;
+    if (!impl_->controller->insertDocument(json, &newId, &err))
+        return; // Fehler ist bereits im Ausgabe-Log (rot) + Status
+    // neue Zeile selektieren, sobald die Tabelle aktualisiert ist (queued collectionChanged)
+    QTimer::singleShot(0, this, [this, newId] {
+        for (int r = 0; r < impl_->tableModel->rowCount(); ++r) {
+            if (impl_->tableModel->idAt(r) == newId) {
+                impl_->tableView->selectRow(r);
+                break;
+            }
+        }
+    });
+}
+
+void DataViewWidget::deleteSelectedDocument() {
+    if (!impl_->core || impl_->controller->currentCollection().isEmpty()) {
+        emit statusMessage(QStringLiteral("Bitte zuerst eine Collection auswählen."));
+        return;
+    }
+    const QModelIndex cur = impl_->tableView->currentIndex();
+    if (!cur.isValid()) {
+        emit statusMessage(QStringLiteral("Bitte zuerst eine Zeile (Dokument) in der Tabelle auswählen."));
+        return;
+    }
+    const quint64 id = impl_->tableModel->idAt(cur.row());
+    const QString coll = impl_->controller->currentCollection();
+    const bool offscreen = QGuiApplication::platformName() == QLatin1String("offscreen");
+    if (!offscreen) {
+        const auto answer = QMessageBox::question(
+            this, QStringLiteral("Dokument löschen"),
+            QStringLiteral("Dokument #%1 aus „%2“ wirklich löschen?").arg(id).arg(coll));
+        if (answer != QMessageBox::Yes)
+            return;
+    }
+    QString err;
+    impl_->controller->removeDocument(id, &err); // Fehler -> Ausgabe-Log + Status
+}
 
 } // namespace memdb::viewer

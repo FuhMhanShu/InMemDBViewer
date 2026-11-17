@@ -48,6 +48,15 @@ public:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
 
+    /// @brief Zellen editierbar (ausser id-Spalte); `setData` loest nur `editRequested`
+    ///        aus – die Mutation uebernimmt der Controller verifiziert ueber den ViewerCore (DE-05).
+    Qt::ItemFlags flags(const QModelIndex& index) const override;
+    bool setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole) override;
+
+signals:
+    /// @brief Zellen-Edit angefordert; id + Feldpfad + neuer Wert als Text.
+    void editRequested(quint64 id, const QString& fieldPath, const QString& value);
+
 private:
     void doRefresh(); // ohne begin/endResetModel (intern)
     void rebuildColumns();

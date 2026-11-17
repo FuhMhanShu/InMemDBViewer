@@ -128,3 +128,19 @@ class TestDatabaseDesignWidget : public QObject {
 private slots:
     void reflectsCoreState();
 };
+
+class TestClipboardCsvImport : public QObject {
+    Q_OBJECT
+private slots:
+    void importsFromClipboardWithDialog();
+    void emptyClipboardReportsStatus();
+};
+
+class TestDocumentCrudWidget : public QObject {
+    Q_OBJECT
+private slots:
+    void cellEditVerifiesAndMutates();
+    void cellEditSchemaErrorIsLogged();
+    void insertAndDeleteDocument();
+    void invalidJsonIsLogged();
+};

@@ -38,6 +38,7 @@ struct DataInputWidget::Impl {
     QPlainTextEdit* log = nullptr;
     QPushButton* openFileBtn = nullptr;
     QPushButton* openFolderBtn = nullptr;
+    QPushButton* csvClipboardBtn = nullptr;
     QPushButton* optionsBtn = nullptr;
     QPushButton* clearBtn = nullptr;
     QFrame* dropFrame = nullptr;
@@ -134,11 +135,14 @@ DataInputWidget::DataInputWidget(QWidget* parent) : QWidget(parent), impl_(std::
     impl_->openFileBtn->setToolTip(QStringLiteral("Eine oder mehrere Dateien importieren (Strg+O)"));
     impl_->openFolderBtn = new QPushButton(QStringLiteral("Ordner oeffnen…"), this);
     impl_->openFolderBtn->setToolTip(QStringLiteral("Alle unterstuetzten Dateien eines Ordners importieren"));
+    impl_->csvClipboardBtn = new QPushButton(QStringLiteral("CSV aus Zwischenablage…"), this);
+    impl_->csvClipboardBtn->setToolTip(QStringLiteral("CSV-Text aus der Zwischenablage als neue Collection importieren (DE-04, mit Optionen-Dialog)"));
     impl_->optionsBtn = new QPushButton(QStringLiteral("Optionen…"), this);
     impl_->optionsBtn->setToolTip(QStringLiteral("Import-Optionen (FA-21): Batch, Indizes, Schema, PK, Fremdschluessel"));
     impl_->clearBtn = new QPushButton(QStringLiteral("Verlauf leeren"), this);
     header->addWidget(impl_->openFileBtn);
     header->addWidget(impl_->openFolderBtn);
+    header->addWidget(impl_->csvClipboardBtn);
     header->addWidget(impl_->optionsBtn);
     header->addWidget(impl_->clearBtn);
     outer->addLayout(header);
@@ -186,6 +190,7 @@ DataInputWidget::DataInputWidget(QWidget* parent) : QWidget(parent), impl_(std::
 
     connect(impl_->openFileBtn, &QPushButton::clicked, this, &DataInputWidget::openFileDialog);
     connect(impl_->openFolderBtn, &QPushButton::clicked, this, &DataInputWidget::openFolderDialog);
+    connect(impl_->csvClipboardBtn, &QPushButton::clicked, this, &DataInputWidget::importCsvFromClipboard);
     connect(impl_->clearBtn, &QPushButton::clicked, impl_->model, &detail::ImportModel::clearHistory);
     connect(impl_->optionsBtn, &QPushButton::clicked, this, [this] {
         if (!impl_->core)
@@ -231,6 +236,11 @@ void DataInputWidget::openFileDialog() {
 void DataInputWidget::openFolderDialog() {
     if (impl_->controller)
         impl_->controller->openFolderDialog(this);
+}
+
+void DataInputWidget::importCsvFromClipboard() {
+    if (impl_->controller)
+        impl_->controller->importCsvFromClipboard(this);
 }
 
 void DataInputWidget::handleDroppedFiles(const QStringList& paths) {

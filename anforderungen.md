@@ -5,8 +5,8 @@
 | Feld | Wert |
 |---|---|
 | Projekttitel | InMemDBViewer – Daten laden, betrachten und analysieren für [InMemDB](https://github.com/FuhMhanShu/InMemDB) |
-| Version | 1.0 |
-| Status | v1.0 umgesetzt (4 Branches nach Abschnitt 8 gemerged: Anforderungen, Dateneingabe, Datenbetrachtung, Datenanalyse; die bisherige Demo-Implementierung v0.1–v0.4 wurde verworfen, siehe Abschnitt 3) |
+| Version | 1.1 |
+| Status | v1.0 umgesetzt (4 Branches nach Abschnitt 8 gemerged: Anforderungen, Dateneingabe, Datenbetrachtung, Datenanalyse; die bisherige Demo-Implementierung v0.1–v0.4 wurde verworfen, siehe Abschnitt 3). v1.1 „Design & Bearbeiten“ (Abschnitt 4.5): Schritte A–C umgesetzt (verifizierte Mutationen + Ausgabe-Panel + DatabaseDesignWidget + Clipboard-CSV + Dokument-CRUD), Schritt D (Auto-Discovery/Analyse nach jeder Mutation) folgt. |
 | Sprache | Deutsch (UI und Doku) |
 | Technologie | C++17, Qt (Widgets + Graphics View Framework), qmake (.pro/.pri) **und** CMake |
 | Bereitstellungsform | Wiederverwendbare **C++/Qt-Bibliothek** (statische Library, öffentliche Header unter `include/memdbviewer/`, Implementierung in `src/`, Namespace `memdb::viewer`, Einbindung via `InMemDBViewer.pri` bzw. CMake-Target) **plus** lauffähige Anwendung unter `examples/viewer_app/` |
@@ -130,6 +130,18 @@ Prioritäten: **M** = Muss, **S** = Soll, **K** = Kann. InMemDB-Referenzen in Kl
 | GA-02 | **Ergonomie**: konsistente deutsche Beschriftungen, gruppierte Werkzeugleisten mit Tooltips, Tastenkürzel (Öffnen Strg+O, Analysieren F5 …), sinnvolle Größenverhältnisse/Splitter, keine modal blockierenden Dialoge außer Passwort/Datei-Öffnen. | M |
 | GA-03 | **Demo-App headless-tauglich**: `QT_QPA_PLATFORM=offscreen ./viewer_app` lädt Demo-Daten, rendert die Struktur-Szene in ein Offscreen-Bild, führt eine Analyse aus und beendet sich mit Exit-Code 0 (CI-Smoke-Test). | M |
 
+### 4.5 Design & Bearbeiten der Database (DE)
+
+| ID | Anforderung | Prio |
+|---|---|---|
+| DE-01 | **Verifizierte Mutationen im `ViewerCore`**: Collection anlegen/löschen/leeren, Schema setzen/entfernen (FA-20 – Bestand wird mitgeprüft), Index anlegen/löschen (unique inkl. Duplikat-Prüfung, FA-10), Referenzen verknüpfen/trennen + Dangling-Prune (FA-18), Dokument einfügen (JSON)/Feld ändern (Punktnotation, typisierter Wert)/löschen, CSV-Text importieren (FA-21), Snapshot speichern (FA-14 / verschlüsselt FA-19). Jede Operation liefert `bool` + Fehlertext, fängt Exceptions ab, schreibt ins Log und stößt bei Erfolg `dataMutated()` an. | M |
+| DE-02 | **Ausgabe-Panel** (`OutputPanel`, Dock unten in der App): Log mit Zeitstempel, Fehler rot hervorgehoben, Filter „nur Fehler“, Zähler, „Leeren“; gekoppelt an `ViewerCore::logged`. | M |
+| DE-03 | **DatabaseDesignWidget (MVC, gekapselt)**: neue Database anlegen (App-Menü „Neue Datenbank…“) oder geladene bearbeiten – Collections anlegen/löschen/leeren; **Schema-Editor** (Feldpfad/Typ/nullable/Unter-Schema/Array-Elementtyp, „Schema anwenden (validiert)“); **Indizes** (Feld mit Auto-Vervollständigung, unique-Checkbox, anlegen/löschen); **Referenzen** (Von/Nach + IDs + Relation, Verknüpfen/Entfernen/Dangling bereinigen). Alle Operationen laufen über DE-01 und werden verifiziert/geloggt. | M |
+| DE-04 | **CSV aus der Zwischenablage** im `DataInputWidget`: Button „CSV aus Zwischenablage…“ + Optionen-Dialog (Collection-Name, Trennzeichen, Quote, Header, Typ-Inferenz, Vorschau) → `ViewerCore::importCsvText`. | M |
+| DE-05 | **Dokument-CRUD in der Datenbetrachtung**: Zellen der Tabelle editierbar (Doppelklick; id-Spalte geschützt) → `updateDocumentField` (verifiziert: Schema/Unique werden geprüft, Fehler ins Log); „Dokument neu…“ (JSON-Dialog) und „Dokument löschen“ (Zeilenauswahl + Sicherheitsabfrage). | M |
+| DE-06 | **Auto-Aktualisierung nach jeder Datenmanipulation**: `ViewerCore::dataMutated()` triggert Datenbetrachtung (Graph/Models) und – mit Debounce – **Discovery + Analyse** (AN-01) automatisch; abschaltbar („Auto-Analyse nach Änderung“). | M |
+| DE-07 | **App-Menü**: „Neue Datenbank…“ (leere Database mit Name), „Snapshot speichern…“, „Snapshot verschlüsselt speichern…“. | S |
+
 ---
 
 ## 5. Nicht-funktionale Anforderungen
@@ -155,8 +167,10 @@ Namespace `memdb::viewer`. Jedes Widget ist eine Einheit aus öffentlichem Widge
 | Klasse | Schicht | Verantwortung |
 |---|---|---|
 | `memdb::viewer::ViewerCore` | Model (zentral) | Hält `memdb::Database` + `ReferenceIndex`; Import (FA-21) & Snapshot (FA-14/FA-19) in die Database; Observer-Bridge (FA-15 → queued Signale); Auto-Sync der Collection-Liste; Signale `databaseLoaded(QString)`, `collectionChanged(QString)`, `databaseCleared()`, `lastErrorChanged(QString)`. |
-| `memdb::viewer::DataInputWidget` | View | Dateneingabe-Panel (Dialog, Drag & Drop, unterstützte Formate, Optionen, Verlauf, Status). Intern: `ImportModel`, `DataInputController`. |
-| `memdb::viewer::DataViewWidget` | View | Bereich Datenbetrachtung: Übersicht (`DatabaseModel`), Struktur (`GraphScene`/`GraphView`, QGraphicsFramework + DbGraph FA-22), Tabelle (`DocumentTableModel`), Dokument-Detail (`DocumentTreeModel`), Query-Filter, Metriken. Intern: `DataViewController`. |
+| `memdb::viewer::DataInputWidget` | View | Dateneingabe-Panel (Dialog, Drag & Drop, CSV aus Zwischenablage DE-04, unterstützte Formate, Optionen, Verlauf, Status). Intern: `ImportModel`, `DataInputController`. |
+| `memdb::viewer::DataViewWidget` | View | Bereich Datenbetrachtung: Übersicht (`DatabaseModel`), Struktur (`GraphScene`/`GraphView`, QGraphicsFramework + DbGraph FA-22), Tabelle (`DocumentTableModel`, Zellen editierbar DE-05), Dokument-Detail (`DocumentTreeModel`), Query-Filter, Metriken, Dokument-CRUD. Intern: `DataViewController`. |
+| `memdb::viewer::DatabaseDesignWidget` | View | Bereich Design/Bearbeiten (DE-03): Collections, Schema-Editor, Indizes, Referenzen – alles verifiziert über `ViewerCore` (DE-01). Intern: `DesignController`. |
+| `memdb::viewer::OutputPanel` | View | Ausgabe-Log (DE-02): Zeitstempel, Fehler rot, Filter „nur Fehler“, Zähler. |
 | `memdb::viewer::AnalysisWidget` | View | Bereich Analyse: Tabs Discovery (`DiscoveryModel`: Relationen/Orphans/Pfade/Merges/Keys) und Analyse (`AnalysisModel`: Charakter FA-29, Numeric FA-30, Einfluss FA-31/32, Outliers v0.40, Health FA-27 v0.33), Report-Export. Intern: `AnalysisController` (Worker-Thread). |
 
 Verwendete InMemDB-Schnittstellen: `Database`/`Collection` (CRUD, FA-10 Indizes, FA-13 Aggregation, FA-15 Observer, FA-18 Referenzen, FA-20 Schema, FA-22 DbGraph, v0.22 Metriken, v0.18 Overflow, DSL-Queries), `ImportRegistry`/`Importer`/`ImportSource` (FA-21/FA-26), Snapshots (FA-14/FA-19), Discovery & Analyse (FA-27, FA-29–FA-32, v0.33/v0.40: `discoverRelations`, `profileCollection`, `discoverCandidateKeys`, `findOrphansForRelations`, `findPaths`, `suggestMerges`, `discoverOutliers`, `assessCharacter`, `analyzeNumeric`, `analyzeInfluence`, `analyzeCrossInfluence`, `analyze`).
@@ -178,6 +192,11 @@ Verwendete InMemDB-Schnittstellen: `Database`/`Collection` (CRUD, FA-10 Indizes,
 2. **Dateneingabe**: alte Demo-Implementierung entfernen; `ViewerCore` + `DataInputWidget` (MVC) + App-Shell mit Dateneingabe; Tests.
 3. **Datenbetrachtung**: `DataViewWidget` (MVC) – Übersicht, Struktur (QGraphicsFramework/DbGraph), Tabelle, Dokument-Detail; Tests.
 4. **Datenanalyse**: `AnalysisWidget` (MVC) – Discovery + Analyse (Worker-Thread, Health, Report); Tests.
+5. **Design & Bearbeiten (v1.1, Abschnitt 4.5)**, je ein Branch:
+   - **A**: verifizierte Mutationen im `ViewerCore` (DE-01) + Ausgabe-Panel (DE-02) + App-Menü (DE-07); Tests.
+   - **B**: `DatabaseDesignWidget` (DE-03) – Collections/Schema/Indizes/Referenzen; Tests.
+   - **C**: CSV aus der Zwischenablage (DE-04) + Dokument-CRUD in der Datenbetrachtung (DE-05); Tests.
+   - **D**: Auto-Discovery + Auto-Analyse nach jeder Mutation via `dataMutated()` (DE-06); Tests.
 
 ---
 
