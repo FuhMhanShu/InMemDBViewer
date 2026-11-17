@@ -60,6 +60,12 @@ public:
         auto* viewLayout = new QVBoxLayout(viewBox);
         viewLayout->setContentsMargins(2, 2, 2, 2);
         viewLayout->addWidget(viewWidget_);
+        designWidget_ = new DatabaseDesignWidget(this);
+        designWidget_->setCore(core_);
+        auto* designBox = new QGroupBox(QStringLiteral("Datenbank-Design (Collections/Schema/Indizes/Referenzen)"), areas);
+        auto* designLayout = new QVBoxLayout(designBox);
+        designLayout->setContentsMargins(2, 2, 2, 2);
+        designLayout->addWidget(designWidget_);
         analysisWidget_ = new AnalysisWidget(this);
         analysisWidget_->setCore(core_);
         auto* analysisBox = new QGroupBox(QStringLiteral("Analyse (Discovery + Analyse)"), areas);
@@ -67,9 +73,11 @@ public:
         analysisLayout->setContentsMargins(2, 2, 2, 2);
         analysisLayout->addWidget(analysisWidget_);
         areas->addWidget(viewBox);
+        areas->addWidget(designBox);
         areas->addWidget(analysisBox);
         areas->setStretchFactor(0, 2);
         areas->setStretchFactor(1, 1);
+        areas->setStretchFactor(2, 1);
 
         // Selektion aus der Datenbetrachtung als Analyse-Umfang uebernehmen
         connect(viewWidget_, &DataViewWidget::collectionSelected, analysisWidget_,
@@ -192,6 +200,7 @@ private:
     DataViewWidget* viewWidget_ = nullptr;
     AnalysisWidget* analysisWidget_ = nullptr;
     OutputPanel* outputPanel_ = nullptr;
+    DatabaseDesignWidget* designWidget_ = nullptr;
 };
 } // namespace
 

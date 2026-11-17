@@ -37,5 +37,9 @@ int main(int argc, char** argv) {
     run(&mutations);
     TestOutputPanel outputPanel;
     run(&outputPanel);
+    TestDesignController designController;
+    run(&designController);
+    TestDatabaseDesignWidget designWidget;
+    run(&designWidget);
     return rc;
 }

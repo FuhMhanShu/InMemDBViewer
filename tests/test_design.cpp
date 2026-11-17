@@ -3,6 +3,8 @@
 #include "test_viewer.hpp"
 
 #include <memdb/memdb.hpp>
+#include "../src/design_controller.hpp"
+#include <memdbviewer/database_design_widget.hpp>
 #include <memdbviewer/output_panel.hpp>
 #include <memdbviewer/viewer_core.hpp>
 
@@ -10,6 +12,14 @@
 #include <QTextBrowser>
 #include <QTemporaryDir>
 #include <QTest>
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+// QVERIFY_THROWS_EXCEPTION erst ab Qt 6 – Qt-5.15-kompatible Variante
+#define VERIFY_THROWS(excType, expr) \
+    do { bool threw_ = false; try { expr; } catch (const excType&) { threw_ = true; } QVERIFY(threw_); } while (0)
+#else
+#define VERIFY_THROWS(excType, expr) QVERIFY_THROWS_EXCEPTION(excType, expr)
+#endif
 
 using namespace memdb;
 using namespace memdb::viewer;
@@ -58,8 +68,7 @@ void TestViewerCoreMutations::schemaOps() {
     QVERIFY(core.database().collection("users").schema()->find("age")->type() == Value::Type::Int); // unveraendert
 
     // neues Dokument mit falschem Typ -> SchemaError beim insert (InMemDB prueft)
-    QVERIFY_THROWS_EXCEPTION(memdb::SchemaError,
-                             core.database().collection("users").insert({{"name", "X"}, {"age", "s"}}));
+    VERIFY_THROWS(memdb::SchemaError, core.database().collection("users").insert({{"name", "X"}, {"age", "s"}}));
 
     QVERIFY(core.clearCollectionSchema(QStringLiteral("users"), &err));
     QVERIFY(!core.database().collection("users").hasSchema());
@@ -84,7 +93,7 @@ void TestViewerCoreMutations::indexOps() {
     // nicht-unique auf city geht
     QVERIFY(core.createIndex(QStringLiteral("users"), QStringLiteral("city"), false, &err));
     // insert mit Duplikat bei unique-Index throwt (Verifikation durch InMemDB)
-    QVERIFY_THROWS_EXCEPTION(memdb::UniqueConstraintError, c.insert({{"name", "Ada"}}));
+    VERIFY_THROWS(memdb::UniqueConstraintError, c.insert({{"name", "Ada"}}));
 
     QVERIFY(core.dropIndex(QStringLiteral("users"), QStringLiteral("name"), &err));
     QVERIFY(!core.dropIndex(QStringLiteral("users"), QStringLiteral("name"), &err)); // schon weg -> Fehler
@@ -214,4 +223,94 @@ void TestOutputPanel::logsAndFilters() {
     QVERIFY(html.contains(QStringLiteral("#c62828"))); // Fehler rot
     panel.clear();
     QVERIFY(!panel.findChild<QTextBrowser*>()->toHtml().contains(QStringLiteral("Fehler X")));
+}
+
+void TestDesignController::collectionSchemaIndexReferenceFlow() {
+    ViewerCore core;
+    viewer::detail::DesignController ctrl(&core);
+    QSignalSpy changedSpy(&ctrl, &viewer::detail::DesignController::changed);
+
+    ctrl.createCollection(QStringLiteral("users"));
+    QVERIFY(core.collectionNames().contains(QStringLiteral("users")));
+    QVERIFY(changedSpy.count() >= 1);
+
+    // Dokumente, dann Schema anwenden (valide)
+    core.insertDocumentJson(QStringLiteral("users"), QStringLiteral("{\"name\":\"Ada\",\"age\":36}"));
+    std::vector<viewer::detail::FieldDef> fields = {
+        {QStringLiteral("name"), QStringLiteral("string"), false, QString(), QString()},
+        {QStringLiteral("age"), QStringLiteral("int"), true, QString(), QString()},
+        {QStringLiteral("adresse"), QStringLiteral("document"), true, QStringLiteral("plz:string"), QString()},
+    };
+    ctrl.applySchema(QStringLiteral("users"), fields);
+    QVERIFY(core.database().collection("users").hasSchema());
+    QCOMPARE(core.database().collection("users").schema()->size(), std::size_t(3));
+    // currentSchema liest es zurueck (inkl. Unter-Schema)
+    const auto back = ctrl.currentSchema(QStringLiteral("users"));
+    QCOMPARE(back.size(), std::size_t(3));
+    bool hasAdresse = false;
+    for (const auto& f : back)
+        if (f.path == QLatin1String("adresse")) {
+            hasAdresse = true;
+            QCOMPARE(f.typeName, QStringLiteral("document"));
+            QVERIFY(f.subSchema.contains(QStringLiteral("plz:string")));
+        }
+    QVERIFY(hasAdresse);
+
+    // unvalides Schema (age: string gegen Bestand) -> Fehler im Log, Schema unveraendert
+    QSignalSpy logSpy(&core, &ViewerCore::logged);
+    std::vector<viewer::detail::FieldDef> bad = {{QStringLiteral("age"), QStringLiteral("string"), true, QString(), QString()}};
+    ctrl.applySchema(QStringLiteral("users"), bad);
+    QVERIFY(core.database().collection("users").schema()->find("age")->type() == Value::Type::Int);
+    bool sawError = false;
+    for (const auto& call : logSpy)
+        if (call.at(1).toBool())
+            sawError = true;
+    QVERIFY(sawError);
+
+    // Index anlegen + Duplikat-Fehler
+    ctrl.addIndex(QStringLiteral("users"), QStringLiteral("name"), true);
+    QCOMPARE(core.database().collection("users").indexes().size(), std::size_t(1));
+    core.insertDocumentJson(QStringLiteral("users"), QStringLiteral("{\"name\":\"Bob\",\"age\":17}"));
+    ctrl.addIndex(QStringLiteral("users"), QStringLiteral("age"), false);
+    QCOMPARE(core.database().collection("users").indexes().size(), std::size_t(2));
+    ctrl.removeIndex(QStringLiteral("users"), QStringLiteral("age"));
+    QCOMPARE(core.database().collection("users").indexes().size(), std::size_t(1));
+
+    // Referenz anlegen/entfernen
+    const auto ada = core.database().collection("users").findOne("name = 'Ada'")->id();
+    ctrl.createCollection(QStringLiteral("orders"));
+    const auto o = core.insertDocumentJson(QStringLiteral("orders"), QStringLiteral("{\"total\":99.5}"));
+    quint64 oid = 0;
+    core.insertDocumentJson(QStringLiteral("orders"), QStringLiteral("{\"total\":1.0}"), &oid);
+    ctrl.addReference(QStringLiteral("orders"), oid, true, QStringLiteral("users"), ada.value(), true,
+                      QStringLiteral("kunde"));
+    QVERIFY(!core.references()->references("orders", RefDirection::Outgoing, memdb::DocumentId(oid)).empty());
+    ctrl.removeReference(QStringLiteral("orders"), oid, true, QStringLiteral("users"), ada.value(), true,
+                         QStringLiteral("kunde"));
+    QVERIFY(core.references()->references("orders", RefDirection::Outgoing, memdb::DocumentId(oid)).empty());
+
+    // Feld-Vorschlaege + Loeschen/Leeren
+    QVERIFY(ctrl.fieldSuggestions(QStringLiteral("users")).contains(QStringLiteral("name")));
+    ctrl.clearCollection(QStringLiteral("orders"));
+    QCOMPARE(core.database().collection("orders").size(), std::size_t(0));
+    ctrl.dropCollection(QStringLiteral("orders"));
+    QVERIFY(!core.collectionNames().contains(QStringLiteral("orders")));
+}
+
+void TestDatabaseDesignWidget::reflectsCoreState() {
+    ViewerCore core;
+    core.loadDemoData();
+    DatabaseDesignWidget widget;
+    widget.setCore(&core);
+    widget.show();
+    QTRY_VERIFY_WITH_TIMEOUT(widget.collectionItemCount() == 2, 3000);
+    QCOMPARE(widget.currentCollection(), QStringLiteral("orders")); // erste Collection
+    // orders hat 1 Index, users hat Schema mit 3 Feldern
+    QCOMPARE(widget.indexItemCount(), 1);
+    QCOMPARE(widget.referenceRowCount() >= 1, true); // Demo-Referenz orders->users
+    // zur users wechseln: Schema-Tabelle zeigt 3 Felder, 1 unique-Index
+    widget.selectCollection(QStringLiteral("users"));
+    QTRY_VERIFY_WITH_TIMEOUT(widget.schemaRowCount() == 3, 3000);
+    QCOMPARE(widget.currentCollection(), QStringLiteral("users"));
+    QCOMPARE(widget.indexItemCount(), 1); // unique-Index auf age
 }

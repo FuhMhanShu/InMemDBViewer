@@ -116,3 +116,15 @@ class TestOutputPanel : public QObject {
 private slots:
     void logsAndFilters();
 };
+
+class TestDesignController : public QObject {
+    Q_OBJECT
+private slots:
+    void collectionSchemaIndexReferenceFlow();
+};
+
+class TestDatabaseDesignWidget : public QObject {
+    Q_OBJECT
+private slots:
+    void reflectsCoreState();
+};
