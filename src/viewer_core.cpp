@@ -2,9 +2,11 @@
 
 #include <memdb/memdb.hpp>
 
+#include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QMetaObject>
+#include <QTemporaryFile>
 #include <QTimer>
 
 #include <atomic>
@@ -220,6 +222,8 @@ bool ViewerCore::importFileWith(const QString& path, const QString& sourceName, 
         memdb::ImportStats stats = memdb::Importer::import(*impl_->db, *source, impl_->importOptions);
         impl_->lastSource = describeStats(path, sourceName, stats);
         impl_->syncCollections();
+        log(impl_->lastSource);
+        emit dataMutated();
         return true;
     } catch (const std::exception& e) {
         if (error)
@@ -266,6 +270,8 @@ bool ViewerCore::loadSnapshot(const QString& path, QString* error) {
                                  .arg(db->metrics().totalDocs);
         adoptDatabase(std::move(db), desc);
         setLastError(QString());
+        log(desc);
+        emit dataMutated();
         return true;
     } catch (const std::exception& e) {
         if (error)
@@ -285,6 +291,8 @@ bool ViewerCore::loadSnapshotEncrypted(const QString& path, const QString& passw
                                  .arg(db->metrics().totalDocs);
         adoptDatabase(std::move(db), desc);
         setLastError(QString());
+        log(desc);
+        emit dataMutated();
         return true;
     } catch (const std::exception& e) {
         if (error)
@@ -298,6 +306,8 @@ void ViewerCore::resetDatabase(const QString& name) {
     emit databaseCleared();
     adoptDatabase(std::make_unique<memdb::Database>(name.toStdString()),
                   QStringLiteral("Neue leere Database \"%1\"").arg(name));
+    log(QStringLiteral("Neue leere Database „%1“ angelegt.").arg(name));
+    emit dataMutated();
 }
 
 void ViewerCore::loadDemoData() {
@@ -325,6 +335,271 @@ void ViewerCore::loadDemoData() {
     orders.insert({{"total", 7.25}, {"status", "offen"}, {"kunde_id", 2}});
     adoptDatabase(std::move(db), QStringLiteral("Demo-Daten: 2 Collections, 6 Dokumente, 1 Referenz"));
     references()->link("orders", o1, "users", ada, "kunde");
+    log(QStringLiteral("Demo-Daten geladen (users, orders + 1 Referenz)."));
+    emit dataMutated();
+}
+
+// ------------------------------------------------------------------ Mutationen
+
+void ViewerCore::log(const QString& message, bool error) {
+    emit logged(message, error);
+}
+
+namespace {
+/// @brief Fängt memdb-Exceptions ab, schreibt Fehler ins Log, liefert false + error.
+template <typename F>
+bool verified(ViewerCore* core, const QString& what, QString* error, F&& fn) {
+    try {
+        fn();
+        return true;
+    } catch (const std::exception& e) {
+        const QString msg = QStringLiteral("%1 fehlgeschlagen: %2").arg(what, QString::fromUtf8(e.what()));
+        if (error)
+            *error = QString::fromUtf8(e.what());
+        core->log(msg, true);
+        return false;
+    }
+}
+
+/// @brief Wert-Text (aus Zellen-Editor) nach memdb::Value parsen: null/bool/int/double/string.
+memdb::Value parseValueText(const QString& text) {
+    const QString t = text.trimmed();
+    if (t.compare(QLatin1String("null"), Qt::CaseInsensitive) == 0)
+        return memdb::Value();
+    if (t.compare(QLatin1String("true"), Qt::CaseInsensitive) == 0)
+        return memdb::Value(true);
+    if (t.compare(QLatin1String("false"), Qt::CaseInsensitive) == 0)
+        return memdb::Value(false);
+    bool ok = false;
+    const long long i = t.toLongLong(&ok);
+    if (ok && QString::number(i) == t)
+        return memdb::Value(i);
+    const double d = t.toDouble(&ok);
+    if (ok && t.contains(QLatin1Char('.')))
+        return memdb::Value(d);
+    return memdb::Value(t.toStdString());
+}
+} // namespace
+
+bool ViewerCore::createCollection(const QString& name, QString* error) {
+    const bool ok = verified(this, QStringLiteral("Collection „%1“ anlegen").arg(name), error, [&] {
+        impl_->db->createCollection(name.toStdString());
+    });
+    if (ok) {
+        impl_->syncCollections();
+        log(QStringLiteral("Collection „%1“ angelegt.").arg(name));
+        emit dataMutated();
+    }
+    return ok;
+}
+
+bool ViewerCore::dropCollection(const QString& name, QString* error) {
+    const bool ok = verified(this, QStringLiteral("Collection „%1“ löschen").arg(name), error, [&] {
+        if (!impl_->db->dropCollection(name.toStdString()))
+            throw memdb::Error("Collection existiert nicht: " + name.toStdString());
+    });
+    if (ok) {
+        impl_->syncCollections();
+        log(QStringLiteral("Collection „%1“ gelöscht.").arg(name));
+        emit dataMutated();
+    }
+    return ok;
+}
+
+bool ViewerCore::clearCollectionContent(const QString& name, QString* error) {
+    const bool ok = verified(this, QStringLiteral("Collection „%1“ leeren").arg(name), error, [&] {
+        impl_->db->collection(name.toStdString()).clear();
+    });
+    if (ok) {
+        log(QStringLiteral("Collection „%1“ geleert.").arg(name));
+        emit dataMutated();
+    }
+    return ok;
+}
+
+bool ViewerCore::setCollectionSchema(const QString& collection, const memdb::Schema& schema, QString* error) {
+    const bool ok = verified(this, QStringLiteral("Schema für „%1“ setzen").arg(collection), error, [&] {
+        impl_->db->collection(collection.toStdString()).setSchema(schema); // prueft alle Dokumente (FA-20)
+    });
+    if (ok) {
+        log(QStringLiteral("Schema für „%1“ gesetzt (%2 Felder) – alle Dokumente valide.")
+                .arg(collection)
+                .arg(schema.size()));
+        emit dataMutated();
+    }
+    return ok;
+}
+
+bool ViewerCore::clearCollectionSchema(const QString& collection, QString* error) {
+    const bool ok = verified(this, QStringLiteral("Schema von „%1“ entfernen").arg(collection), error, [&] {
+        impl_->db->collection(collection.toStdString()).clearSchema();
+    });
+    if (ok) {
+        log(QStringLiteral("Schema von „%1“ entfernt (schema-los).").arg(collection));
+        emit dataMutated();
+    }
+    return ok;
+}
+
+bool ViewerCore::createIndex(const QString& collection, const QString& fieldPath, bool unique, QString* error) {
+    const bool ok = verified(this, QStringLiteral("Index auf %1.%2 anlegen").arg(collection, fieldPath), error, [&] {
+        impl_->db->collection(collection.toStdString()).createIndex(fieldPath.toStdString(), unique);
+    });
+    if (ok) {
+        log(QStringLiteral("Index auf %1.%2 angelegt (%3).")
+                .arg(collection, fieldPath, unique ? QStringLiteral("unique") : QStringLiteral("index")));
+        emit dataMutated();
+    }
+    return ok;
+}
+
+bool ViewerCore::dropIndex(const QString& collection, const QString& fieldPath, QString* error) {
+    const bool ok = verified(this, QStringLiteral("Index auf %1.%2 löschen").arg(collection, fieldPath), error, [&] {
+        if (!impl_->db->collection(collection.toStdString()).dropIndex(fieldPath.toStdString()))
+            throw memdb::Error("kein Index auf " + fieldPath.toStdString());
+    });
+    if (ok) {
+        log(QStringLiteral("Index auf %1.%2 gelöscht.").arg(collection, fieldPath));
+        emit dataMutated();
+    }
+    return ok;
+}
+
+bool ViewerCore::linkReference(const QString& fromColl, quint64 fromId, bool hasFromId, const QString& toColl,
+                               quint64 toId, bool hasToId, const QString& relation, QString* error) {
+    const bool ok = verified(this, QStringLiteral("Referenz %1 -> %2 anlegen").arg(fromColl, toColl), error, [&] {
+        impl_->refs->link(fromColl.toStdString(), hasFromId ? std::optional<memdb::DocumentId>(memdb::DocumentId(fromId)) : std::nullopt,
+                          toColl.toStdString(), hasToId ? std::optional<memdb::DocumentId>(memdb::DocumentId(toId)) : std::nullopt,
+                          relation.toStdString());
+    });
+    if (ok) {
+        log(QStringLiteral("Referenz „%1“: %2 -> %3 angelegt.").arg(relation, fromColl, toColl));
+        emit dataMutated();
+    }
+    return ok;
+}
+
+bool ViewerCore::unlinkReference(const QString& fromColl, quint64 fromId, bool hasFromId, const QString& toColl,
+                                 quint64 toId, bool hasToId, const QString& relation, QString* error) {
+    const bool ok = verified(this, QStringLiteral("Referenz %1 -> %2 entfernen").arg(fromColl, toColl), error, [&] {
+        impl_->refs->unlink(fromColl.toStdString(), hasFromId ? std::optional<memdb::DocumentId>(memdb::DocumentId(fromId)) : std::nullopt,
+                            toColl.toStdString(), hasToId ? std::optional<memdb::DocumentId>(memdb::DocumentId(toId)) : std::nullopt,
+                            relation.toStdString());
+    });
+    if (ok) {
+        log(QStringLiteral("Referenz „%1“: %2 -> %3 entfernt.").arg(relation, fromColl, toColl));
+        emit dataMutated();
+    }
+    return ok;
+}
+
+std::size_t ViewerCore::pruneDanglingReferences(QString* error) {
+    std::size_t n = 0;
+    const bool ok = verified(this, QStringLiteral("Dangling-Referenzen bereinigen"), error, [&] {
+        n = impl_->refs->pruneDangling();
+    });
+    if (ok) {
+        log(QStringLiteral("%1 dangling Referenzen entfernt.").arg(n));
+        emit dataMutated();
+    }
+    return ok ? n : 0;
+}
+
+bool ViewerCore::insertDocumentJson(const QString& collection, const QString& docJson, quint64* newId,
+                                    QString* error) {
+    quint64 id = 0;
+    const bool ok = verified(this, QStringLiteral("Dokument in „%1“ einfügen").arg(collection), error, [&] {
+        // JSON-Objekt ueber eine Hilfs-Database parsen (oeffentliche API)
+        const std::string wrapped = "{\"name\":\"__tmp\",\"collections\":{\"__tmp\":{\"documents\":[" +
+                                    docJson.toStdString() + "]}}}";
+        memdb::Database tmp = memdb::Database::fromJson(wrapped, "__tmp");
+        const auto doc = tmp.collection("__tmp").findOne();
+        if (!doc)
+            throw memdb::Error("kein Dokument im JSON");
+        id = impl_->db->collection(collection.toStdString()).insert(*doc).value();
+    });
+    if (ok) {
+        if (newId)
+            *newId = id;
+        log(QStringLiteral("Dokument #%1 in „%2“ eingefügt.").arg(id).arg(collection));
+        emit dataMutated();
+    }
+    return ok;
+}
+
+bool ViewerCore::updateDocumentField(const QString& collection, quint64 id, const QString& fieldPath,
+                                     const QString& valueText, QString* error) {
+    const bool ok = verified(this, QStringLiteral("Feld %1.%2 aktualisieren").arg(collection, fieldPath), error, [&] {
+        const memdb::Value v = parseValueText(valueText);
+        const bool changed = impl_->db->collection(collection.toStdString())
+                                 .updateById(memdb::DocumentId(id), [&](memdb::Document& d) {
+                                     d.setPath(fieldPath.toStdString(), v);
+                                 });
+        if (!changed)
+            throw memdb::Error("Dokument #" + std::to_string(id) + " nicht vorhanden");
+    });
+    if (ok) {
+        log(QStringLiteral("Dokument #%1 in „%2“: %3 = %4").arg(id).arg(collection, fieldPath, valueText));
+        emit dataMutated();
+    }
+    return ok;
+}
+
+bool ViewerCore::removeDocument(const QString& collection, quint64 id, QString* error) {
+    const bool ok = verified(this, QStringLiteral("Dokument #%1 aus „%2“ löschen").arg(id).arg(collection), error, [&] {
+        if (!impl_->db->collection(collection.toStdString()).removeById(memdb::DocumentId(id)))
+            throw memdb::Error("Dokument #" + std::to_string(id) + " nicht vorhanden");
+    });
+    if (ok) {
+        log(QStringLiteral("Dokument #%1 aus „%2“ gelöscht.").arg(id).arg(collection));
+        emit dataMutated();
+    }
+    return ok;
+}
+
+bool ViewerCore::importCsvText(const QString& tableName, const QString& csvText, const memdb::CsvImportOptions& opts,
+                               QString* error) {
+    const bool ok = verified(this, QStringLiteral("CSV aus Zwischenablage importieren („%1“)").arg(tableName), error, [&] {
+        QTemporaryFile tmp(QDir::tempPath() + QStringLiteral("/viewer-clip-XXXXXX.csv"));
+        tmp.setAutoRemove(true);
+        if (!tmp.open())
+            throw memdb::Error("Temp-Datei nicht beschreibbar");
+        tmp.write(csvText.toUtf8());
+        tmp.flush();
+        memdb::CsvImportOptions o = opts;
+        if (!tableName.isEmpty())
+            o.tableName = tableName.toStdString();
+        memdb::CsvImportSource src(tmp.fileName().toStdString(), o);
+        const auto stats = memdb::Importer::import(*impl_->db, src, impl_->importOptions);
+        impl_->lastSource = describeStats(QStringLiteral(" Zwischenablage.csv"), QStringLiteral("csv"), stats);
+        impl_->syncCollections();
+    });
+    if (ok) {
+        log(QStringLiteral("CSV aus Zwischenablage als „%1“ importiert – %2.").arg(tableName, impl_->lastSource));
+        emit dataMutated();
+    }
+    return ok;
+}
+
+bool ViewerCore::saveSnapshot(const QString& path, QString* error) {
+    const bool ok = verified(this, QStringLiteral("Snapshot speichern (%1)").arg(path), error, [&] {
+        impl_->db->saveToFile(path.toStdString());
+    });
+    if (ok)
+        log(QStringLiteral("Snapshot gespeichert: %1 (%2 Collections, %3 Dokumente).")
+                .arg(path)
+                .arg(impl_->db->collectionNames().size())
+                .arg(impl_->db->metrics().totalDocs));
+    return ok;
+}
+
+bool ViewerCore::saveSnapshotEncrypted(const QString& path, const QString& password, QString* error) {
+    const bool ok = verified(this, QStringLiteral("Verschlüsselten Snapshot speichern (%1)").arg(path), error, [&] {
+        impl_->db->saveToFileEncrypted(path.toStdString(), password.toStdString());
+    });
+    if (ok)
+        log(QStringLiteral("Verschlüsselter Snapshot (FA-19) gespeichert: %1.").arg(path));
+    return ok;
 }
 
 bool ViewerCore::isBusy() const { return impl_->busy.load(); }

@@ -11,6 +11,8 @@ namespace memdb {
 class Database;
 class ReferenceIndex;
 struct ImportOptions;
+struct CsvImportOptions;
+class Schema;
 } // namespace memdb
 
 namespace memdb::viewer {
@@ -59,6 +61,41 @@ public:
     bool loadSnapshotEncrypted(const QString& path, const QString& password, QString* error = nullptr);
     /// @brief Frische, leere Database (alle Widgets aktualisieren sich via `databaseCleared`/`databaseLoaded`).
     void resetDatabase(const QString& name = QStringLiteral("viewer"));
+
+    /// @name Verifizierte Mutationen (Design/CRUD): true bei Erfolg, sonst false + `error`;
+    ///        jede Operation wird ins Log geschrieben und stoesst `dataMutated()` an.
+    /// @{
+    void log(const QString& message, bool error = false);
+
+    bool createCollection(const QString& name, QString* error = nullptr);
+    bool dropCollection(const QString& name, QString* error = nullptr);
+    bool clearCollectionContent(const QString& name, QString* error = nullptr);
+    /// @brief Setzt das strikte Schema (FA-20); InMemDB prueft alle vorhandenen Dokumente (SchemaError).
+    bool setCollectionSchema(const QString& collection, const memdb::Schema& schema, QString* error = nullptr);
+    bool clearCollectionSchema(const QString& collection, QString* error = nullptr);
+    /// @brief Legt einen Index an (FA-10); bei unique werden Duplikate geprueft (UniqueConstraintError).
+    bool createIndex(const QString& collection, const QString& fieldPath, bool unique, QString* error = nullptr);
+    bool dropIndex(const QString& collection, const QString& fieldPath, QString* error = nullptr);
+    /// @brief Referenz (FA-18) anlegen; id 0 + hasId=false = Collection-Level.
+    bool linkReference(const QString& fromColl, quint64 fromId, bool hasFromId, const QString& toColl,
+                       quint64 toId, bool hasToId, const QString& relation, QString* error = nullptr);
+    bool unlinkReference(const QString& fromColl, quint64 fromId, bool hasFromId, const QString& toColl,
+                         quint64 toId, bool hasToId, const QString& relation, QString* error = nullptr);
+    std::size_t pruneDanglingReferences(QString* error = nullptr);
+    /// @brief Dokument aus JSON-Objekt einfuegen (z. B. `{"name":"Ada","age":36}`).
+    bool insertDocumentJson(const QString& collection, const QString& docJson, quint64* newId = nullptr,
+                            QString* error = nullptr);
+    /// @brief Feld eines Dokuments setzen (Punktnotation); Wert wird als null/bool/int/double/string interpretiert.
+    bool updateDocumentField(const QString& collection, quint64 id, const QString& fieldPath,
+                             const QString& valueText, QString* error = nullptr);
+    bool removeDocument(const QString& collection, quint64 id, QString* error = nullptr);
+    /// @brief CSV-Text (z. B. aus der Zwischenablage) als Collection importieren (FA-21).
+    bool importCsvText(const QString& tableName, const QString& csvText, const memdb::CsvImportOptions& opts,
+                       QString* error = nullptr);
+    /// @brief Snapshot speichern (FA-14 / verschluesselt FA-19).
+    bool saveSnapshot(const QString& path, QString* error = nullptr);
+    bool saveSnapshotEncrypted(const QString& path, const QString& password, QString* error = nullptr);
+    /// @}
     /// @brief Befuellt die Database mit kleinen Demo-Daten (2 Collections, Schema, Index, Referenz).
     void loadDemoData();
     /// @}
@@ -86,6 +123,10 @@ public:
     static QString fileDialogFilter();
 
 signals:
+    /// @brief Log-Ausgabe (Ausgabe-Panel): `error` = Fehler (rot dargestellt).
+    void logged(const QString& message, bool error);
+    /// @brief Eine Datenmanipulation war erfolgreich -> Discovery/Analyse anstossen.
+    void dataMutated();
     /// @brief Neue Database uebernommen (Snapshot/Demo/Reset) – alle Widgets neu aufsetzen.
     void databaseLoaded(const QString& sourceDescription);
     void databaseCleared();

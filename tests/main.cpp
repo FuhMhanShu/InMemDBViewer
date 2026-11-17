@@ -33,5 +33,13 @@ int main(int argc, char** argv) {
     run(&anaController);
     TestAnalysisWidget anaWidget;
     run(&anaWidget);
+    TestViewerCoreMutations mutations;
+    run(&mutations);
+    TestOutputPanel outputPanel;
+    run(&outputPanel);
+    TestDesignController designController;
+    run(&designController);
+    TestDatabaseDesignWidget designWidget;
+    run(&designWidget);
     return rc;
 }
