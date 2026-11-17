@@ -94,9 +94,10 @@ protected:
 private:
     void buildMenuAndToolbar() {
         auto* fileMenu = menuBar()->addMenu(QStringLiteral("&Datei"));
-        auto* openAction = fileMenu->addAction(QStringLiteral("Daten oeffnen…"), QKeySequence::Open, this, [this] {
+        auto* openAction = fileMenu->addAction(QStringLiteral("Daten oeffnen…"), this, [this] {
             inputWidget_->openFileDialog();
         });
+        openAction->setShortcut(QKeySequence::Open);
         auto* openSnapAction = fileMenu->addAction(QStringLiteral("Snapshot oeffnen…"), this, [this] {
             const QString path = QFileDialog::getOpenFileName(
                 this, QStringLiteral("InMemDB-Snapshot oeffnen"), QString(),
@@ -104,14 +105,16 @@ private:
             if (!path.isEmpty())
                 inputWidget_->handleDroppedFiles({path});
         });
-        auto* newAction = fileMenu->addAction(QStringLiteral("Neue leere Database"), QKeySequence::New, this, [this] {
+        auto* newAction = fileMenu->addAction(QStringLiteral("Neue leere Database"), this, [this] {
             core_->resetDatabase();
         });
+        newAction->setShortcut(QKeySequence::New);
         auto* demoAction = fileMenu->addAction(QStringLiteral("Beispiel laden"), this, [this] {
             core_->loadDemoData();
         });
         fileMenu->addSeparator();
-        fileMenu->addAction(QStringLiteral("Beenden"), QKeySequence::Quit, this, &QWidget::close);
+        auto* quitAction = fileMenu->addAction(QStringLiteral("Beenden"), this, &QWidget::close);
+        quitAction->setShortcut(QKeySequence::Quit);
 
         auto* toolBar = addToolBar(QStringLiteral("Daten"));
         toolBar->addAction(openAction);
