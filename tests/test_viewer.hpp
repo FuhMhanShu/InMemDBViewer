@@ -18,6 +18,7 @@ private slots:
     void autoSyncDetectsNewCollection();
     void demoDataLoads();
     void asyncImportWorks();
+    void asyncImportQueue();
 };
 
 class TestImportModel : public QObject {
