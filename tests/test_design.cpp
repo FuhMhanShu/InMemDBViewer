@@ -7,6 +7,7 @@
 #include "../src/database_model.hpp"
 #include "../src/design_controller.hpp"
 #include "../src/document_table_model.hpp"
+#include <memdbviewer/analysis_widget.hpp>
 #include <memdbviewer/data_input_widget.hpp>
 #include <memdbviewer/data_view_widget.hpp>
 #include <memdbviewer/database_design_widget.hpp>
@@ -593,4 +594,65 @@ void TestDocumentCrudWidget::invalidJsonIsLogged() {
         if (logSpy.at(i).at(1).toBool())
             sawError = true;
     QVERIFY(sawError); // JSON-Fehler (rot) im Ausgabe-Log
+}
+
+// ---------------------------------------------------------------- Schritt D
+
+void TestAutoAnalysis::mutationTriggersAutoAnalysis() {
+    ViewerCore core;
+    core.loadDemoData();
+    AnalysisWidget w;
+    w.setCore(&core);
+    w.setCore(&core); // doppelt darf nicht doppelt verbinden
+    w.show();
+    QVERIFY(w.autoAnalysisEnabled()); // Default: an
+    QSignalSpy finSpy(&w, &AnalysisWidget::analysisFinished);
+    core.createCollection(QStringLiteral("extra")); // -> dataMutated -> Auto-Analyse (DE-06)
+    QTRY_VERIFY_WITH_TIMEOUT(finSpy.count() >= 1, 15000);
+    QVERIFY(w.healthScore() >= 0.0);
+    QVERIFY(core.collectionNames().contains(QStringLiteral("extra")));
+}
+
+void TestAutoAnalysis::disabledDoesNotRun() {
+    ViewerCore core;
+    core.loadDemoData();
+    AnalysisWidget w;
+    w.setCore(&core);
+    w.show();
+    w.setAutoAnalysisEnabled(false);
+    QVERIFY(!w.autoAnalysisEnabled());
+    QSignalSpy finSpy(&w, &AnalysisWidget::analysisFinished);
+    core.createCollection(QStringLiteral("x"));
+    QTest::qWait(1500); // laenger als der Debounce (400 ms)
+    QCOMPARE(finSpy.count(), 0);
+}
+
+void TestAutoAnalysis::rapidMutationsAreDebounced() {
+    ViewerCore core;
+    core.loadDemoData();
+    AnalysisWidget w;
+    w.setCore(&core);
+    w.show();
+    QSignalSpy finSpy(&w, &AnalysisWidget::analysisFinished);
+    // drei schnelle Mutationen -> Debounce buendelt auf genau einen Lauf
+    core.createCollection(QStringLiteral("a"));
+    core.createCollection(QStringLiteral("b"));
+    core.createCollection(QStringLiteral("c"));
+    QTRY_VERIFY_WITH_TIMEOUT(finSpy.count() >= 1, 15000);
+    QTest::qWait(1500);
+    QCOMPARE(finSpy.count(), 1);
+}
+
+void TestAutoAnalysis::rerunAfterBusyMutation() {
+    ViewerCore core;
+    core.loadDemoData();
+    AnalysisWidget w;
+    w.setCore(&core);
+    w.show();
+    QSignalSpy finSpy(&w, &AnalysisWidget::analysisFinished);
+    w.runAnalysis(); // manueller Lauf
+    core.createCollection(QStringLiteral("busy")); // Mutation -> Debounce bzw. Rerun
+    // egal ob die Mutation waehrend des Laufs (rerunPending) oder danach (Debounce) ankam:
+    // es muss ein zweiter Lauf folgen
+    QTRY_VERIFY_WITH_TIMEOUT(finSpy.count() >= 2, 20000);
 }

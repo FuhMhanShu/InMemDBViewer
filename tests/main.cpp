@@ -45,5 +45,7 @@ int main(int argc, char** argv) {
     run(&clipboardCsv);
     TestDocumentCrudWidget crudWidget;
     run(&crudWidget);
+    TestAutoAnalysis autoAnalysis;
+    run(&autoAnalysis);
     return rc;
 }

@@ -144,3 +144,12 @@ private slots:
     void insertAndDeleteDocument();
     void invalidJsonIsLogged();
 };
+
+class TestAutoAnalysis : public QObject {
+    Q_OBJECT
+private slots:
+    void mutationTriggersAutoAnalysis();
+    void disabledDoesNotRun();
+    void rapidMutationsAreDebounced();
+    void rerunAfterBusyMutation();
+};

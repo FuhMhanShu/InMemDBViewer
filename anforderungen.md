@@ -6,7 +6,7 @@
 |---|---|
 | Projekttitel | InMemDBViewer – Daten laden, betrachten und analysieren für [InMemDB](https://github.com/FuhMhanShu/InMemDB) |
 | Version | 1.1 |
-| Status | v1.0 umgesetzt (4 Branches nach Abschnitt 8 gemerged: Anforderungen, Dateneingabe, Datenbetrachtung, Datenanalyse; die bisherige Demo-Implementierung v0.1–v0.4 wurde verworfen, siehe Abschnitt 3). v1.1 „Design & Bearbeiten“ (Abschnitt 4.5): Schritte A–C umgesetzt (verifizierte Mutationen + Ausgabe-Panel + DatabaseDesignWidget + Clipboard-CSV + Dokument-CRUD), Schritt D (Auto-Discovery/Analyse nach jeder Mutation) folgt. |
+| Status | v1.0 umgesetzt (4 Branches nach Abschnitt 8 gemerged: Anforderungen, Dateneingabe, Datenbetrachtung, Datenanalyse; die bisherige Demo-Implementierung v0.1–v0.4 wurde verworfen, siehe Abschnitt 3). v1.1 „Design & Bearbeiten“ (Abschnitt 4.5): Schritte A–D umgesetzt (verifizierte Mutationen + Ausgabe-Panel + DatabaseDesignWidget + Clipboard-CSV + Dokument-CRUD + Auto-Discovery/Analyse nach jeder Mutation via `dataMutated()` mit Debounce). |
 | Sprache | Deutsch (UI und Doku) |
 | Technologie | C++17, Qt (Widgets + Graphics View Framework), qmake (.pro/.pri) **und** CMake |
 | Bereitstellungsform | Wiederverwendbare **C++/Qt-Bibliothek** (statische Library, öffentliche Header unter `include/memdbviewer/`, Implementierung in `src/`, Namespace `memdb::viewer`, Einbindung via `InMemDBViewer.pri` bzw. CMake-Target) **plus** lauffähige Anwendung unter `examples/viewer_app/` |
@@ -171,7 +171,7 @@ Namespace `memdb::viewer`. Jedes Widget ist eine Einheit aus öffentlichem Widge
 | `memdb::viewer::DataViewWidget` | View | Bereich Datenbetrachtung: Übersicht (`DatabaseModel`), Struktur (`GraphScene`/`GraphView`, QGraphicsFramework + DbGraph FA-22), Tabelle (`DocumentTableModel`, Zellen editierbar DE-05), Dokument-Detail (`DocumentTreeModel`), Query-Filter, Metriken, Dokument-CRUD. Intern: `DataViewController`. |
 | `memdb::viewer::DatabaseDesignWidget` | View | Bereich Design/Bearbeiten (DE-03): Collections, Schema-Editor, Indizes, Referenzen – alles verifiziert über `ViewerCore` (DE-01). Intern: `DesignController`. |
 | `memdb::viewer::OutputPanel` | View | Ausgabe-Log (DE-02): Zeitstempel, Fehler rot, Filter „nur Fehler“, Zähler. |
-| `memdb::viewer::AnalysisWidget` | View | Bereich Analyse: Tabs Discovery (`DiscoveryModel`: Relationen/Orphans/Pfade/Merges/Keys) und Analyse (`AnalysisModel`: Charakter FA-29, Numeric FA-30, Einfluss FA-31/32, Outliers v0.40, Health FA-27 v0.33), Report-Export. Intern: `AnalysisController` (Worker-Thread). |
+| `memdb::viewer::AnalysisWidget` | View | Bereich Analyse: Tabs Discovery (`DiscoveryModel`: Relationen/Orphans/Pfade/Merges/Keys, Confusion-Matrix v0.42) und Analyse (`AnalysisModel`: Charakter FA-29, Numeric FA-30, Einfluss FA-31/32, Outliers v0.40, Health FA-27 v0.33), Report-Export, Auto-Analyse nach `dataMutated()` (DE-06, abschaltbar). Intern: `AnalysisController` (Worker-Thread). |
 
 Verwendete InMemDB-Schnittstellen: `Database`/`Collection` (CRUD, FA-10 Indizes, FA-13 Aggregation, FA-15 Observer, FA-18 Referenzen, FA-20 Schema, FA-22 DbGraph, v0.22 Metriken, v0.18 Overflow, DSL-Queries), `ImportRegistry`/`Importer`/`ImportSource` (FA-21/FA-26), Snapshots (FA-14/FA-19), Discovery & Analyse (FA-27, FA-29–FA-32, v0.33/v0.40: `discoverRelations`, `profileCollection`, `discoverCandidateKeys`, `findOrphansForRelations`, `findPaths`, `suggestMerges`, `discoverOutliers`, `assessCharacter`, `analyzeNumeric`, `analyzeInfluence`, `analyzeCrossInfluence`, `analyze`).
 

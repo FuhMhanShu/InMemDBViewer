@@ -26,6 +26,7 @@
 #include <QSplitter>
 #include <QTabWidget>
 #include <QTableView>
+#include <QTimer>
 #include <QTreeView>
 #include <QVBoxLayout>
 #include <QPainter>
@@ -165,6 +166,9 @@ struct AnalysisWidget::Impl {
     QPushButton* runBtn = nullptr;
     QPushButton* cancelBtn = nullptr;
     QPushButton* optionsBtn = nullptr;
+    QCheckBox* autoBox = nullptr;
+    QTimer* debounce = nullptr;   // DE-06: buendelt dataMutated-Ereignisse
+    bool rerunPending = false;    // DE-06: Mutation waehrend laufender Analyse
     QProgressBar* progress = nullptr;
     QLabel* healthLabel = nullptr;
     QLabel* statusLabel = nullptr;
@@ -190,11 +194,17 @@ AnalysisWidget::AnalysisWidget(QWidget* parent) : QWidget(parent), impl_(std::ma
     impl_->cancelBtn = new QPushButton(QStringLiteral("Abbrechen"), this);
     impl_->cancelBtn->setEnabled(false);
     impl_->optionsBtn = new QPushButton(QStringLiteral("Optionen…"), this);
+    impl_->autoBox = new QCheckBox(QStringLiteral("Auto-Analyse nach Änderung"), this);
+    impl_->autoBox->setChecked(true);
+    impl_->autoBox->setToolTip(QStringLiteral(
+        "Nach jeder Datenmanipulation (Design/CRUD/Import, DE-06) wird Discovery + Analyse "
+        "automatisch nach kurzer Verzögerung neu ausgeführt"));
     impl_->scopeBox = new QComboBox(this);
     impl_->scopeBox->addItem(QStringLiteral("Ganze Database"), QString());
     bar->addWidget(impl_->runBtn);
     bar->addWidget(impl_->cancelBtn);
     bar->addWidget(impl_->optionsBtn);
+    bar->addWidget(impl_->autoBox);
     bar->addWidget(new QLabel(QStringLiteral("Umfang:"), this));
     bar->addWidget(impl_->scopeBox, 1);
     impl_->progress = new QProgressBar(this);
@@ -346,6 +356,24 @@ AnalysisWidget::AnalysisWidget(QWidget* parent) : QWidget(parent), impl_(std::ma
                                                                  : QStringLiteral("color: red;"));
         emit analysisFinished(ok, summary);
         emit statusMessage(summary);
+        // DE-06: waehrend der Analyse angefallene Mutation -> jetzt erneut laufen lassen
+        if (impl_->rerunPending) {
+            impl_->rerunPending = false;
+            if (impl_->autoBox->isChecked())
+                runAnalysis();
+        }
+    });
+    // DE-06: Debounce-Timer fuer Auto-Analyse nach dataMutated
+    impl_->debounce = new QTimer(this);
+    impl_->debounce->setSingleShot(true);
+    impl_->debounce->setInterval(400);
+    connect(impl_->debounce, &QTimer::timeout, this, [this] {
+        if (!impl_->autoBox->isChecked() || !impl_->core)
+            return;
+        if (impl_->controller->isRunning())
+            impl_->rerunPending = true;
+        else
+            runAnalysis();
     });
     connect(impl_->controller, &detail::AnalysisController::statusMessage, this,
             &AnalysisWidget::statusMessage);
@@ -403,9 +431,14 @@ AnalysisWidget::AnalysisWidget(QWidget* parent) : QWidget(parent), impl_(std::ma
 AnalysisWidget::~AnalysisWidget() = default;
 
 void AnalysisWidget::setCore(ViewerCore* core) {
+    if (impl_->core)
+        disconnect(impl_->core, &ViewerCore::dataMutated, this, &AnalysisWidget::onDataMutated);
     impl_->core = core;
-    if (core)
+    if (core) {
         impl_->controller->setCore(core);
+        // DE-06: jede Datenmanipulation stoesst (gedebounced) eine Auto-Analyse an
+        connect(core, &ViewerCore::dataMutated, this, &AnalysisWidget::onDataMutated);
+    }
     // Scope-Combo um die Collections erweitern
     impl_->scopeBox->clear();
     impl_->scopeBox->addItem(QStringLiteral("Ganze Database"), QString());
@@ -433,6 +466,22 @@ void AnalysisWidget::runAnalysis() {
 }
 
 void AnalysisWidget::cancelAnalysis() { impl_->controller->cancel(); }
+
+void AnalysisWidget::setAutoAnalysisEnabled(bool on) {
+    impl_->autoBox->setChecked(on);
+    if (!on) {
+        impl_->debounce->stop();
+        impl_->rerunPending = false;
+    }
+}
+
+bool AnalysisWidget::autoAnalysisEnabled() const { return impl_->autoBox->isChecked(); }
+
+void AnalysisWidget::onDataMutated() {
+    if (!impl_->autoBox->isChecked())
+        return;
+    impl_->debounce->start(); // jede Mutation startet den Timer neu (Debounce ~400 ms)
+}
 
 void AnalysisWidget::setScopeCollection(const QString& name) {
     impl_->scope = name;

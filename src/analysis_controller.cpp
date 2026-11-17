@@ -46,6 +46,10 @@ void AnalysisController::deliver(std::function<void()> fn) {
 void AnalysisController::run(const QString& scopeCollection) {
     if (running_.load())
         return;
+    // vorherigen (bereits fertigen) Worker aufraeumen, sonst ist worker_ joinable
+    // und die Neuzuweisung wuerde std::terminate ausloesen (DE-06: erneute Laeufe)
+    if (worker_.joinable())
+        worker_.join();
     cancel_.store(false);
     running_.store(true);
     emit started();
