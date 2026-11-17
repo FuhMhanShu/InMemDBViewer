@@ -70,3 +70,29 @@ private slots:
     void liveRefreshOnInsert();
     void applyQueryViaWidget();
 };
+
+class TestDiscoveryModel : public QObject {
+    Q_OBJECT
+private slots:
+    void relationsTable();
+};
+
+class TestAnalysisModels : public QObject {
+    Q_OBJECT
+private slots:
+    void modelsPopulate();
+};
+
+class TestAnalysisController : public QObject {
+    Q_OBJECT
+private slots:
+    void discoversFkAndHealth();
+    void scopeSingleCollection();
+};
+
+class TestAnalysisWidget : public QObject {
+    Q_OBJECT
+private slots:
+    void runsAnalysisHeadless();
+    void cancelDoesNotCrash();
+};

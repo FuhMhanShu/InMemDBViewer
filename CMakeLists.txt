@@ -43,6 +43,9 @@ add_library(InMemDBViewer STATIC
     src/document_table_model.cpp
     src/document_tree_model.cpp
     src/graph_scene.cpp
+    src/analysis_widget.cpp
+    src/analysis_controller.cpp
+    src/analysis_model.cpp
 )
 # AUTOMOC: Header mit Q_OBJECT explizit als Quellen listen, damit moc sie verarbeitet
 target_sources(InMemDBViewer PRIVATE
@@ -50,6 +53,7 @@ target_sources(InMemDBViewer PRIVATE
     include/memdbviewer/viewer_core.hpp
     include/memdbviewer/data_input_widget.hpp
     include/memdbviewer/data_view_widget.hpp
+    include/memdbviewer/analysis_widget.hpp
     src/import_model.hpp
     src/data_input_controller.hpp
     src/database_model.hpp
@@ -57,6 +61,9 @@ target_sources(InMemDBViewer PRIVATE
     src/document_tree_model.hpp
     src/graph_scene.hpp
     src/data_view_controller.hpp
+    src/discovery_model.hpp
+    src/analysis_model.hpp
+    src/analysis_controller.hpp
 )
 target_include_directories(InMemDBViewer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(InMemDBViewer PUBLIC memdb ${QT_WIDGETS} ${QT_SVG})
@@ -68,7 +75,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     enable_testing()
 
     # QtTest-Tests (NFA-05), headless via QT_QPA_PLATFORM=offscreen
-    add_executable(viewer_tests tests/main.cpp tests/test_data_input.cpp tests/test_data_view.cpp tests/test_viewer.hpp)
+    add_executable(viewer_tests tests/main.cpp tests/test_data_input.cpp tests/test_data_view.cpp tests/test_analysis.cpp tests/test_viewer.hpp)
     target_link_libraries(viewer_tests PRIVATE InMemDBViewer ${QT_TEST})
     target_compile_definitions(viewer_tests PRIVATE TESTS_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/data")
     if(INMEMDBVIEWER_WITH_SQLITE)

@@ -9,4 +9,4 @@
 #include "viewer_core.hpp"
 #include "data_input_widget.hpp"
 #include "data_view_widget.hpp"
-// AnalysisWidget (Analyse) folgt im eigenen Umsetzungs-Branch und wird hier ergaenzt.
+#include "analysis_widget.hpp"

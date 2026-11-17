@@ -293,4 +293,6 @@ void DataViewWidget::refresh() {
         impl_->controller->refreshAll();
 }
 
+bool DataViewWidget::exportStructurePng(const QString& path) { return impl_->scene->exportPng(path); }
+
 } // namespace memdb::viewer
