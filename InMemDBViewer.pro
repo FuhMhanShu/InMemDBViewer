@@ -2,6 +2,7 @@
 #   qmake InMemDBViewer.pro && make -j        -> libInMemDBViewer.a im Repo-Root
 # Pfad zum InMemDB-Repo ggf. setzen (Default: Schwestern-Checkout ../InMemDB):
 #   qmake "INMEMDB_DIR=/pfad/zu/InMemDB" InMemDBViewer.pro
+# Optionaler SQLite-Import:  qmake "CONFIG+=viewer_sqlite" InMemDBViewer.pro
 #
 # Einbindung in fremde qmake-Projekte siehe InMemDBViewer.pri.
 TEMPLATE = lib
@@ -17,12 +18,18 @@ RCC_DIR = $$_PRO_FILE_PWD_/build-qmake/rcc
 
 INCLUDEPATH += $$_PRO_FILE_PWD_/include
 
-# InMemDB-Quellen direkt mitkompilieren (Variante B aus InMemDB.pri);
-# INMEMDB_WITH_QT setzt InMemDB.pri automatisch (QT enthaelt core), damit der
-# Qt-Modell-Adapter memdb::qt::MemDbTableModel (v0.23) verfuegbar ist.
+# Optionaler SQLite-Import (muss VOR dem include(InMemDB.pri) stehen, damit
+# Variante B src/import_sqlite.cpp aufnimmt)
+contains(CONFIG, viewer_sqlite) {
+    DEFINES += INMEMDB_HAS_SQLITE
+    LIBS += -lsqlite3
+}
+
+# InMemDB-Quellen direkt mitkompilieren (Variante B aus InMemDB.pri)
 isEmpty(INMEMDB_DIR): INMEMDB_DIR = $$clean_path($$_PRO_FILE_PWD_/../InMemDB)
 DEFINES += INMEMDB_BUILD_SOURCES
 include($$INMEMDB_DIR/InMemDB.pri)
 
 SOURCES += $$files($$_PRO_FILE_PWD_/src/*.cpp, false)
 HEADERS += $$files($$_PRO_FILE_PWD_/include/memdbviewer/*.hpp, false)
+HEADERS += $$files($$_PRO_FILE_PWD_/src/*.hpp, false)

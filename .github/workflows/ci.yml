@@ -25,18 +25,18 @@ jobs:
         with:
           repository: FuhMhanShu/InMemDB
           path: InMemDBViewer/../InMemDB
-      - name: Qt6 installieren
+      - name: Qt6 + SQLite installieren
         run: |
           sudo apt-get update
-          sudo apt-get install -y qt6-base-dev qt6-base-dev-tools qt6-svg-dev libgl1-mesa-dev
-      - name: Konfigurieren und bauen
+          sudo apt-get install -y qt6-base-dev qt6-base-dev-tools qt6-svg-dev libsqlite3-dev libgl1-mesa-dev
+      - name: Konfigurieren und bauen (inkl. SQLite-Import)
         run: |
-          cmake -S InMemDBViewer -B build -DINMEMDB_DIR="$GITHUB_WORKSPACE/InMemDB"
+          cmake -S InMemDBViewer -B build -DINMEMDB_DIR="$GITHUB_WORKSPACE/InMemDB" -DINMEMDBVIEWER_WITH_SQLITE=ON
           cmake --build build -j"$(nproc)"
       - name: Unit-Tests (headless)
         run: QT_QPA_PLATFORM=offscreen ctest --test-dir build --output-on-failure
-      - name: Demo-App Smoke-Test (headless)
-        run: QT_QPA_PLATFORM=offscreen ./build/viewer_demo
+      - name: App Smoke-Test (headless)
+        run: QT_QPA_PLATFORM=offscreen ./build/viewer_app
 
   cmake-qt5:
     name: CMake / Qt5.15 / Ubuntu 22.04
@@ -73,20 +73,20 @@ jobs:
         with:
           repository: FuhMhanShu/InMemDB
           path: InMemDBViewer/../InMemDB
-      - name: Qt6 installieren
+      - name: Qt6 + SQLite installieren
         run: |
           sudo apt-get update
-          sudo apt-get install -y qt6-base-dev qt6-base-dev-tools qt6-svg-dev qt6-qmake 2>/dev/null || sudo apt-get install -y qt6-base-dev qt6-base-dev-tools qt6-svg-dev
-      - name: Bibliothek + Tests + Demo bauen (qmake6)
+          sudo apt-get install -y qt6-base-dev qt6-base-dev-tools qt6-svg-dev qt6-qmake libsqlite3-dev 2>/dev/null || sudo apt-get install -y qt6-base-dev qt6-base-dev-tools qt6-svg-dev libsqlite3-dev
+      - name: Bibliothek + Tests + App bauen (qmake6, mit SQLite-Import)
         run: |
           export QMAKE="$(command -v qmake6 || command -v /usr/lib/qt6/bin/qmake)"
           cd InMemDBViewer
-          $QMAKE INMEMDB_DIR="$GITHUB_WORKSPACE/InMemDB" InMemDBViewer.pro && make -j"$(nproc)"
+          $QMAKE "INMEMDB_DIR=$GITHUB_WORKSPACE/InMemDB" "CONFIG+=viewer_sqlite" InMemDBViewer.pro && make -j"$(nproc)"
           mkdir -p build-tests && cd build-tests
-          $QMAKE INMEMDB_DIR="$GITHUB_WORKSPACE/InMemDB" ../tests/tests.pro && make -j"$(nproc)"
-          mkdir -p ../build-demo && cd ../build-demo
-          $QMAKE INMEMDB_DIR="$GITHUB_WORKSPACE/InMemDB" ../examples/viewer_demo/viewer_demo.pro && make -j"$(nproc)"
+          $QMAKE "INMEMDB_DIR=$GITHUB_WORKSPACE/InMemDB" "CONFIG+=viewer_sqlite" ../tests/tests.pro && make -j"$(nproc)"
+          mkdir -p ../build-app && cd ../build-app
+          $QMAKE "INMEMDB_DIR=$GITHUB_WORKSPACE/InMemDB" "CONFIG+=viewer_sqlite" ../examples/viewer_app/viewer_app.pro && make -j"$(nproc)"
       - name: Unit-Tests (headless)
         run: QT_QPA_PLATFORM=offscreen ./InMemDBViewer/build-tests/viewer_tests
-      - name: Demo-App Smoke-Test (headless)
-        run: QT_QPA_PLATFORM=offscreen ./InMemDBViewer/build-demo/viewer_demo
+      - name: App Smoke-Test (headless)
+        run: QT_QPA_PLATFORM=offscreen ./InMemDBViewer/build-app/viewer_app
