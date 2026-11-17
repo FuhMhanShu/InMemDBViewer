@@ -1,6 +1,7 @@
 #include "analysis_controller.hpp"
 
 #include "analysis_model.hpp"
+#include "confusion_model.hpp"
 #include "discovery_model.hpp"
 
 #include "memdbviewer/viewer_core.hpp"
@@ -23,9 +24,10 @@ AnalysisController::AnalysisController(ViewerCore* core, DiscoveryModel* discove
                                        TextListModel* merges, TextListModel* keys, TextListModel* paths,
                                        TextListModel* profiles, CollectionOverviewModel* overview,
                                        FieldStatsModel* fieldStats, InfluenceModel* influence,
-                                       OutlierModel* outliers, QObject* parent)
+                                       OutlierModel* outliers, ConfusionModel* confusion, QObject* parent)
     : QObject(parent), discovery_(discovery), orphans_(orphans), merges_(merges), keys_(keys), paths_(paths),
-      profiles_(profiles), overview_(overview), fieldStats_(fieldStats), influence_(influence), outliers_(outliers) {
+      profiles_(profiles), overview_(overview), fieldStats_(fieldStats), influence_(influence), outliers_(outliers),
+      confusionModel_(confusion) {
     setCore(core);
 }
 
@@ -187,6 +189,11 @@ void AnalysisController::runWorker(const QString scopeCollection) {
         const QString mm = QString::fromStdString(memdb::toMermaid(report));
         deliver([this, report, md, js, mm] {
             healthScore_ = report.healthScore;
+            confusion_ = report.confusion; // v0.42: nur bei analyze(Database&) mit __references gefuellt
+            if (confusion_)
+                confusionModel_->setConfusion(confusion_);
+            else
+                confusionModel_->setConfusion(std::nullopt);
             reportMarkdown_ = md;
             reportJson_ = js;
             reportMermaid_ = mm;
