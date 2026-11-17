@@ -16,5 +16,5 @@ DEFINES += TESTS_DATA_DIR=\\\"$$_PRO_FILE_PWD_/data\\\"
 
 include($$INMEMDBVIEWER_DIR/InMemDBViewer.pri)
 
-SOURCES += $$_PRO_FILE_PWD_/main.cpp $$_PRO_FILE_PWD_/test_data_input.cpp
+SOURCES += $$_PRO_FILE_PWD_/main.cpp $$_PRO_FILE_PWD_/test_data_input.cpp $$_PRO_FILE_PWD_/test_data_view.cpp
 HEADERS += $$_PRO_FILE_PWD_/test_viewer.hpp

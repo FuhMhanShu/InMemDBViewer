@@ -41,18 +41,21 @@ public:
         auto* central = new QSplitter(Qt::Vertical, this);
         central->addWidget(inputWidget_);
 
+        viewWidget_ = new DataViewWidget(this);
+        viewWidget_->setCore(core_);
+
         auto* areas = new QSplitter(Qt::Horizontal, central);
         auto* viewBox = new QGroupBox(QStringLiteral("Datenbetrachtung"), areas);
         auto* viewLayout = new QVBoxLayout(viewBox);
-        viewLayout->addWidget(new QLabel(
-            QStringLiteral("DataViewWidget (Struktur/Tabelle/Dokument) – eigener Umsetzungs-Branch"), viewBox));
+        viewLayout->setContentsMargins(2, 2, 2, 2);
+        viewLayout->addWidget(viewWidget_);
         auto* analysisBox = new QGroupBox(QStringLiteral("Analyse (Discovery + Analyse)"), areas);
         auto* analysisLayout = new QVBoxLayout(analysisBox);
         analysisLayout->addWidget(new QLabel(
-            QStringLiteral("AnalysisWidget – eigener Umsetzungs-Branch"), analysisBox));
+            QStringLiteral("AnalysisWidget – eigener Umsetzungs-Branch (Schritt 4)"), analysisBox));
         areas->addWidget(viewBox);
         areas->addWidget(analysisBox);
-        areas->setStretchFactor(0, 1);
+        areas->setStretchFactor(0, 2);
         areas->setStretchFactor(1, 1);
         central->addWidget(areas);
         central->setStretchFactor(0, 0);
@@ -71,6 +74,8 @@ public:
             if (!msg.isEmpty())
                 statusBar()->showMessage(QStringLiteral("Fehler: %1").arg(msg), 10000);
         });
+        connect(viewWidget_, &DataViewWidget::statusMessage, this,
+                [this](const QString& msg) { statusBar()->showMessage(msg, 10000); });
     }
 
     void handleDroppedFiles(const QStringList& paths) { inputWidget_->handleDroppedFiles(paths); }
@@ -94,9 +99,10 @@ protected:
 private:
     void buildMenuAndToolbar() {
         auto* fileMenu = menuBar()->addMenu(QStringLiteral("&Datei"));
-        auto* openAction = fileMenu->addAction(QStringLiteral("Daten oeffnen…"), QKeySequence::Open, this, [this] {
+        auto* openAction = fileMenu->addAction(QStringLiteral("Daten oeffnen…"), this, [this] {
             inputWidget_->openFileDialog();
         });
+        openAction->setShortcut(QKeySequence::Open);
         auto* openSnapAction = fileMenu->addAction(QStringLiteral("Snapshot oeffnen…"), this, [this] {
             const QString path = QFileDialog::getOpenFileName(
                 this, QStringLiteral("InMemDB-Snapshot oeffnen"), QString(),
@@ -104,14 +110,16 @@ private:
             if (!path.isEmpty())
                 inputWidget_->handleDroppedFiles({path});
         });
-        auto* newAction = fileMenu->addAction(QStringLiteral("Neue leere Database"), QKeySequence::New, this, [this] {
+        auto* newAction = fileMenu->addAction(QStringLiteral("Neue leere Database"), this, [this] {
             core_->resetDatabase();
         });
+        newAction->setShortcut(QKeySequence::New);
         auto* demoAction = fileMenu->addAction(QStringLiteral("Beispiel laden"), this, [this] {
             core_->loadDemoData();
         });
         fileMenu->addSeparator();
-        fileMenu->addAction(QStringLiteral("Beenden"), QKeySequence::Quit, this, &QWidget::close);
+        auto* quitAction = fileMenu->addAction(QStringLiteral("Beenden"), this, &QWidget::close);
+        quitAction->setShortcut(QKeySequence::Quit);
 
         auto* toolBar = addToolBar(QStringLiteral("Daten"));
         toolBar->addAction(openAction);
@@ -122,6 +130,7 @@ private:
 
     ViewerCore* core_;
     DataInputWidget* inputWidget_ = nullptr;
+    DataViewWidget* viewWidget_ = nullptr;
 };
 } // namespace
 

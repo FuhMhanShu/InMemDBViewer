@@ -8,5 +8,5 @@
 
 #include "viewer_core.hpp"
 #include "data_input_widget.hpp"
-// DataViewWidget (Datenbetrachtung) und AnalysisWidget (Analyse) folgen in den
-// eigenen Umsetzungs-Branches und werden hier ergaenzt.
+#include "data_view_widget.hpp"
+// AnalysisWidget (Analyse) folgt im eigenen Umsetzungs-Branch und wird hier ergaenzt.

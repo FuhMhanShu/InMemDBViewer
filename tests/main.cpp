@@ -15,5 +15,15 @@ int main(int argc, char** argv) {
     run(&model);
     TestDataInputWidget widget;
     run(&widget);
+    TestDatabaseModel dbModel;
+    run(&dbModel);
+    TestDocumentTableModel tableModel;
+    run(&tableModel);
+    TestDocumentTreeModel treeModel;
+    run(&treeModel);
+    TestGraphScene graphScene;
+    run(&graphScene);
+    TestDataViewWidget viewWidget;
+    run(&viewWidget);
     return rc;
 }
