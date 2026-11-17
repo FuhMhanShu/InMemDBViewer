@@ -1,12 +1,12 @@
 #pragma once
 
-// InMemDBViewer – oeffentliche API (Namespace memdb::viewer, MVC, FA-01/FA-02).
+/// @file
+/// @brief Umbrella-Header der InMemDBViewer-Bibliothek (Namespace `memdb::viewer`).
+///        Zentrale Komponenten: `ViewerCore` (Model) + die gekapselten MVC-Widgets
+///        `DataInputWidget` (Dateneingabe), `DataViewWidget` (Datenbetrachtung)
+///        und `AnalysisWidget` (Datenanalyse).
 
-#include "viewer_controller.hpp"
-#include "database_model.hpp"
-#include "collection_item.hpp"
-#include "schema_scene.hpp"
-#include "schema_view.hpp"
-#include "document_view.hpp"
-#include "document_tree_view.hpp"
-#include "metrics_panel.hpp"
+#include "viewer_core.hpp"
+#include "data_input_widget.hpp"
+// DataViewWidget (Datenbetrachtung) und AnalysisWidget (Analyse) folgen in den
+// eigenen Umsetzungs-Branches und werden hier ergaenzt.

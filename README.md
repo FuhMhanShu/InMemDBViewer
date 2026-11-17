@@ -1,87 +1,85 @@
 # InMemDBViewer
-Visualisierung zu [InMemDB](https://github.com/FuhMhanShu/InMemDB) – C++/Qt, MVC-Architektur, als Bibliothek ausgeliefert.
 
-- [Anforderungen](anforderungen.md) (v0.1)
+Visualisierungs- und **Analysetool** für [InMemDB](https://github.com/FuhMhanShu/InMemDB) – C++17/Qt, strikte MVC-Architektur, als Bibliothek + App.
 
-## Bibliothek (v0.4)
+- [Anforderungen](anforderungen.md) (v1.0)
 
-Öffentliche API unter `include/memdbviewer/`, Namespace `memdb::viewer` (MVC, FA-01/FA-02):
+## Konzept (v1.0)
+
+Die GUI besteht aus drei **gekapselten MVC-Widgets**, die alle an einem gemeinsamen Model (`ViewerCore`: hält `memdb::Database` + `ReferenceIndex`) hängen:
+
+```
+MainWindow: oben uebergreifend "Daten laden" (Menue/Toolbar/Drag & Drop)
+  ├─ DataInputWidget   – Dateneingabe: Datei-Dialog, Drag & Drop, Import-Optionen, Verlauf
+  ├─ DataViewWidget    – Bereich Datenbetrachtung: Struktur (QGraphicsFramework/DbGraph),
+  │                      tabellarische Ansicht (virtualisiert, DSL-Filter), Dokument-Detail
+  └─ AnalysisWidget    – Bereich Analyse: Discovery (FA-27) + Analyse (FA-29..FA-32, v0.33/v0.40),
+                         Worker-Thread, Health-Score, Report-Export
+```
+
+**Daten laden** (übergeordnet, InMemDB FA-21 `ImportRegistry`/`Importer`): CSV, JSON/JSONL/NDJSON, SQL-Dump, BSON, SQLite (optional via `INMEMDB_WITH_SQLITE`), InMemDB-Snapshot (`.inmemdb.json`, inkl. verschlüsselt `.enc` mit Passwort, FA-14/FA-19). Geladene Daten stehen Datenbetrachtung und Analyse zur Verfügung; Änderungen werden live per Observer (FA-15) an alle Widgets verteilt.
+
+## Öffentliche API (Namespace `memdb::viewer`, Header unter `include/memdbviewer/`)
 
 | Klasse | Schicht | Zweck |
 |---|---|---|
-| `viewer::ViewerController` | Controller | hält die `memdb::Database`, Observer-Bridge (`Collection::onChange` → queued Qt-Signale, FA-08), stellt das Model bereit |
-| `viewer::DatabaseModel` | Model | `QAbstractItemModel`: Collections als Top-Level (Dokumente/Schema/Indizes, FA-03), Schema-Felder als Kind-Zeilen |
-| `viewer::SchemaScene` + `viewer::CollectionItem` | View | QGraphicsFramework (FA-04): Collection-Knoten mit Schema-Metadaten, FA-18-Referenzen als Kanten (FA-05) |
-| `viewer::SchemaView` | View | `QGraphicsView` mit Pan/Zoom (FA-09) |
-| `viewer::DocumentView` | View | Dokument-Tabelle auf `memdb::qt::MemDbTableModel` (v0.23) mit DSL-Query-Filter und Index-Diagnose (FA-07/FA-10) |
-| `viewer::MetricsPanel` | View | Metriken (`CollectionMetrics`/`DatabaseMetrics`, v0.22) inkl. Hybrid-/Overflow-Info (FA-11/FA-13) |
-| `viewer::DocumentTreeView` | View | Detailbaum eines Dokuments: Felder mit Typ/Wert, verschachtelte Dokumente/Arrays rekursiv (FA-07) |
+| `ViewerCore` | Model | hält `memdb::Database` + `ReferenceIndex`; Import/Snapshot laden (sync + async), Observer-Bridge → queued Signale (`collectionChanged`, `collectionsChanged`, `databaseLoaded`) |
+| `DataInputWidget` | View | Dateneingabe-Panel (Dialog, Drag & Drop, Formate, Optionen, Verlauf, Status) |
+| `DataViewWidget` | View | Datenbetrachtung: Datenbank-Übersicht, Struktur-Szene (QGraphicsFramework), Dokument-Tabelle, Dokument-Detail |
+| `AnalysisWidget` | View | Analyse: Discovery + Analyse im Worker-Thread, Health-Ampel, Report-Export (Markdown/JSON/Mermaid) |
 
-### Weitere Features (v0.4)
-- FA-14 CRUD-Editing in `DocumentView`: Zellen editierbar (schreibt via `updateById`), „Neu (leer)“/„Löschen“, Auto-Refresh per Observer
-- FA-17 Aggregationen in `DocumentView`: count/min/max/sum/avg über optionalen DSL-Filter (`Collection::aggregate`)
+Interne MVC-Teile (Model/Controller je Widget) liegen gekapselt in `src/` (`ImportModel`, `DataInputController`, …).
 
-### Features (v0.3/v0.4)
-- Schema-Szene (QGraphicsFramework): Collection-Knoten mit rekursivem, per Doppelklick auf-/zuklappbarem Schema (FA-06), FA-18-Referenzen als Kanten mit Dangling-Markierung (FA-05)
-- Bidirektionale Selektion Baum ↔ Szene über `ViewerController::collectionSelected` (FA-09)
-- Live-Update per Observer (`onChange` → queued Signale, FA-08)
-- Snapshot laden inkl. verschlüsselter Snapshots: `ViewerController::openSnapshot/openSnapshotEncrypted` (FA-12); Demo: Datei-Dialog oder Drag & Drop, verschlüsselte Snapshots werden automatisch erkannt (Passwort-Abfrage)
-- Export: Szene als PNG und SVG (`SchemaScene::exportPng/exportSvg`, QtSvg), Graph als Mermaid/JSON/Markdown (`SchemaScene::mermaid/json/markdown`, FA-15)
-### Auto-Sync: neue/gelöschte Collections erkennen (v0.4)
-InMemDB (Stand v0.24) feuert `Collection::onChange` nur für Dokumentänderungen; `createCollection`/`dropCollection`/`clear` erzeugen kein Database-Level-Event. Der `ViewerController` gleicht daher zusätzlich per leichtem QTimer (Default 250 ms, nur `collectionNames()`-Vergleich) den Collection-Stand ab: neue Collections werden automatisch abonniert, gelöschte abgemeldet, Model und Szene aktualisiert. Steuerung: `setAutoSyncEnabled(bool)`, `setAutoSyncInterval(int)`, `isAutoSyncEnabled()`.
+## Voraussetzungen
 
-### CI
-GitHub Actions (`.github/workflows/ci.yml`): CMake-Build + QtTest (headless) + Demo-Smoke-Test für Qt 6 (ubuntu-latest) und Qt 5.15 (ubuntu-22.04) sowie ein qmake-Build (Bibliothek, Tests, Demo). Das Schwester-Repositorium InMemDB wird per `actions/checkout` geladen; beide Repositories sind öffentlich, daher ist kein Secret erforderlich und Standard-Runner verbrauchen keine Actions-Minuten.
+C++17-Compiler, Qt 5.15+ oder Qt 6 (Widgets, Svg, Test), InMemDB (Default: Schwestern-Checkout `../InMemDB`, sonst Pfad setzen). Optionaler SQLite-Import: `libsqlite3-dev` + Build-Option.
 
-Voraussetzungen: C++17-Compiler, Qt 5.15+ oder Qt 6 (Widgets, Svg), InMemDB (Default: Schwestern-Checkout `../InMemDB`, sonst Pfad setzen).
-
-### Build & Tests (qmake)
+## Build & Tests (CMake)
 
 ```sh
-qmake InMemDBViewer.pro && make -j            # -> libInMemDBViewer.a im Repo-Root
-qmake tests/tests.pro && make -j
-QT_QPA_PLATFORM=offscreen ./viewer_tests      # QtTest headless (NFA-05)
-```
-
-### Build & Tests (CMake)
-
-```sh
-cmake -S . -B build -DINMEMDB_DIR=../InMemDB
+cmake -S . -B build -DINMEMDB_DIR=../InMemDB                 # + -DINMEMDBVIEWER_WITH_SQLITE=ON fuer SQLite-Import
 cmake --build build -j
 QT_QPA_PLATFORM=offscreen ctest --test-dir build --output-on-failure
+QT_QPA_PLATFORM=offscreen ./build/viewer_app                  # App-Smoke-Test (headless, beendet sich selbst)
 ```
 
-### Einbindung in ein eigenes qmake-Projekt
+## Build & Tests (qmake)
+
+```sh
+qmake InMemDBViewer.pro && make -j                 # -> libInMemDBViewer.a (ggf. "CONFIG+=viewer_sqlite")
+mkdir build-tests && cd build-tests && qmake ../tests/tests.pro && make -j
+QT_QPA_PLATFORM=offscreen ./viewer_tests           # QtTest headless (NFA-05)
+mkdir build-app && cd build-app && qmake ../examples/viewer_app/viewer_app.pro && make -j
+QT_QPA_PLATFORM=offscreen ./viewer_app              # App-Smoke-Test
+```
+
+## Einbindung in ein eigenes qmake-Projekt
 
 ```qmake
-QT += widgets
+QT += widgets svg
 INMEMDBVIEWER_DIR = /pfad/zu/InMemDBViewer
 INMEMDB_DIR = /pfad/zu/InMemDB
 include($$INMEMDBVIEWER_DIR/InMemDBViewer.pri)  # Variante A: libInMemDBViewer.a linken
 # oder: DEFINES += INMEMDBVIEWER_BUILD_SOURCES   # Variante B: Quellen mitkompilieren
+# optional: CONFIG += viewer_sqlite               # SQLite-Import (libsqlite3)
 ```
 
-### Demo-App (FA-16)
-
-```sh
-qmake examples/viewer_demo/viewer_demo.pro && make -j && ./viewer_demo
-QT_QPA_PLATFORM=offscreen ./viewer_demo        # CI-Smoke-Test, beendet sich selbst
-```
-
-Snapshots (FA-12) lassen sich in der Demo per Toolbar-Dialog („Snapshot öffnen…“) laden oder per Drag & Drop auf das Fenster ziehen; verschlüsselte Snapshots (`.enc`, Magic-Header) erkennen die App automatisch und fragt das Passwort ab.
-
-### Mini-Beispiel
+## Mini-Beispiel
 
 ```cpp
-#include <memdb/memdb.hpp>
 #include <memdbviewer/viewer.hpp>
 
-memdb::Database db("demo");
-db.createCollection("users").insert({{"name", "Ada"}});
+memdb::viewer::ViewerCore core;                 // Model: haelt die Database
+core.loadDemoData();                            // oder: core.importFile("daten.csv");
 
-memdb::viewer::ViewerController controller;
-controller.setDatabase(db);          // Model + Observer aufsetzen
-
-memdb::viewer::SchemaScene scene;    // QGraphicsFramework-Szene
-scene.setDatabase(db);               // z. B. in memdb::viewer::SchemaView anzeigen
+memdb::viewer::DataInputWidget input;           // Dateneingabe (Dialog + Drag & Drop)
+input.setCore(&core);
 ```
+
+## CI
+
+GitHub Actions (`.github/workflows/ci.yml`): CMake-Build + QtTest (headless) + App-Smoke-Test für Qt 6 (mit SQLite-Import) und Qt 5.15 sowie ein qmake-Build inkl. SQLite. InMemDB wird als öffentlicher Schwestern-Checkout mitgebaut (kein Secret nötig).
+
+## Lizenz
+
+MIT (wie InMemDB).

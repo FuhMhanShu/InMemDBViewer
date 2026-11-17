@@ -2,63 +2,35 @@
 
 #include <QObject>
 
-class TestDatabaseModel : public QObject {
+class TestViewerCore : public QObject {
     Q_OBJECT
 private slots:
-    void overview();
-    void refreshAfterInsert();
-};
-
-class TestSchemaScene : public QObject {
-    Q_OBJECT
-private slots:
-    void nodesAndEdges();
-    void schemaFieldsRendered();
-    void nestedSchemaInScene();
-};
-
-class TestCollectionItem : public QObject {
-    Q_OBJECT
-private slots:
-    void collapseExpand();
-};
-
-class TestViewerController : public QObject {
-    Q_OBJECT
-private slots:
+    void importCsv();
+    void importJson();
+    void importJsonl();
+    void importSqlDump();
+    void importSqlite();
+    void unknownExtensionFails();
+    void encryptedSnapshotRoundtrip();
+    void snapshotRoundtrip();
+    void resetDatabaseEmitsSignals();
     void observerTriggersSignal();
-    void modelFollowsObserver();
-    void selectCollection();
-    void autoSyncDetectsNewAndDroppedCollection();
+    void autoSyncDetectsNewCollection();
+    void demoDataLoads();
+    void asyncImportWorks();
 };
 
-class TestMetricsPanel : public QObject {
+class TestImportModel : public QObject {
     Q_OBJECT
 private slots:
-    void showsCollectionMetrics();
-    void showsOverflowInfo();
+    void addUpdateClear();
 };
 
-class TestSnapshotExport : public QObject {
+class TestDataInputWidget : public QObject {
     Q_OBJECT
 private slots:
-    void openSnapshotRoundtrip();
-    void openSnapshotEncrypted();
-    void wrongPasswordFails();
-    void exportPngAndMermaid();
-    void exportSvgJsonMarkdown();
-};
-
-class TestDocumentTreeView : public QObject {
-    Q_OBJECT
-private slots:
-    void nestedDocument();
-};
-
-class TestDocumentView : public QObject {
-    Q_OBJECT
-private slots:
-    void insertAndDelete();
-    void aggregate();
-    void documentSelectedSignal();
+    void supportedFormatsListed();
+    void dropCsvImports();
+    void handleDroppedFilesAsync();
+    void encryptedDropOffscreenIsHandled();
 };
