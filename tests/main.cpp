@@ -25,5 +25,13 @@ int main(int argc, char** argv) {
     run(&graphScene);
     TestDataViewWidget viewWidget;
     run(&viewWidget);
+    TestDiscoveryModel discModel;
+    run(&discModel);
+    TestAnalysisModels anaModels;
+    run(&anaModels);
+    TestAnalysisController anaController;
+    run(&anaController);
+    TestAnalysisWidget anaWidget;
+    run(&anaWidget);
     return rc;
 }

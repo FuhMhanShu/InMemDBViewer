@@ -21,6 +21,7 @@
 #include <QMimeData>
 #include <QSplitter>
 #include <QStatusBar>
+#include <QTemporaryDir>
 #include <QTimer>
 #include <QToolBar>
 #include <QUrl>
@@ -49,14 +50,20 @@ public:
         auto* viewLayout = new QVBoxLayout(viewBox);
         viewLayout->setContentsMargins(2, 2, 2, 2);
         viewLayout->addWidget(viewWidget_);
+        analysisWidget_ = new AnalysisWidget(this);
+        analysisWidget_->setCore(core_);
         auto* analysisBox = new QGroupBox(QStringLiteral("Analyse (Discovery + Analyse)"), areas);
         auto* analysisLayout = new QVBoxLayout(analysisBox);
-        analysisLayout->addWidget(new QLabel(
-            QStringLiteral("AnalysisWidget – eigener Umsetzungs-Branch (Schritt 4)"), analysisBox));
+        analysisLayout->setContentsMargins(2, 2, 2, 2);
+        analysisLayout->addWidget(analysisWidget_);
         areas->addWidget(viewBox);
         areas->addWidget(analysisBox);
         areas->setStretchFactor(0, 2);
         areas->setStretchFactor(1, 1);
+
+        // Selektion aus der Datenbetrachtung als Analyse-Umfang uebernehmen
+        connect(viewWidget_, &DataViewWidget::collectionSelected, analysisWidget_,
+                &AnalysisWidget::setScopeCollection);
         central->addWidget(areas);
         central->setStretchFactor(0, 0);
         central->setStretchFactor(1, 1);
@@ -76,9 +83,20 @@ public:
         });
         connect(viewWidget_, &DataViewWidget::statusMessage, this,
                 [this](const QString& msg) { statusBar()->showMessage(msg, 10000); });
+        connect(analysisWidget_, &AnalysisWidget::statusMessage, this,
+                [this](const QString& msg) { statusBar()->showMessage(msg, 10000); });
+        // F5: Analyse starten
+        auto* analyzeAction = new QAction(QStringLiteral("Analysieren"), this);
+        analyzeAction->setShortcut(QKeySequence(QStringLiteral("F5")));
+        connect(analyzeAction, &QAction::triggered, analysisWidget_, &AnalysisWidget::runAnalysis);
+        addAction(analyzeAction);
     }
 
     void handleDroppedFiles(const QStringList& paths) { inputWidget_->handleDroppedFiles(paths); }
+
+    DataViewWidget* viewWidget() const { return viewWidget_; }
+    AnalysisWidget* analysisWidget() const { return analysisWidget_; }
+    bool exportStructurePng(const QString& path) { return viewWidget_->exportStructurePng(path); }
 
 protected:
     void dragEnterEvent(QDragEnterEvent* event) override {
@@ -131,6 +149,7 @@ private:
     ViewerCore* core_;
     DataInputWidget* inputWidget_ = nullptr;
     DataViewWidget* viewWidget_ = nullptr;
+    AnalysisWidget* analysisWidget_ = nullptr;
 };
 } // namespace
 
@@ -144,8 +163,16 @@ int main(int argc, char** argv) {
     window.resize(1200, 750);
     window.show();
 
-    if (offscreen)
-        QTimer::singleShot(300, &app, &QCoreApplication::quit);
+    if (offscreen) {
+        // CI-Smoke (GA-03): Struktur-Szene rendern + Analyse ausfuehren, dann beenden
+        QTemporaryDir dir;
+        if (dir.isValid())
+            window.exportStructurePng(dir.path() + QStringLiteral("/structure.png"));
+        QObject::connect(window.analysisWidget(), &AnalysisWidget::analysisFinished, &app,
+                         [&](bool, const QString&) { QTimer::singleShot(100, &app, &QCoreApplication::quit); });
+        QTimer::singleShot(0, window.analysisWidget(), &AnalysisWidget::runAnalysis);
+        QTimer::singleShot(20000, &app, &QCoreApplication::quit); // Safety
+    }
 
     return app.exec();
 }

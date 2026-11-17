@@ -41,6 +41,8 @@ public:
     int tableRowCount() const;
     int tableColumnCount() const;
     QString queryDiagnostics() const;
+    /// @brief Struktur-Szene als PNG exportieren (DB-09; auch fuer Headless-Smoke).
+    bool exportStructurePng(const QString& path);
 
 public slots:
     void applyQuery(const QString& dsl);
