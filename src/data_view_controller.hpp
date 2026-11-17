@@ -41,6 +41,14 @@ public:
     /// @brief Dokument-Zeile ausgewaehlt -> Detailbaum aktualisieren.
     void showDocument(quint64 id);
 
+    /// @name Verifiziertes Dokument-CRUD (DE-05) ueber den ViewerCore (DE-01):
+    ///        false + error bei Fehler (Schema/Unique/JSON …), Erfolg wird geloggt + `dataMutated`.
+    /// @{
+    bool updateField(quint64 id, const QString& fieldPath, const QString& valueText, QString* error = nullptr);
+    bool insertDocument(const QString& docJson, quint64* newId = nullptr, QString* error = nullptr);
+    bool removeDocument(quint64 id, QString* error = nullptr);
+    /// @}
+
     /// @brief Alle Models aktualisieren (z. B. nach databaseLoaded).
     void refreshAll();
 

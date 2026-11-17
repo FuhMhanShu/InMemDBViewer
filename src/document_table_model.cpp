@@ -95,6 +95,25 @@ quint64 DocumentTableModel::idAt(int row) const {
                                                               : 0;
 }
 
+Qt::ItemFlags DocumentTableModel::flags(const QModelIndex& index) const {
+    Qt::ItemFlags f = QAbstractTableModel::flags(index);
+    if (index.isValid() && coll_ && index.column() > 0)
+        f |= Qt::ItemIsEditable; // id-Spalte (0) bleibt geschuetzt
+    return f;
+}
+
+bool DocumentTableModel::setData(const QModelIndex& index, const QVariant& value, int role) {
+    if (role != Qt::EditRole || !index.isValid() || !coll_ || index.column() <= 0 ||
+        index.column() >= static_cast<int>(columns_.size()) ||
+        index.row() >= static_cast<int>(ids_.size()))
+        return false;
+    // Mutation ueber Signal an den Controller (verifiziert via ViewerCore, DE-01/DE-05);
+    // danach Zelle neu aus der Collection lesen (bei Fehler: alter Wert bleibt stehen).
+    emit editRequested(idAt(index.row()), columns_.at(index.column()), value.toString());
+    emit dataChanged(index, index, {Qt::DisplayRole, Qt::ToolTipRole, TypeRole});
+    return true;
+}
+
 QVariant DocumentTableModel::headerData(int section, Qt::Orientation orientation, int role) const {
     if (role != Qt::DisplayRole || orientation != Qt::Horizontal || section >= columns_.size())
         return {};

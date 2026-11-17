@@ -32,6 +32,12 @@ public:
     /// @brief Einzelne Datei laden (auto-Quelle); verschluesselt -> Passwort-Dialog.
     void importPath(const QString& path, QWidget* dialogParent);
 
+    /// @brief CSV-Text aus der Zwischenablage importieren: liest `QGuiApplication::clipboard()`
+    ///        (oder `clipboardText`, falls nicht leer – fuer Tests), zeigt einen Optionen-Dialog
+    ///        (Collection-Name, Trennzeichen, Quote, Header, Typ-Inferenz, Vorschau) und ruft
+    ///        `ViewerCore::importCsvText` (verifiziert, geloggt, `dataMutated`).
+    void importCsvFromClipboard(QWidget* dialogParent, const QString& clipboardText = QString());
+
     ImportModel* model() const { return model_; }
 
 signals:

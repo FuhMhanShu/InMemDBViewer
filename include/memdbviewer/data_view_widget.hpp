@@ -16,12 +16,14 @@ class GraphScene;
 
 namespace memdb::viewer {
 
-/// @brief Gekapseltes MVC-Widget „Datenbetrachtung" (DB-01…DB-10): Datenbank-Übersicht
+/// @brief Gekapseltes MVC-Widget „Datenbetrachtung" (DB-01…DB-10, DE-05): Datenbank-Übersicht
 ///        (Collections mit Dokumentanzahl/Schema/Indizes), Strukturansicht mit dem
 ///        QGraphicsFramework (`DbGraph` FA-22: Collections als Knoten, FA-18-Referenzen
 ///        als Kanten), tabellarische Dokumentansicht (virtualisiert, DSL-Query-Filter
-///        mit Index-Diagnose, Aggregationen FA-13) und Dokument-Detailbaum.
-///        Live-Aktualisierung ueber `ViewerCore` (Observer FA-15 + Auto-Sync).
+///        mit Index-Diagnose, Aggregationen FA-13, Zellen editierbar) und Dokument-Detailbaum.
+///        Dokument-CRUD: Zellen-Edit (Doppelklick), „Dokument neu…" (JSON), „Dokument löschen“ –
+///        alles verifiziert ueber den `ViewerCore` (Fehler ins Ausgabe-Log).
+///        Live-Aktualisierung ueber `ViewerCore` (Observer FA-15 + Auto-Sync + `dataMutated`).
 ///
 /// Verwendung: `auto* view = new DataViewWidget; view->setCore(core);`
 class DataViewWidget : public QWidget {
@@ -48,6 +50,10 @@ public slots:
     void applyQuery(const QString& dsl);
     void resetQuery();
     void refresh();
+    /// @brief Dialog "Dokument neu…" (JSON-Objekt) in der aktuellen Collection (DE-05).
+    void insertDocumentDialog();
+    /// @brief Ausgewaehlte Tabellenzeile (Dokument) loeschen, mit Sicherheitsabfrage (DE-05).
+    void deleteSelectedDocument();
 
 signals:
     void statusMessage(const QString& message);

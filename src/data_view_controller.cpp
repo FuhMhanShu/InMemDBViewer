@@ -15,6 +15,13 @@ DataViewController::DataViewController(ViewerCore* core, DatabaseModel* dbModel,
                                        DocumentTableModel* tableModel, DocumentTreeModel* treeModel,
                                        GraphScene* scene, QObject* parent)
     : QObject(parent), dbModel_(dbModel), tableModel_(tableModel), treeModel_(treeModel), scene_(scene) {
+    // Zellen-Edit aus der Tabelle -> verifizierte Mutation (DE-05); nur einmal verbinden
+    connect(tableModel_, &DocumentTableModel::editRequested, this,
+            [this](quint64 id, const QString& field, const QString& value) {
+                QString err;
+                if (!updateField(id, field, value, &err))
+                    tableModel_->refresh(); // Anzeige auf alten Wert zuruecksetzen
+            });
     setCore(core);
 }
 
@@ -29,6 +36,8 @@ void DataViewController::setCore(ViewerCore* core) {
     connect(core_, &ViewerCore::databaseCleared, this, [this] { refreshAll(); });
     connect(core_, &ViewerCore::collectionsChanged, this, [this] { onCollectionsChanged(); });
     connect(core_, &ViewerCore::collectionChanged, this, [this](const QString& name) { onCollectionChanged(name); });
+    // jede verifizierte Mutation (DE-01) -> Struktur/Models neu aufbauen (Schema/Indizes feuern kein collectionChanged)
+    connect(core_, &ViewerCore::dataMutated, this, [this] { onCollectionsChanged(); });
     refreshAll();
 }
 
@@ -123,6 +132,57 @@ void DataViewController::showDocument(quint64 id) {
     else
         treeModel_->clearDocument();
     emit documentSelected(id);
+}
+
+bool DataViewController::updateField(quint64 id, const QString& fieldPath, const QString& valueText,
+                                     QString* error) {
+    if (!core_ || current_.isEmpty()) {
+        if (error)
+            *error = QStringLiteral("Keine Collection ausgewaehlt.");
+        return false;
+    }
+    const bool ok = core_->updateDocumentField(current_, id, fieldPath, valueText, error);
+    emit statusMessage(ok ? QStringLiteral("Gespeichert: %1 #%2: %3 = %4")
+                              .arg(current_)
+                              .arg(id)
+                              .arg(fieldPath, valueText)
+                          : QStringLiteral("Fehler: %1").arg(error ? *error : QString()));
+    return ok;
+}
+
+bool DataViewController::insertDocument(const QString& docJson, quint64* newId, QString* error) {
+    if (!core_ || current_.isEmpty()) {
+        if (error)
+            *error = QStringLiteral("Keine Collection ausgewaehlt.");
+        return false;
+    }
+    quint64 id = 0;
+    const bool ok = core_->insertDocumentJson(current_, docJson, &id, error);
+    if (ok) {
+        if (newId)
+            *newId = id;
+        showDocument(id);
+        emit statusMessage(QStringLiteral("Dokument #%1 in „%2“ eingefuegt.").arg(id).arg(current_));
+    } else {
+        emit statusMessage(QStringLiteral("Fehler: %1").arg(error ? *error : QString()));
+    }
+    return ok;
+}
+
+bool DataViewController::removeDocument(quint64 id, QString* error) {
+    if (!core_ || current_.isEmpty()) {
+        if (error)
+            *error = QStringLiteral("Keine Collection ausgewaehlt.");
+        return false;
+    }
+    const bool ok = core_->removeDocument(current_, id, error);
+    if (ok) {
+        treeModel_->clearDocument();
+        emit statusMessage(QStringLiteral("Dokument #%1 aus „%2“ geloescht.").arg(id).arg(current_));
+    } else {
+        emit statusMessage(QStringLiteral("Fehler: %1").arg(error ? *error : QString()));
+    }
+    return ok;
 }
 
 QString DataViewController::metricsText() const {

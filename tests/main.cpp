@@ -41,5 +41,9 @@ int main(int argc, char** argv) {
     run(&designController);
     TestDatabaseDesignWidget designWidget;
     run(&designWidget);
+    TestClipboardCsvImport clipboardCsv;
+    run(&clipboardCsv);
+    TestDocumentCrudWidget crudWidget;
+    run(&crudWidget);
     return rc;
 }

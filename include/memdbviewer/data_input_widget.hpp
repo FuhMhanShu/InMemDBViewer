@@ -13,8 +13,9 @@ class ImportModel;
 
 namespace memdb::viewer {
 
-/// @brief Gekapseltes MVC-Widget zur Dateneingabe (DL-01…DL-06): Datei-Dialog,
-///        Drag & Drop (auch mehrfach/Ordner), Liste der unterstuetzten Formate
+/// @brief Gekapseltes MVC-Widget zur Dateneingabe (DL-01…DL-07): Datei-Dialog,
+///        Drag & Drop (auch mehrfach/Ordner), CSV aus der Zwischenablage (DE-04,
+///        mit Optionen-Dialog), Liste der unterstuetzten Formate
 ///        (ImportRegistry FA-21: CSV, JSON/JSONL, SQL-Dump, BSON, SQLite falls
 ///        verfuegbar, InMemDB-Snapshot inkl. verschluesselt FA-19), Import-Optionen,
 ///        Verlauf und Status. Haengt an einem `ViewerCore` (`setCore`).
@@ -39,6 +40,9 @@ public:
 public slots:
     void openFileDialog();
     void openFolderDialog();
+    /// @brief CSV-Text aus der Zwischenablage importieren (DE-04): Optionen-Dialog,
+    ///        dann verifizierter Import ueber `ViewerCore::importCsvText`.
+    void importCsvFromClipboard();
 
 signals:
     /// @brief Statusmeldung (Ergebnis eines Ladens / Fehler) – z. B. fuer die Statusleiste.
