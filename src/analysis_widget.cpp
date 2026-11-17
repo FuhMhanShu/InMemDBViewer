@@ -345,9 +345,15 @@ AnalysisWidget::AnalysisWidget(QWidget* parent) : QWidget(parent), impl_(std::ma
             impl_->controller->crossInfluenceOptions.influence = dlg.influence();
         }
     });
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    connect(impl_->scopeBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int) {
+        impl_->scope = impl_->scopeBox->currentData().toString();
+    });
+#else
     connect(impl_->scopeBox, &QComboBox::currentIndexChanged, this, [this](int) {
         impl_->scope = impl_->scopeBox->currentData().toString();
     });
+#endif
     connect(impl_->fieldStatsView->selectionModel(), &QItemSelectionModel::currentRowChanged, this,
             [this](const QModelIndex& current, const QModelIndex&) {
                 if (current.isValid())
