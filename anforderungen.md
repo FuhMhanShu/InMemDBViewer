@@ -1,83 +1,134 @@
 # Anforderungen
 
-## InMemDBViewer – Qt-Visualisierung für InMemDB (C++/Qt, MVC, Bibliothek)
+## InMemDBViewer – Visualisierungs- und Analysetool für InMemDB (C++17/Qt, MVC, Bibliothek + App)
 
 | Feld | Wert |
 |---|---|
-| Projekttitel | InMemDBViewer – grafische Visualisierung von InMemDB-Datenbanken |
-| Version | 0.4 |
-| Status | v0.1 Entwurf; **v0.2 umgesetzt:** FA-01, FA-02, FA-03, FA-04, FA-05, FA-07 (Tabellenansicht), FA-08, FA-16; **v0.3 umgesetzt:** FA-06, FA-09, FA-11, FA-12, FA-13, FA-15; **v0.4 umgesetzt:** FA-07 (vollständig: Detailbaum), FA-14, FA-17 sowie NFA-01, NFA-02, NFA-04, NFA-05, NFA-06 – Rest offen (u. a. NFA-07 Theme, NFA-08 CI-Matrix) |
-| Sprache | Deutsch |
+| Projekttitel | InMemDBViewer – Daten laden, betrachten und analysieren für [InMemDB](https://github.com/FuhMhanShu/InMemDB) |
+| Version | 1.0 |
+| Status | v1.0 in Umsetzung (die bisherige Demo-Implementierung v0.1–v0.4 wird verworfen und neu aufgebaut, siehe Abschnitt 3) |
+| Sprache | Deutsch (UI und Doku) |
 | Technologie | C++17, Qt (Widgets + Graphics View Framework), qmake (.pro/.pri) **und** CMake |
-| Bereitstellungsform | Wiederverwendbare **C++/Qt-Bibliothek** (statische Library mit Pimpl-Idiom, öffentliche Header unter `include/memdbviewer/`, Implementierung in `src/`), einbindbar via `InMemDBViewer.pri` (qmake) oder CMake-Target; plus schlanke Demo-App unter `examples/`. Namespace `memdb::viewer`. |
-| Abhängigkeiten | Qt (core, gui, widgets) + [InMemDB](https://github.com/FuhMhanShu/InMemDB) (statische Lib oder Quellen via `InMemDB.pri`). Keine weiteren externen Pflichtabhängigkeiten. |
+| Bereitstellungsform | Wiederverwendbare **C++/Qt-Bibliothek** (statische Library, öffentliche Header unter `include/memdbviewer/`, Implementierung in `src/`, Namespace `memdb::viewer`, Einbindung via `InMemDBViewer.pri` bzw. CMake-Target) **plus** lauffähige Anwendung unter `examples/viewer_app/` |
+| Abhängigkeiten | Qt (core, gui, widgets, svg, test) + InMemDB (statische Lib oder Quellen via `InMemDB.pri`). Optionaler SQLite-Import über InMemDB-Build-Option `INMEMDB_WITH_SQLITE=ON`. Keine weiteren externen Pflichtabhängigkeiten. |
 
 ---
 
 ## 1. Zielbestimmung
 
 ### 1.1 Produktzweck
-InMemDBViewer ist eine **C++/Qt-Bibliothek**, die eine laufende `memdb::Database` (oder einen Snapshot) **grafisch visualisiert**: Collections und deren Metadaten (Schema, Indizes, Referenzen, Metriken) werden mit dem **Qt Graphics View Framework** (`QGraphicsScene`/`QGraphicsView`/`QGraphicsItem`) als Diagramm dargestellt, Dokumente werden in Tabellen-/Baum-Views angezeigt. Die Architektur folgt strikt **MVC** (Model–View–Controller).
+InMemDBViewer ist ein **Qt-Desktop-Tool**, mit dem Daten in eine laufende `memdb::Database` **geladen** (CSV, JSON/JSONL, SQL-Dump, BSON, SQLite, InMemDB-Snapshot inkl. verschlüsselt), dort **betrachtet** (Struktur-Graph, Tabellen, Dokumente) und **analysiert** (Discovery + statistische Analyse) werden. Die Architektur folgt strikt **MVC**; die GUI besteht aus drei **gekapselten Widgets**, die über ein gemeinsames Core-Objekt (`ViewerCore`) auf dieselbe Database zugreifen.
 
 ### 1.2 Nutzen
-- Schnelle visuelle Inspektion einer In-Memory-Datenbank: Welche Collections existieren, welches Schema haben sie, welche Indizes/Referenzen sind definiert?
-- Live-Sicht auf Änderungen (Observer-Events) ohne manuelles Neuladen.
-- Debugging-Hilfe für Queries (Index-Nutzung vs. Vollscan), Transaktionen und Hybrid-Modus.
-- Wiederverwendbar: als Bibliothek in eigene Qt-Anwendungen einbettbar, nicht nur als standalone App.
+- Schneller Überblick über geladene Daten: Welche Collections gibt es, wie sind sie strukturiert (Schema, Indizes, Referenzen)?
+- Direkter Blick in die Daten: tabellarische Ansicht mit Query-Filter, Detailbaum pro Dokument, Live-Aktualisierung bei Änderungen.
+- Datenanalyse ohne Code: Relationship-Discovery (Fremdschlüssel, funktionale Abhängigkeiten, Korrelationen, Dubletten), Datenprofile, Ausreißer, numerische Statistik, Einfluss-Analyse, Health-Score – alles auf Basis der InMemDB-Analyse-APIs (FA-27, FA-29…FA-32, v0.33/v0.40).
+- Wiederverwendbar: die drei Widgets sind als Bibliothek in eigene Qt-Anwendungen einbettbar.
 
 ### 1.3 Abgrenzung (Nicht-Ziele)
-- Kein Ersatz für die InMemDB-API; der Viewer liest (v1) und schreibt nur optional (FA-14).
+- Kein Ersatz für die InMemDB-API; das Tool liest und (optional) schreibt über die öffentliche InMemDB-API.
 - Kein Server, kein Netzwerk, keine Remote-Datenbank.
-- Keine Persistenz eigener Daten; Snapshot-Laden/-Speichern geht über InMemDB (`Database::loadFromFile`/`saveToFile`).
+- Die geladenen Daten leben nur im RAM der App; Persistenz erfolgt ausschließlich über InMemDB-Snapshots (`Database::saveToFile` / `loadFromFile`, FA-14/FA-19).
 - InMemDB selbst bleibt Qt-frei (harte Qt-Abhängigkeit nur im Viewer).
 
 ---
 
 ## 2. Produktumfeld / Systemkontext
 
-- **Einsatz**: als Bibliothek in Qt-Desktop-Anwendungen (Linux, Windows, macOS) sowie als Demo-App (`examples/viewer_demo`) zum direkten Ausprobieren.
-- **Qt-Versionen**: Qt 5.15+ und Qt 6.x (Build über qmake und CMake).
-- **Datenquelle**: `memdb::Database&` (laufende Instanz) oder JSON-Snapshot-Datei (`Database::loadFromFile`, `DbGraph::fromSnapshotFile`).
-- **Threading**: GUI-Thread only; InMemDB-Observer-Events werden per `Qt::QueuedConnection` in den GUI-Thread gehoben (so wie `memdb::qt::MemDbTableModel`, v0.23).
-- **Headless/CI**: Views müssen mit `QT_QPA_PLATFORM=offscreen` testbar sein.
+- **Einsatz**: Desktop-Anwendung (Linux, Windows, macOS) sowie als Bibliothek in eigenen Qt-Apps; Demo-App `examples/viewer_app`.
+- **Qt-Versionen**: Qt 5.15+ und Qt 6.x, Build über qmake und CMake.
+- **Datenquellen**: externe Dateien (Abschnitt 4.1) sowie InMemDB-Snapshots; Ergebnis ist immer eine `memdb::Database`, die `ViewerCore` hält.
+- **Threading**: GUI-Thread only für Widgets; InMemDB-Observer-Events und lange Analysen laufen über queued Signale bzw. einen Worker-Thread (Abschnitt 5).
+- **Headless/CI**: alle Widgets müssen mit `QT_QPA_PLATFORM=offscreen` testbar sein; Demo-App beendet sich headless selbst (Smoke-Test).
 
 ---
 
-## 3. Architektur (MVC)
+## 3. Gesamtarchitektur (MVC, drei gekapselte Widgets + Core)
+
+Die bisherige Demo-Implementierung (v0.1–v0.4: `SchemaScene`/`SchemaView`/`DocumentView`/… als lose Bibliothek) wird **verworfen**. Neu aufgebaut wird:
+
+```
+┌──────────────────────── MainWindow (examples/viewer_app) ─────────────────────────┐
+│  Oben (übergreifend): Daten laden – Menü/Toolbar ("Daten öffnen…", "Snapshot öffnen…",│
+│  "Neu"), Drag & Drop anywhere auf das Fenster, Statusleiste                        │
+│  ┌────────────────────────────┐  ┌────────────────────────────────────────────┐   │
+│  │ Bereich 1: Datenbetrachtung│  │ Bereich 2: Datenanalyse (Discovery + Analyse)  │   │
+│  │  DataViewWidget (MVC)      │  │  AnalysisWidget (MVC)                          │   │
+│  └────────────────────────────┘  └────────────────────────────────────────────┘   │
+│  Panel: DataInputWidget (MVC) – Dateneingabe: Dialog, Drag & Drop,                   │
+│  unterstützte Formate, Import-Optionen, Verlauf/Status                              │
+└───────────────────────────────────────────────────────────────────────────────────┘
+                              │ alle drei hängen am selben ViewerCore
+              ┌───────────────┴───────────────┐
+              ▼                               ▼
+        ViewerCore (Model, QObject): hält memdb::Database + ReferenceIndex,
+        ImportRegistry/Importer (FA-21), Snapshot-Loading (FA-14/FA-19),
+        Observer-Bridge (FA-15 → queued Qt-Signale), Auto-Sync der Collection-Liste.
+        Signale: databaseLoaded(), collectionChanged(name), databaseCleared().
+```
 
 | Schicht | Verantwortung | Konkrete Ausprägung |
 |---|---|---|
-| **Model** | Kapselt `memdb::Database`/`Collection` und liefert Qt-Models;bildet `DbGraph` (FA-22) auf ein Szenen-Modell ab; hört per `Collection::onChange` (FA-15) auf Änderungen. | `DatabaseModel` (QAbstractItemModel: Top-Level = Collections), `SchemaModel`, `DocumentModel` (nutzt `memdb::qt::MemDbTableModel` v0.23 oder erweitert ihn), `GraphSceneModel`. Reines QtCore/QtWidgets, keine QGraphicsItem-Logik. |
-| **View** | Reine Darstellung, kennt das Model nur über Qt-Model-Interfaces/Signale. | `SchemaSceneView` (`QGraphicsView` + `QGraphicsScene`: Collection-Knoten als `QGraphicsItem`, Referenzen als Kanten), `DocumentTableView` (`QTableView`), `DocumentTreeView` (verschachtelte Dokumente), Metrik-Panel. |
-| **Controller** | Vermittelt zwischen View und Model: Selektion, Interaktionen, Query-Ausführung, Refresh; enthält keine UI. | `ViewerController` (QObject, verdrahtet Signale/Slots, stößt `refresh()`/`setQuery()` an, reichert Observer-Events als Qt-Signale an). |
+| **Model** | Kapselt `memdb::Database`/`Collection` und Analyse-Ergebnisse als Qt-Models; keine UI. | `ViewerCore` (zentraler Datenhalter), `ImportModel` (verfügbare Import-Quellen + Verlauf), `DatabaseModel` (Collections + Metadaten), `DocumentTableModel` (virtualisierte Zeilen), `DocumentTreeModel` (verschachteltes Dokument), `GraphSceneModel` (DbGraph FA-22 → Szenen-Struktur), `DiscoveryModel`, `AnalysisModel` (Profile/Statistik/Einfluss/Health) |
+| **View** | Reine Darstellung, kennt Models nur über Qt-Model-Interfaces/Signale. | `DataInputWidget`, `DataViewWidget` (Struktur: `QGraphicsView`+`QGraphicsScene`; Tabelle: `QTableView`; Detail: `QTreeView`), `AnalysisWidget` (Tabellen/Trees/Health-Ampel/Report) |
+| **Controller** | Vermittelt View ↔ Model, enthält keine UI. | `DataInputController` (Datei-Dialog, Drag&Drop, Import-Optionen → `Importer`), `DataViewController` (Selektion, Query-Filter, Refresh), `AnalysisController` (Discovery/Analyse auslösen, Worker-Thread, Ergebnisse ins Model) |
 
-Regeln: Views kennen keine `memdb::`-Typen direkt (nur QVariant/Qt-Models); der Controller kennt keine konkreten Widgets; Models emittieren nur Qt-Signale (`dataChanged`, eigene Signale) – keine direkten View-Aufrufe.
+Regeln: Views kennen keine `memdb::`-Typen direkt; Controller kennen keine konkreten Widgets; Models emittieren nur Qt-Signale; jedes Widget ist **vollständig gekapselt** (ein öffentlicher Header `…_widget.hpp` + interne Model/Controller-Klassen, benutzbar als `widget->setCore(core)`).
 
 ---
 
 ## 4. Funktionale Anforderungen
 
-Prioritäten: **M** = Muss, **S** = Soll, **K** = Kann.
+Prioritäten: **M** = Muss, **S** = Soll, **K** = Kann. InMemDB-Referenzen in Klammern.
+
+### 4.1 Übergreifend: Daten laden (DL)
 
 | ID | Anforderung | Prio |
 |---|---|---|
-| FA-01 | **Bibliotheksform**: InMemDBViewer wird als wiederverwendbare Bibliothek ausgeliefert (statische Library, Pimpl, öffentliche Header unter `include/memdbviewer/`, Namespace `memdb::viewer`); Einbindung via `InMemDBViewer.pro` + `InMemDBViewer.pri` (analog `InMemDB.pri`, bindet InMemDB über `INMEMDB_DIR`/`InMemDB.pri` ein) **und** via CMake (`find_package`- bzw. `add_subdirectory`-Target). | M |
-| FA-02 | **MVC-Architektur** gemäß Abschnitt 3: strikte Trennung Model/View/Controller, Kommunikation ausschließlich über Qt-Models und Signale/Slots. | M |
-| FA-03 | **Datenbank-Übersicht**: Anzeige aller Collections (`Database::collectionNames()`) mit Dokumentanzahl (`Collection::size()`), Schema-Status (`hasSchema()`) und Indexanzahl (`indexes().size()`). | M |
-| FA-04 | **Metadaten-Anzeige pro Collection mit dem QGraphicsFramework**: Jede Collection wird als Knoten (`QGraphicsItem`, z. B. gerahmtes Rechteck mit Titel) in einer `QGraphicsScene` dargestellt; das Schema (FA-20: Feldpfad, `Value::Type`, `nullable`/`notNull`, Unter-Schema, Array-Elementtyp) wird als Liste innerhalb des Knotens gerendert; Indizes (FA-10) werden am Feld markiert (`index`/`unique`). | M |
-| FA-05 | **Referenzen als Kanten**: FA-18-Referenzen (`ReferenceIndex` bzw. `DbGraph::edges`) werden als gerichtete Kanten (`QGraphicsLineItem`/Pfad) zwischen Collection-Knoten gezeichnet, inkl. Relation-Name und Dangling-Markierung. | S |
-| FA-06 | **Rekursive Schema-Darstellung**: Verschachtelte Unter-Schemas (`FieldSchema::sub()`) werden aufklappbar/eingerückt dargestellt (expand/collapse im Knoten). | S |
-| FA-07 | **Dokument-Anzeige**: Pro Collection eine Tabellenansicht der Dokumente (Zeilen = Dokumente, Spalten = Felder; Basis: `memdb::qt::MemDbTableModel` v0.23 inkl. DSL-Query-Filter `setQuery`) sowie eine Detail-/Baumansicht eines selektierten Dokuments (verschachtelte Dokumente/Arrays als Baum, Werttypen farblich kenntlich). | M |
-| FA-08 | **Live-Aktualisierung**: Änderungen an der Database (insert/update/remove/clear, auch nach Transaktions-Commit) werden über `Collection::onChange` (FA-15) per queued Qt-Signal im Model registriert und lösen `dataChanged`/Szenen-Refresh aus – ohne manuelles Reload. | M |
-| FA-09 | **Interaktion in der Szene**: Selektion von Collection-Knoten (Detail-Panel wechselt), Pan/Zoom der `QGraphicsView`, Doppelklick auf Knoten klappt Schema auf/zu. | S |
-| FA-10 | **Query-Visualisierung**: Eingabe einer String-DSL-Query; Ausführung über `Collection::find(dsl)`; Ergebnismenge wird in Dokumenten- und Szenenansicht gehighlightet; Diagnoseanzeige, ob die letzte Query einen Index nutzte (`lastQueryUsedIndex`, `lastQueryCandidateCount` vs. `size()`). | S |
-| FA-11 | **Metrik-Anzeige**: `Collection::metrics()` / `Database::metrics()` (v0.22) als Panel/Overlay im Knoten oder Detailbereich (inserts/updates/removes/queries, Index-Nutzung, Query-Dauer, Tx-Commits/Rollbacks, Spill-IO). | S |
-| FA-12 | **Snapshot laden**: Laden einer JSON-Snapshot-Datei (`Database::loadFromFile`) in den Viewer; optional verschlüsselte Snapshots (`loadFromFileEncrypted`) mit Passwort-Dialog; Graph-Ansicht auch direkt aus Datei (`DbGraph::fromSnapshotFile`). | S |
-| FA-13 | **Hybrid-/Overflow-Info**: Anzeige von `Collection::overflowInfo()` (enabled, inMemory, spilled, spillBytes) am Collection-Knoten. | K |
-| FA-14 | **Bearbeiten (CRUD über GUI)**: Dokumente einfügen/bearbeiten/löschen über die Views; schreibt über `Collection::insert/updateById/removeById` zurück (Observer sorgt für Auto-Refresh). | K |
-| FA-15 | **Export der Visualisierung**: Szene als Bild exportieren (`QGraphicsScene::render` → PNG/SVG) sowie textbasierte Exporte der InMemDB (Mermaid/JSON/Markdown via `DbGraph::toMermaid()/toJson()/toMarkdown()`). | K |
-| FA-16 | **Demo-App**: Schlankes lauffähiges Beispiel unter `examples/` (analog `examples/qt_table` in InMemDB), das die Bibliothek über `InMemDBViewer.pri` einbindet, eine Demo-Database befüllt und alle Views zeigt; headless-tauglich (`QT_QPA_PLATFORM=offscreen`, beendet sich selbst – CI-Smoke-Test). | M |
-| FA-17 | **Aggregations-Anzeige**: `aggregate`/`groupBy` (FA-13 in InMemDB) pro Collection ausführbar und als Balken-/Tabellen-Overlay darstellbar. | K |
+| DL-01 | **DataInputWidget (MVC, gekapselt)**: Dateneingabe per Datei-Dialog (multi-select), Drag & Drop (einzeln + mehrere Dateien + Ordner) und über die App-Toolbar; Drag & Drop auf dem Hauptfenster landet im selben Widget. | M |
+| DL-02 | **Formate über `ImportRegistry` (FA-21)**: Auto-Erkennung per Dateiendung – `csv`, `json`/`jsonl`/`ndjson`, `sqldump` (`sql`/`dump`), `bson`, InMemDB-Snapshot (`.inmemdb.json` via `InmemdbSnapshotSource`), optional `sqlite` (`db`/`sqlite`/`sqlite3`, nur wenn InMemDB mit `INMEMDB_WITH_SQLITE` gebaut; sonst klarer Hinweis). Liste der unterstützten Quellen/Endungen im Widget anzeigen. | M |
+| DL-03 | **Snapshot-Laden (FA-14/FA-19)**: JSON-Snapshots und verschlüsselte Snapshots (Magic-Header `INMEMDB\x01`) erkennen; bei verschlüsselt Passwort-Dialog; Laden ersetzt die aktuelle Database im `ViewerCore` und stößt `databaseLoaded()` an. | M |
+| DL-04 | **Import-Optionen (FA-21 `ImportOptions`)**: im Widget einstellbar – Batch-Größe, Indizes anlegen, Schema generieren, PK-Feld, Fremdschlüssel als FA-18-Referenzen (FA-26). | S |
+| DL-05 | **Ergebnis/Status**: ImportStats (Zeilen pro Collection, Gesamt, übersprungene, importierte Referenzen) und Fehler (mit Fehlermeldung) im Widget/Statusleiste anzeigen; Verlauf der zuletzt geladenen Dateien (Liste klickbar zum erneuten Laden). | S |
+| DL-06 | **Fortschritt** bei großen Dateien: Statusanzeige, UI bleibt bedienbar (Import im Worker-Thread mit queued Lebenszeichen oder Batches). | S |
+| DL-07 | **"Neue/leere Database"**: Aktion, die `ViewerCore` auf eine frische, leere Database setzt (alle Bereiche aktualisieren sich). | M |
+| DL-08 | **Demo-Daten**: Aktion "Beispiel laden", die eine kleine Demo-Database (2–3 Collections, Schema, Index, Referenz) direkt per Code befüllt – für Smoke-Test und erstes Ausprobieren. | S |
+
+### 4.2 Bereich Datenbetrachtung (DB)
+
+| ID | Anforderung | Prio |
+|---|---|---|
+| DB-01 | **DataViewWidget (MVC, gekapselt)**: Bereich "Datenbetrachtung" mit Datenbank-Übersicht: alle Collections (`Database::collectionNames()`) mit Dokumentanzahl (`size()`), Schema-Status (`hasSchema()`), Indexanzahl (`indexes().size()`). | M |
+| DB-02 | **Strukturansicht mit QGraphicsFramework (FA-22 `DbGraph`)**: Collections als Knoten (`QGraphicsItem`: Titel, Dok-Anzahl, Schema-Felder mit Typ/`index`/`unique`, Index-Markierung), FA-18-Referenzen als gerichtete Kanten inkl. Relationsname und Dangling-Markierung. Pan/Zoom, Selektion per Klick, Doppelklick klappt Schema-Details auf/zu. | M |
+| DB-03 | **Tabellarische Datenansicht** pro Collection: `QTableView` + virtualisiertes Model (Zeilen = Dokumente via `findIds`, Zellen on demand via `findById` – keine Voll-Kopien, NFA-03), Spalten = Feldpfade (Vereinigung, inkl. Punktnotation für verschachtelte Felder). | M |
+| DB-04 | **Query-Filter (String-DSL)**: Eingabezeile, `Collection::find(dsl)`; Ergebnis in Tabelle/Szene markiert; Diagnose: Index genutzt? (`lastQueryUsedIndex`, `lastQueryCandidateCount` vs. `size()`); DSL-Fehler anzeigen. | S |
+| DB-05 | **Dokument-Detail**: Baumansicht (`QTreeView` + rekursives Model) des selektierten Dokuments – Felder mit Wert + `Value::Type`, verschachtelte Dokumente/Arrays rekursiv, Typ-Farben. | M |
+| DB-06 | **Live-Aktualisierung (FA-15)**: Änderungen (insert/update/remove/clear, auch nach Tx-Commit) über `Collection::onChange` per queued Qt-Signal → Model/Szene aktualisieren, ohne manuelles Reload; neue/gelöschte Collections per leichtem Auto-Sync (Timer-Vergleich `collectionNames()`). | M |
+| DB-07 | **Metadaten pro Collection**: Metriken (`Collection::metrics()` v0.22: inserts/updates/removes/queries/Index-Nutzung/Tx/Spill-IO) und Hybrid/Overflow-Info (`overflowInfo()` v0.18) im Detailbereich. | S |
+| DB-08 | **Aggregationen (FA-13)**: pro Collection `aggregate`/`groupBy` (count/min/max/sum/avg/distinct) mit optionalem DSL-Filter als kleine Übersicht über der Tabelle. | K |
+| DB-09 | **Export**: Struktur-Szene als PNG/SVG (`QGraphicsScene::render`), Graph als Mermaid/JSON/Markdown (`DbGraph::toMermaid/toJson/toMarkdown`). | K |
+| DB-10 | **Selektion koppeln**: Klick in Übersicht/Struktur/Tabelle wählt dieselbe Collection/dasselbe Dokument in allen Ansichten (bidirektional). | S |
+
+### 4.3 Bereich Datenanalyse – Discovery + Analyse (AN)
+
+| ID | Anforderung | Prio |
+|---|---|---|
+| AN-01 | **AnalysisWidget (MVC, gekapselt)**: Bereich "Analyse" mit zwei Sichten: **Discovery** und **Analyse**, plus Health-Übersicht und Report-Export. Ausführung per Button "Analysieren" (immer ganze Database). | M |
+| AN-02 | **Discovery (FA-27)**: entdeckte Relationen als Tabelle (Art: FK/FD/Korrelation/Near-Duplicate, von Collection.Feld → Ziel, Support, Confidence, Kardinalität, Sample-Größe); Orphan-Reports (`findOrphansForRelations`), Multi-Hop-Pfade (`findPaths`), Merge-Vorschläge (`suggestMerges` v0.32), Datenprofile (`profileCollection` v0.31) und Candidate Keys (`discoverCandidateKeys`). Option: Befunde mit Confidence ≥ Schwelle als FA-18-Referenzen anwenden (`applyDiscovered`). | M |
+| AN-03 | **Analyse**: Datencharakter pro Collection (`assessCharacter`, FA-29: Numeric/Mixed/Complex + Begründung), numerische Feld-Analyse (`analyzeNumeric`, FA-30: Min/Max/Mittel/Std/Quantile/Schiefe, Histogramm, Sequenz-/Raster-/Benford-Erkennung, Pearson-Korrelationen), Einfluss-Analyse (`analyzeInfluence` FA-31 + `analyzeCrossInfluence` FA-32: Rollen driver/dependent/mediator, influenceScore), Ausreißer (`discoverOutliers` v0.40: z-Score/IQR). | M |
+| AN-04 | **Gesamt-Report (FA-27 v0.33 `analyze()`)**: Health-Score (0–100, Ampel ≥80 grün/≥50 gelb) prominent; Export des Reports als Markdown/JSON/Mermaid (`toMarkdown`/`toJson`/`toMermaid`) per Datei-Dialog. | S |
+| AN-05 | **Optionen-Dialog**: Schwellen/Sampling der `DiscoveryOptions`/`NumericAnalysisOptions` (minSupport, minCorrelation, sampleSize, seed …) einstellbar. | S |
+| AN-06 | **Ausführung im Worker-Thread**: Analyse läuft in einem QThread, Ergebnisse per queued Signalen ins Model (UI bleibt responsiv, NFA-04); Busy-Indikator + Abbrechen. | M |
+| AN-07 | **Ergebnis-Darstellung**: alle Befunde als Qt-Models (Tabellen/Trees) mit Sortierung; numerische Histogramme als Balkendiagramm (QPainter, Qt-eigene Mittel); lange Texte (Notes/Begründungen) in Detail-Panel. | S |
+| AN-08 | **Analyse auf Auswahl**: optional nur die aktuell selektierte Collection analysieren (statt ganzer Database). | K |
+
+### 4.4 App-Shell und Demo (GA)
+
+| ID | Anforderung | Prio |
+|---|---|---|
+| GA-01 | **MainWindow** (`examples/viewer_app`): oben übergeordnet Daten laden (Menü + Toolbar + Drag & Drop), darunter zwei klar getrennte Bereiche (z. B. QSplitter oder Tabs: "Datenbetrachtung" / "Analyse") plus einklappbares Dateneingabe-Panel; Statusleiste mit letzter Aktion/Fehler. | M |
+| GA-02 | **Ergonomie**: konsistente deutsche Beschriftungen, gruppierte Werkzeugleisten mit Tooltips, Tastenkürzel (Öffnen Strg+O, Analysieren F5 …), sinnvolle Größenverhältnisse/Splitter, keine modal blockierenden Dialoge außer Passwort/Datei-Öffnen. | M |
+| GA-03 | **Demo-App headless-tauglich**: `QT_QPA_PLATFORM=offscreen ./viewer_app` lädt Demo-Daten, rendert die Struktur-Szene in ein Offscreen-Bild, führt eine Analyse aus und beendet sich mit Exit-Code 0 (CI-Smoke-Test). | M |
 
 ---
 
@@ -85,83 +136,94 @@ Prioritäten: **M** = Muss, **S** = Soll, **K** = Kann.
 
 | ID | Anforderung | Prio |
 |---|---|---|
-| NFA-01 | **Qt-Kompatibilität**: Qt 5.15+ und Qt 6.x; Module `core gui widgets` (Graphics View ist Teil von `widgets`). C++17. | M |
-| NFA-02 | **Build**: qmake (`InMemDBViewer.pro` als lib + `InMemDBViewer.pri` zum Einbinden, Shadow-Build-kompatibel via `$$_PRO_FILE_PWD_`) **und** CMake ≥ 3.20 (analog InMemDB). Keine externen Pflichtabhängigkeiten außer Qt und InMemDB. | M |
-| NFA-03 | **Performance/Usability**: Szenen mit Hunderten Collections und Tausenden Dokumenten bleiben flüssig (Pan/Zoom in O(1) durch QGraphicsView; Dokumenten-Views virtualisiert via Qt-Model; keine Voll-Kopien aller Dokumente im Model – nur IDs (`findIds`/`forEach`), Details per `findById` on demand). | S |
-| NFA-04 | **Thread-Sicherheit**: Alle GUI-Zugriffe im GUI-Thread; InMemDB-Observer-Callbacks dürfen aus anderen Threads feuern und müssen per `QMetaObject::invokeMethod(..., Qt::QueuedConnection)` umgeleitet werden (Muster siehe `MemDbTableModel`). | M |
-| NFA-05 | **Testbarkeit**: Unit-Tests mit QtTest für Model und Controller (Selektion, Refresh nach Observer-Event, Query-Filter); headless lauffähig via `QT_QPA_PLATFORM=offscreen`; CI-Smoke-Test der Demo-App. | S |
-| NFA-06 | **Dokumentation**: Doxygen-kommentierte öffentliche API (`include/memdbviewer/`), README mit Quickstart (Einbindung via .pri und CMake, Mini-Beispiel), Verweis auf `docs/qt-qmake.md` in InMemDB. | S |
-| NFA-07 | **Anpassbarkeit**: Farben/Typ-Markierungen (Schema-Typen, Index, Dangling) über zentrale Konstanten/Theme-Klasse änderbar; dunkles/helles Theme via Qt-Palette. | K |
-| NFA-08 | **Portabilität**: Linux, Windows, macOS; Compiler GCC, Clang, MSVC. | S |
+| NFA-01 | **Qt-Kompatibilität**: Qt 5.15+ und Qt 6.x; Module `core gui widgets svg test`; C++17; Qt5/Qt6-Unterschiede per `QT_VERSION_CHECK`. | M |
+| NFA-02 | **Build**: qmake (`InMemDBViewer.pro` + `InMemDBViewer.pri`, Shadow-Build-kompatibel) **und** CMake ≥ 3.20 (analog InMemDB; InMemDB als Unterprojekt via `INMEMDB_DIR`). Keine externen Pflichtabhängigkeiten außer Qt + InMemDB. | M |
+| NFA-03 | **Performance/Usability**: Tabellen virtualisiert (nur IDs, Details on demand); Struktur-Szene nur Collections als Knoten (nie Dokumente als Items); Analyse im Worker-Thread; große Importe mit Fortschritt. | S |
+| NFA-04 | **Thread-Sicherheit**: GUI-Zugriffe nur im GUI-Thread; InMemDB-Observer-Callbacks und Worker-Ergebnisse per `Qt::QueuedConnection`/`QMetaObject::invokeMethod` in den GUI-Thread heben. | M |
+| NFA-05 | **Testbarkeit**: QtTest-Unit-Tests pro Widget (Model/Controller: Import-Pfade, Model-Aufbau, Refresh nach Observer-Event, Szenen-Aufbau == DbGraph, Analyse-Models nach Lauf); headless via `QT_QPA_PLATFORM=offscreen`; CI-Smoke-Test der App. | S |
+| NFA-06 | **Dokumentation**: Doxygen-kommentierte öffentliche API (`include/memdbviewer/`), README mit Quickstart (Einbindung via .pri und CMake, Mini-Beispiel je Widget). | S |
+| NFA-07 | **Anpassbarkeit**: Farben/Typ-Markierungen über zentrale Konstanten/Theme-Klasse änderbar. | K |
+| NFA-08 | **Portabilität**: Linux, Windows, macOS; GCC, Clang, MSVC. | S |
 | NFA-09 | **Lizenz**: MIT (wie InMemDB). | K |
 
 ---
 
 ## 6. Schnittstellen (öffentliche API der Bibliothek)
 
-Namespace `memdb::viewer`. Wesentliche Klassen (Namensvorschläge, finale Namen bei Umsetzung festzulegen):
+Namespace `memdb::viewer`. Jedes Widget ist eine Einheit aus öffentlichem Widget-Header und internen (in `src/` gekapselten) Model/Controller-Klassen.
 
 | Klasse | Schicht | Verantwortung |
 |---|---|---|
-| `memdb::viewer::ViewerController` | Controller | Einstiegspunkt der Bibliothek: hält `memdb::Database`, verdrahtet Model ↔ Views, Observer-Bridge (`onChange` → queued Signale), Query-Ausführung, Selektion. |
-| `memdb::viewer::DatabaseModel` | Model | `QAbstractItemModel` über `Database`: Top-Level = Collections (Name, Dok-Anzahl, hasSchema, Indexanzahl); Kind-Knoten = Schema-Felder/Indizes. Signalisiert Änderungen via `dataChanged`. |
-| `memdb::viewer::SchemaScene` / `CollectionItem` | View | `QGraphicsScene` mit `QGraphicsItem`-Knoten pro Collection (Schema-Liste im Knoten, Index-Markierungen) und Kanten für FA-18-Referenzen; Quelle: `DbGraph::fromDatabase` + Live-Updates. |
-| `memdb::viewer::SchemaView` | View | `QGraphicsView` zur Anzeige der `SchemaScene` (Pan/Zoom, Selektion). |
-| `memdb::viewer::DocumentView` | View | `QTableView` (Basis `memdb::qt::MemDbTableModel`) + `QTreeView` für Dokument-Details. |
-| `memdb::viewer::MetricsPanel` | View | Widget zur Anzeige von `CollectionMetrics`/`DatabaseMetrics`. |
+| `memdb::viewer::ViewerCore` | Model (zentral) | Hält `memdb::Database` + `ReferenceIndex`; Import (FA-21) & Snapshot (FA-14/FA-19) in die Database; Observer-Bridge (FA-15 → queued Signale); Auto-Sync der Collection-Liste; Signale `databaseLoaded(QString)`, `collectionChanged(QString)`, `databaseCleared()`, `lastErrorChanged(QString)`. |
+| `memdb::viewer::DataInputWidget` | View | Dateneingabe-Panel (Dialog, Drag & Drop, unterstützte Formate, Optionen, Verlauf, Status). Intern: `ImportModel`, `DataInputController`. |
+| `memdb::viewer::DataViewWidget` | View | Bereich Datenbetrachtung: Übersicht (`DatabaseModel`), Struktur (`GraphScene`/`GraphView`, QGraphicsFramework + DbGraph FA-22), Tabelle (`DocumentTableModel`), Dokument-Detail (`DocumentTreeModel`), Query-Filter, Metriken. Intern: `DataViewController`. |
+| `memdb::viewer::AnalysisWidget` | View | Bereich Analyse: Tabs Discovery (`DiscoveryModel`: Relationen/Orphans/Pfade/Merges/Keys) und Analyse (`AnalysisModel`: Charakter FA-29, Numeric FA-30, Einfluss FA-31/32, Outliers v0.40, Health FA-27 v0.33), Report-Export. Intern: `AnalysisController` (Worker-Thread). |
 
-Verwendete InMemDB-Schnittstellen: `Database` (collectionNames, metrics, loadFromFile), `Collection` (schema, indexes, size, find/findIds, metrics, overflowInfo, onChange), `Schema`/`FieldSchema`, `DbGraph` (FA-22), `ReferenceIndex` (FA-18), `memdb::qt::MemDbTableModel` (v0.23, nur QtCore).
+Verwendete InMemDB-Schnittstellen: `Database`/`Collection` (CRUD, FA-10 Indizes, FA-13 Aggregation, FA-15 Observer, FA-18 Referenzen, FA-20 Schema, FA-22 DbGraph, v0.22 Metriken, v0.18 Overflow, DSL-Queries), `ImportRegistry`/`Importer`/`ImportSource` (FA-21/FA-26), Snapshots (FA-14/FA-19), Discovery & Analyse (FA-27, FA-29–FA-32, v0.33/v0.40: `discoverRelations`, `profileCollection`, `discoverCandidateKeys`, `findOrphansForRelations`, `findPaths`, `suggestMerges`, `discoverOutliers`, `assessCharacter`, `analyzeNumeric`, `analyzeInfluence`, `analyzeCrossInfluence`, `analyze`).
 
 ---
 
 ## 7. Qualitätsanforderungen
 
-- Unit-Tests (QtTest) für: Model-Aufbau aus Database, Refresh nach simuliertem Observer-Event, Query-Filter, Szenen-Aufbau (Knoten/Kanten-Anzahl == `DbGraph`), Selektion im Controller.
-- Smoke-Test: Demo-App startet headless (`QT_QPA_PLATFORM=offscreen`), rendert die Szene in ein Offscreen-Bild und beendet sich mit Exit-Code 0.
-- CI: Build + Tests für qmake und CMake, mindestens Qt 5.15 und Qt 6 (Matrix), Plattformen Linux/Windows/macOS.
-- Code-Review-Pflicht für Änderungen an der öffentlichen API (`include/memdbviewer/`).
+- Unit-Tests (QtTest) pro Schritt: Import-Pfade (CSV/JSON/SQLite/Snapshot/verschlüsselt, Fehlerfälle), Model-Aufbau und Refresh nach Observer-Event, Szenen-Aufbau (Knoten/Kanten == `DbGraph`), Selektion, Analyse-Models nach Worker-Lauf, Health-Score in 0..100.
+- Smoke-Test: App startet headless, lädt Demo-Daten, rendert Szene, läuft Analyse, Exit-Code 0.
+- CI: CMake-Build + QtTest + App-Smoke für Qt 6 und Qt 5.15 sowie qmake-Build (analog bisheriger CI); InMemDB wird als Schwestern-Checkout mitgebaut.
+- Jeder Entwicklungsschritt (Abschnitt 8) auf eigenem Branch; Merge nach `main` erst wenn alle Tests grün.
 
 ---
 
-## 8. Randbedingungen
+## 8. Umsetzungs-Schritte (ein Branch pro Schritt)
+
+1. **Anforderungen** (dieses Dokument, v1.0).
+2. **Dateneingabe**: alte Demo-Implementierung entfernen; `ViewerCore` + `DataInputWidget` (MVC) + App-Shell mit Dateneingabe; Tests.
+3. **Datenbetrachtung**: `DataViewWidget` (MVC) – Übersicht, Struktur (QGraphicsFramework/DbGraph), Tabelle, Dokument-Detail; Tests.
+4. **Datenanalyse**: `AnalysisWidget` (MVC) – Discovery + Analyse (Worker-Thread, Health, Report); Tests.
+
+---
+
+## 9. Randbedingungen
 
 - InMemDB bleibt ohne harte Qt-Abhängigkeit; der Viewer ist der einzige Qt-Konsument.
-- v1 ist grundsätzlich **lesend**; Schreibzugriffe (FA-14) sind Kann-Feature und dürfen das MVC-Gefüge nicht aufweichen.
-- Keine neuen externen Bibliotheken (kein QCustomPlot o. Ä.); Diagramme ausschließlich mit Qt-eigenen Mitteln (Graphics View, Widgets, `QPainter`).
+- Keine neuen externen Bibliotheken (kein QCustomPlot o. Ä.); Diagramme nur mit Qt-Mitteln (Graphics View, Widgets, `QPainter`).
+- SQLite-Import nur, wenn InMemDB mit `INMEMDB_WITH_SQLITE=ON` gebaut wurde (`INMEMDB_HAS_SQLITE`); sonst im UI als nicht verfügbar kennzeichnen.
 
 ---
 
-## 9. Risiken
+## 10. Risiken
 
 | Risiko | Gegenmaßnahme |
 |---|---|
-| Sehr große Datenbanken überlasten die `QGraphicsScene` (zu viele Items). | Level-of-Detail: Dokumente nie als Items in der Schema-Szene; Dokumenten-Views virtualisiert; ggf. Szenen-Filter (nur sichtbare Collections rendern). Siehe NFA-03. |
-| Qt 5 vs. Qt 6 API-Unterschiede (z. B. `QRegExp`, `QGraphicsItem` comportamiento). | Kompatibilitäts-Makros/Version-Checks (`QT_VERSION`), CI-Matrix über beide Qt-Versionen. |
-| Observer-Events aus Nicht-GUI-Threads. | Queued Connections zwingend (NFA-04), Test mit künstlichem Thread. |
-| Schema-lose Collections haben keine Metadaten zum Rendern. | Fallback: Felder aus der Vereinigung der Dokumente ableiten (wie `MemDbTableModel`-Spalten) oder als „schema-los" kennzeichnen. |
+| Sehr große Datenbanken überlasten Szene/Tabelle oder blockieren die UI. | Virtualisierte Models (nur IDs, Details on demand); Analyse/Import im Worker-Thread; Struktur-Szene nur Collection-Knoten; Level-of-Detail. |
+| Lange Analysen frieren die GUI ein. | `AnalysisController` mit QThread + queued Signalen + Abbrechen (NFA-04, AN-06). |
+| Observer-Events aus Nicht-GUI-Threads. | Queued Connections zwingend, Test mit künstlichem Thread. |
+| SQLite nicht verfügbar (Build ohne `INMEMDB_WITH_SQLITE`). | Endung `.db/.sqlite` wird als "nicht verfügbar" gemeldet, Rest funktioniert. |
+| Qt 5 vs. Qt 6 API-Unterschiede. | `QT_VERSION_CHECK`, CI-Matrix über beide Versionen. |
+| Schema-lose Collections haben keine Metadaten. | Fallback: Felder aus der Vereinigung der Dokumente ableiten oder als „schema-los" kennzeichnen. |
 
 ---
 
-## 10. Ausblick (nicht in v1)
+## 11. Ausblick (nicht in v1.0)
 
+- CRUD-Bearbeitung direkt in der Tabelle (schreibend über die InMemDB-API).
 - Transaktions-Verlauf als Timeline (Tx-Commits/Rollbacks aus Metriken).
-- Import-Assistent (InMemDB-FA-21-Quellen) mit Vorschau.
-- Editierbare Schema-Ansicht (Schema ändern → `Collection::setSchema`).
-- Plugin-Schnittstelle für eigene View-Komponenten (über Controller-Registrierung).
-- Force-Directed-Layout der Graph-Szene (statt festem Raster) für große Graphen.
+- Editierbare Schema-Ansicht (`Collection::setSchema`).
+- Force-Directed-Layout für große Graphen; Szenen-Filter.
+- Plugin-Schnittstelle für eigene Analyse-Pipelines.
 
 ---
 
-## 11. Glossar
+## 12. Glossar
 
 | Begriff | Bedeutung |
 |---|---|
 | **MVC** | Model–View–Controller: Model = Daten/Qt-Models, View = Darstellung, Controller = Vermittlung. |
-| **QGraphicsFramework** | Qt Graphics View Framework: `QGraphicsScene` + `QGraphicsView` + `QGraphicsItem` zum zoomen/verschieben von 2D-Elementen. |
+| **ViewerCore** | Gemeinsames Model-Objekt: hält `memdb::Database` + `ReferenceIndex`, lädt Daten, verteilt Signale an alle Widgets. |
+| **QGraphicsFramework** | Qt Graphics View Framework (`QGraphicsScene`/`QGraphicsView`/`QGraphicsItem`) für zoom-/verschiebbares 2D-Diagramm. |
 | **Collection** | Benannte Dokumentmenge in InMemDB (Analogie zu Tabelle, schema-los). |
-| **Schema (FA-20)** | Optionales striktes Schema pro Collection: deklarierte Felder mit `Value::Type`, `nullable`, Unter-Schema, Array-Elementtyp. |
-| **Index (FA-10)** | Sekundärindex auf einem Feldpfad, optional `unique`. |
-| **Referenz (FA-18)** | Gerichtete, typisierte Beziehung zwischen Collections/Dokumenten (`ReferenceIndex`). |
-| **DbGraph (FA-22)** | Textbasierte Graph-Darstellung (JSON/Mermaid/Markdown) der Database – Datenquelle für die Szenen-Knoten/Kanten. |
+| **ImportRegistry/Importer (FA-21)** | Zentrale Factory für externe Datenquellen (CSV/JSON/SQL-Dump/BSON/SQLite/Snapshot) + generischer Import in Collections. |
+| **DbGraph (FA-22)** | Graph-Abbildung der Database: Collections als Knoten, FA-18-Referenzen als Kanten. |
+| **Discovery (FA-27)** | Automatisches Finden von Beziehungen/Abhängigkeiten: FK, funktionale Abhängigkeiten, Korrelationen, Near-Duplicates, Orphans, Pfade, Profile, Candidate Keys, Merge-Vorschläge. |
+| **Analyse (FA-29…FA-32, v0.33/v0.40)** | Datencharakter, numerische Statistik, Einfluss-Analyse (intra-/cross-Collection), Ausreißer, Health-Score (`analyze()`). |
 | **Observer (FA-15)** | `Collection::onChange`: Callback bei Änderungen, feuert nach Transaktions-Commit. |
+| **Snapshot (FA-14/FA-19)** | JSON- oder verschlüsseltes Binär-Format der gesamten Database. |
 | **Pimpl** | Pointer-to-implementation: öffentliche Header ohne Implementierungsdetails (ABI-stabil). |
