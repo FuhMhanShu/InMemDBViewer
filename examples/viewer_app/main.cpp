@@ -41,18 +41,21 @@ public:
         auto* central = new QSplitter(Qt::Vertical, this);
         central->addWidget(inputWidget_);
 
+        viewWidget_ = new DataViewWidget(this);
+        viewWidget_->setCore(core_);
+
         auto* areas = new QSplitter(Qt::Horizontal, central);
         auto* viewBox = new QGroupBox(QStringLiteral("Datenbetrachtung"), areas);
         auto* viewLayout = new QVBoxLayout(viewBox);
-        viewLayout->addWidget(new QLabel(
-            QStringLiteral("DataViewWidget (Struktur/Tabelle/Dokument) – eigener Umsetzungs-Branch"), viewBox));
+        viewLayout->setContentsMargins(2, 2, 2, 2);
+        viewLayout->addWidget(viewWidget_);
         auto* analysisBox = new QGroupBox(QStringLiteral("Analyse (Discovery + Analyse)"), areas);
         auto* analysisLayout = new QVBoxLayout(analysisBox);
         analysisLayout->addWidget(new QLabel(
-            QStringLiteral("AnalysisWidget – eigener Umsetzungs-Branch"), analysisBox));
+            QStringLiteral("AnalysisWidget – eigener Umsetzungs-Branch (Schritt 4)"), analysisBox));
         areas->addWidget(viewBox);
         areas->addWidget(analysisBox);
-        areas->setStretchFactor(0, 1);
+        areas->setStretchFactor(0, 2);
         areas->setStretchFactor(1, 1);
         central->addWidget(areas);
         central->setStretchFactor(0, 0);
@@ -71,6 +74,8 @@ public:
             if (!msg.isEmpty())
                 statusBar()->showMessage(QStringLiteral("Fehler: %1").arg(msg), 10000);
         });
+        connect(viewWidget_, &DataViewWidget::statusMessage, this,
+                [this](const QString& msg) { statusBar()->showMessage(msg, 10000); });
     }
 
     void handleDroppedFiles(const QStringList& paths) { inputWidget_->handleDroppedFiles(paths); }
@@ -125,6 +130,7 @@ private:
 
     ViewerCore* core_;
     DataInputWidget* inputWidget_ = nullptr;
+    DataViewWidget* viewWidget_ = nullptr;
 };
 } // namespace
 

@@ -34,3 +34,39 @@ private slots:
     void handleDroppedFilesAsync();
     void encryptedDropOffscreenIsHandled();
 };
+
+class TestDatabaseModel : public QObject {
+    Q_OBJECT
+private slots:
+    void overviewAndRefresh();
+};
+
+class TestDocumentTableModel : public QObject {
+    Q_OBJECT
+private slots:
+    void rowsColumnsAndValues();
+    void queryFilterAndIndexDiagnostics();
+    void invalidQueryReportsError();
+};
+
+class TestDocumentTreeModel : public QObject {
+    Q_OBJECT
+private slots:
+    void nestedDocumentTree();
+};
+
+class TestGraphScene : public QObject {
+    Q_OBJECT
+private slots:
+    void nodesAndEdgesMatchDbGraph();
+    void clickSignal();
+    void exportPngAndMermaid();
+};
+
+class TestDataViewWidget : public QObject {
+    Q_OBJECT
+private slots:
+    void loadsAndSelectsCollection();
+    void liveRefreshOnInsert();
+    void applyQueryViaWidget();
+};
