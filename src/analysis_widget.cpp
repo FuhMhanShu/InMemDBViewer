@@ -3,6 +3,8 @@
 
 #include "analysis_controller.hpp"
 #include "analysis_model.hpp"
+#include "confusion_model.hpp"
+#include "confusion_view.hpp"
 #include "discovery_model.hpp"
 
 #include <QCheckBox>
@@ -89,6 +91,7 @@ public:
         minConfidence = addDouble(form, QStringLiteral("minConfidence (FK/FD)"), d.minConfidence, 0.0, 1.0, 0.05);
         minCorrelation = addDouble(form, QStringLiteral("minCorrelation |r|"), d.minCorrelation, 0.0, 1.0, 0.05);
         minSimilarity = addDouble(form, QStringLiteral("minSimilarity (Near-Dupes)"), d.minSimilarity, 0.0, 1.0, 0.05);
+        confMin = addDouble(form, QStringLiteral("Confusion-Matrix: FK-Confidence ab (v0.42)"), d.confusionMinConfidence, 0.0, 1.0, 0.05);
         sampleSize = addInt(form, QStringLiteral("Sample-Größe (0 = alle)"), d.sampleSize);
         seed = addInt(form, QStringLiteral("Seed"), d.seed);
         histBins = addInt(form, QStringLiteral("Histogramm-Balken"), n.histogramBins);
@@ -105,6 +108,7 @@ public:
         d.minConfidence = minConfidence->value();
         d.minCorrelation = minCorrelation->value();
         d.minSimilarity = minSimilarity->value();
+        d.confusionMinConfidence = confMin->value();
         d.sampleSize = static_cast<std::size_t>(sampleSize->value());
         d.seed = static_cast<std::uint64_t>(seed->value());
         return d;
@@ -139,7 +143,7 @@ private:
         form->addRow(label, s);
         return s;
     }
-    QDoubleSpinBox *minSupport, *minConfidence, *minCorrelation, *minSimilarity, *strongCorr;
+    QDoubleSpinBox *minSupport, *minConfidence, *minCorrelation, *minSimilarity, *strongCorr, *confMin;
     QSpinBox *sampleSize, *seed, *histBins, *minValues;
 };
 } // namespace
@@ -155,6 +159,7 @@ struct AnalysisWidget::Impl {
     detail::FieldStatsModel* fieldStatsModel = nullptr;
     detail::InfluenceModel* influenceModel = nullptr;
     detail::OutlierModel* outlierModel = nullptr;
+    detail::ConfusionModel* confusionModel = nullptr;
 
     QComboBox* scopeBox = nullptr;
     QPushButton* runBtn = nullptr;
@@ -256,6 +261,19 @@ AnalysisWidget::AnalysisWidget(QWidget* parent) : QWidget(parent), impl_(std::ma
     discSplit->setStretchFactor(0, 2);
     discSplit->setStretchFactor(1, 1);
     discLayout->addWidget(discSplit);
+    // Confusion-Matrix (InMemDB v0.42): entdeckte FKs vs. deklarierte __references
+    impl_->confusionModel = new detail::ConfusionModel(this);
+    auto* confBox = new QGroupBox(QStringLiteral("Confusion-Matrix (v0.42): entdeckte FKs vs. deklarierte Referenzen"), discWidget);
+    auto* confLayout = new QHBoxLayout(confBox);
+    auto* confView = new detail::ConfusionView(impl_->confusionModel, confBox);
+    confLayout->addWidget(confView);
+    auto* confLabel = new QLabel(confBox);
+    confLabel->setWordWrap(true);
+    confLayout->addWidget(confLabel, 1);
+    connect(impl_->confusionModel, &detail::ConfusionModel::changed, this, [confLabel, this] {
+        confLabel->setText(impl_->confusionModel->summary());
+    });
+    discLayout->addWidget(confBox);
     tabs->addTab(discWidget, QStringLiteral("Discovery"));
 
     // Tab Analyse
@@ -305,7 +323,7 @@ AnalysisWidget::AnalysisWidget(QWidget* parent) : QWidget(parent), impl_(std::ma
     impl_->controller = new detail::AnalysisController(
         nullptr, impl_->discoveryModel, impl_->orphansModel, impl_->mergesModel, impl_->keysModel,
         impl_->pathsModel, impl_->profilesModel, impl_->overviewModel, impl_->fieldStatsModel,
-        impl_->influenceModel, impl_->outlierModel, this);
+        impl_->influenceModel, impl_->outlierModel, impl_->confusionModel, this);
     connect(impl_->controller, &detail::AnalysisController::started, this, [this] {
         impl_->runBtn->setEnabled(false);
         impl_->cancelBtn->setEnabled(true);
@@ -405,6 +423,8 @@ int AnalysisWidget::overviewRowCount() const { return impl_->overviewModel->rowC
 int AnalysisWidget::fieldStatsRowCount() const { return impl_->fieldStatsModel->rowCount(); }
 int AnalysisWidget::influenceRowCount() const { return impl_->influenceModel->rowCount(); }
 int AnalysisWidget::outlierRowCount() const { return impl_->outlierModel->rowCount(); }
+bool AnalysisWidget::hasConfusion() const { return impl_->confusionModel->hasConfusion(); }
+QString AnalysisWidget::confusionSummary() const { return impl_->confusionModel->summary(); }
 
 void AnalysisWidget::runAnalysis() {
     if (impl_->core)

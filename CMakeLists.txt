@@ -64,6 +64,8 @@ target_sources(InMemDBViewer PRIVATE
     src/discovery_model.hpp
     src/analysis_model.hpp
     src/analysis_controller.hpp
+    src/confusion_model.hpp
+    src/confusion_view.hpp
 )
 target_include_directories(InMemDBViewer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(InMemDBViewer PUBLIC memdb ${QT_WIDGETS} ${QT_SVG})

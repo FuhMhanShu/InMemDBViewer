@@ -18,6 +18,7 @@ class ViewerCore;
 namespace detail {
 class AnalysisModel;
 class CollectionOverviewModel;
+class ConfusionModel;
 class DiscoveryModel;
 class FieldStatsModel;
 class InfluenceModel;
@@ -40,7 +41,7 @@ public:
                        TextListModel* merges, TextListModel* keys, TextListModel* paths,
                        TextListModel* profiles, CollectionOverviewModel* overview,
                        FieldStatsModel* fieldStats, InfluenceModel* influence, OutlierModel* outliers,
-                       QObject* parent = nullptr);
+                       ConfusionModel* confusion, QObject* parent = nullptr);
     ~AnalysisController() override;
 
     void setCore(ViewerCore* core);
@@ -56,6 +57,7 @@ public:
     bool isRunning() const { return running_.load(); }
 
     double healthScore() const { return healthScore_; }
+    const std::optional<memdb::ConfusionMatrix>& confusion() const { return confusion_; }
     QString reportMarkdown() const { return reportMarkdown_; }
     QString reportJson() const { return reportJson_; }
     QString reportMermaid() const { return reportMermaid_; }
@@ -82,12 +84,14 @@ private:
     FieldStatsModel* fieldStats_;
     InfluenceModel* influence_;
     OutlierModel* outliers_;
+    ConfusionModel* confusionModel_;
 
     std::thread worker_;
     std::mutex mutex_;
     std::atomic<bool> running_{false};
     std::atomic<bool> cancel_{false};
     double healthScore_ = 0.0;
+    std::optional<memdb::ConfusionMatrix> confusion_;
     QString reportMarkdown_, reportJson_, reportMermaid_;
 };
 

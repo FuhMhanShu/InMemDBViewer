@@ -35,6 +35,10 @@ Erzeugt mit der App (`examples/viewer_app`, headless via `QT_QPA_PLATFORM=offscr
 |---|---|
 | ![Feld-Statistik + Histogramm](docs/images/analyse-feldstatistik-histogramm.png) | ![Discovery](docs/images/analyse-discovery.png) |
 
+| Analyse: Confusion-Matrix (InMemDB v0.42) – entdeckte FKs vs. deklarierte Referenzen |
+|---|
+| ![Confusion-Matrix](docs/images/analyse-confusion-matrix.png) |
+
 ![Gesamtfenster nach Analyse](docs/images/app-gesamt-nach-analyse.png)
 
 ## Öffentliche API (Namespace `memdb::viewer`, Header unter `include/memdbviewer/`)

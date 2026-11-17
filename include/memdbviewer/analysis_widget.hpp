@@ -37,6 +37,9 @@ public:
     int fieldStatsRowCount() const;
     int influenceRowCount() const;
     int outlierRowCount() const;
+    /// @brief Confusion-Matrix (InMemDB v0.42) vorhanden? Nur bei Umfang „Ganze Database“ mit __references.
+    bool hasConfusion() const;
+    QString confusionSummary() const;
 
 public slots:
     /// @brief Analyse starten (ganze Database oder gesetzter Scope).

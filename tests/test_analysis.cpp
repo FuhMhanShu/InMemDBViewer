@@ -5,6 +5,7 @@
 
 #include "../src/analysis_controller.hpp"
 #include "../src/analysis_model.hpp"
+#include "../src/confusion_model.hpp"
 #include "../src/discovery_model.hpp"
 
 #include <memdb/memdb.hpp>
@@ -98,14 +99,24 @@ void TestAnalysisModels::modelsPopulate() {
 void TestAnalysisController::discoversFkAndHealth() {
     ViewerCore core;
     fillAnalysisFixture(core);
+    // deklarierte Referenzen (FA-18): orders->users (wird auch entdeckt -> TP), users->orders (nur deklariert -> FN)
+    {
+        auto& db = core.database();
+        const auto u = db.collection("users").findOne("id = 1");
+        const auto o = db.collection("orders").findOne("order_id = 10");
+        const auto o2 = db.collection("orders").findOne("order_id = 12");
+        core.references()->link("orders", o->id(), "users", u->id(), "kunde");
+        core.references()->link("users", u->id(), "orders", o2->id(), "backref");
+    }
     viewer::detail::DiscoveryModel disc;
     viewer::detail::TextListModel orphans, merges, keys, paths, profiles;
     viewer::detail::CollectionOverviewModel overview;
     viewer::detail::FieldStatsModel stats;
     viewer::detail::InfluenceModel infl;
     viewer::detail::OutlierModel outl;
+    viewer::detail::ConfusionModel conf;
     viewer::detail::AnalysisController controller(&core, &disc, &orphans, &merges, &keys, &paths, &profiles,
-                                                  &overview, &stats, &infl, &outl);
+                                                  &overview, &stats, &infl, &outl, &conf);
     controller.discoveryOptions.minOutlierSamples = 4; // Fixture ist klein
     controller.numericOptions.minValuesPerField = 3;
     controller.influenceOptions.numeric.minValuesPerField = 3;
@@ -159,6 +170,15 @@ void TestAnalysisController::discoversFkAndHealth() {
     // Einfluss (FA-31) hat Zeilen
     QVERIFY(infl.rowCount() >= 1);
     QVERIFY(!controller.isRunning());
+
+    // Confusion-Matrix (v0.42): orders->users ist TP, users->orders ist FN
+    QVERIFY(controller.confusion().has_value());
+    QVERIFY(conf.hasConfusion());
+    QCOMPARE(controller.confusion()->tp, std::size_t(1));
+    QCOMPARE(controller.confusion()->fn, std::size_t(1));
+    QVERIFY(controller.confusion()->precision > 0.99);
+    QVERIFY(controller.confusion()->recall > 0.49 && controller.confusion()->recall < 0.51);
+    QVERIFY(conf.summary().contains(QStringLiteral("TP 1")));
 }
 
 void TestAnalysisController::scopeSingleCollection() {
@@ -170,14 +190,17 @@ void TestAnalysisController::scopeSingleCollection() {
     viewer::detail::FieldStatsModel stats;
     viewer::detail::InfluenceModel infl;
     viewer::detail::OutlierModel outl;
+    viewer::detail::ConfusionModel conf;
     viewer::detail::AnalysisController controller(&core, &disc, &orphans, &merges, &keys, &paths, &profiles,
-                                                  &overview, &stats, &infl, &outl);
+                                                  &overview, &stats, &infl, &outl, &conf);
     QSignalSpy finSpy(&controller, &viewer::detail::AnalysisController::finished);
     controller.run(QStringLiteral("users")); // nur diese Collection
     QTRY_VERIFY_WITH_TIMEOUT(finSpy.count() >= 1, 30000);
     QCOMPARE(finSpy.first().at(0).toBool(), true);
     QCOMPARE(overview.rowCount(), 1);
     QCOMPARE(overview.rows().front().collection, QStringLiteral("users"));
+    // Einzel-Collection-Umfang: keine Confusion-Matrix (nur ganze Database mit __references)
+    QVERIFY(!controller.confusion().has_value());
 }
 
 void TestAnalysisWidget::runsAnalysisHeadless() {
@@ -194,6 +217,9 @@ void TestAnalysisWidget::runsAnalysisHeadless() {
     QVERIFY(widget.healthScore() >= 0.0 && widget.healthScore() <= 100.0);
     QCOMPARE(widget.overviewRowCount(), 2); // users + orders
     QVERIFY(!widget.isRunning());
+    // Confusion-Matrix (v0.42): Demo hat deklarierte Referenz orders->users, aber keinen entdeckbaren FK -> FN
+    QVERIFY(widget.hasConfusion());
+    QVERIFY(widget.confusionSummary().contains(QStringLiteral("FN 1")));
     // Scope umschaltbar
     widget.setScopeCollection(QStringLiteral("users"));
     QCOMPARE(widget.scopeCollection(), QStringLiteral("users"));
