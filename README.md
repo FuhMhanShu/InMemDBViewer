@@ -73,7 +73,11 @@ memdb::viewer::ViewerCore core;                 // Model: haelt die Database
 core.loadDemoData();                            // oder: core.importFile("daten.csv");
 
 memdb::viewer::DataInputWidget input;           // Dateneingabe (Dialog + Drag & Drop)
+memdb::viewer::DataViewWidget view;             // Datenbetrachtung (Struktur/Tabelle/Dokument)
+memdb::viewer::AnalysisWidget analysis;         // Analyse (Discovery + Analyse, Worker-Thread)
 input.setCore(&core);
+view.setCore(&core);
+analysis.setCore(&core);
 ```
 
 ## CI

@@ -6,7 +6,7 @@
 |---|---|
 | Projekttitel | InMemDBViewer – Daten laden, betrachten und analysieren für [InMemDB](https://github.com/FuhMhanShu/InMemDB) |
 | Version | 1.0 |
-| Status | v1.0 in Umsetzung (die bisherige Demo-Implementierung v0.1–v0.4 wird verworfen und neu aufgebaut, siehe Abschnitt 3) |
+| Status | v1.0 umgesetzt (4 Branches nach Abschnitt 8 gemerged: Anforderungen, Dateneingabe, Datenbetrachtung, Datenanalyse; die bisherige Demo-Implementierung v0.1–v0.4 wurde verworfen, siehe Abschnitt 3) |
 | Sprache | Deutsch (UI und Doku) |
 | Technologie | C++17, Qt (Widgets + Graphics View Framework), qmake (.pro/.pri) **und** CMake |
 | Bereitstellungsform | Wiederverwendbare **C++/Qt-Bibliothek** (statische Library, öffentliche Header unter `include/memdbviewer/`, Implementierung in `src/`, Namespace `memdb::viewer`, Einbindung via `InMemDBViewer.pri` bzw. CMake-Target) **plus** lauffähige Anwendung unter `examples/viewer_app/` |
