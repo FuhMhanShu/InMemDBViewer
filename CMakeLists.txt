@@ -36,6 +36,7 @@ add_subdirectory("${INMEMDB_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/InMemDB")
 
 add_library(InMemDBViewer STATIC
     src/viewer_core.cpp
+    src/output_panel.cpp
     src/data_input_widget.cpp
     src/data_input_controller.cpp
     src/data_view_widget.cpp
@@ -54,6 +55,7 @@ target_sources(InMemDBViewer PRIVATE
     include/memdbviewer/data_input_widget.hpp
     include/memdbviewer/data_view_widget.hpp
     include/memdbviewer/analysis_widget.hpp
+    include/memdbviewer/output_panel.hpp
     src/import_model.hpp
     src/data_input_controller.hpp
     src/database_model.hpp
@@ -77,7 +79,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     enable_testing()
 
     # QtTest-Tests (NFA-05), headless via QT_QPA_PLATFORM=offscreen
-    add_executable(viewer_tests tests/main.cpp tests/test_data_input.cpp tests/test_data_view.cpp tests/test_analysis.cpp tests/test_viewer.hpp)
+    add_executable(viewer_tests tests/main.cpp tests/test_data_input.cpp tests/test_data_view.cpp tests/test_analysis.cpp tests/test_design.cpp tests/test_viewer.hpp)
     target_link_libraries(viewer_tests PRIVATE InMemDBViewer ${QT_TEST})
     target_compile_definitions(viewer_tests PRIVATE TESTS_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/data")
     if(INMEMDBVIEWER_WITH_SQLITE)

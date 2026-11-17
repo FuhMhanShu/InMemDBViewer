@@ -10,3 +10,4 @@
 #include "data_input_widget.hpp"
 #include "data_view_widget.hpp"
 #include "analysis_widget.hpp"
+#include "output_panel.hpp"

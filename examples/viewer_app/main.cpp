@@ -8,6 +8,7 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QDockWidget>
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QFileDialog>
@@ -41,6 +42,15 @@ public:
 
         auto* central = new QSplitter(Qt::Vertical, this);
         central->addWidget(inputWidget_);
+
+        // Ausgabe-Panel als Dock unten
+        outputPanel_ = new OutputPanel(this);
+        outputPanel_->setCore(core_);
+        auto* dock = new QDockWidget(QStringLiteral("Ausgabe"), this);
+        dock->setObjectName(QStringLiteral("outputDock"));
+        dock->setWidget(outputPanel_);
+        dock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+        addDockWidget(Qt::BottomDockWidgetArea, dock);
 
         viewWidget_ = new DataViewWidget(this);
         viewWidget_->setCore(core_);
@@ -128,10 +138,40 @@ private:
             if (!path.isEmpty())
                 inputWidget_->handleDroppedFiles({path});
         });
-        auto* newAction = fileMenu->addAction(QStringLiteral("Neue leere Database"), this, [this] {
-            core_->resetDatabase();
+        auto* newAction = fileMenu->addAction(QStringLiteral("Neue leere Database…"), this, [this] {
+            bool ok = false;
+            const QString name = QInputDialog::getText(this, QStringLiteral("Neue Database"),
+                                                       QStringLiteral("Name der Database:"), QLineEdit::Normal,
+                                                       QStringLiteral("neu"), &ok);
+            if (ok && !name.isEmpty())
+                core_->resetDatabase(name);
         });
         newAction->setShortcut(QKeySequence::New);
+        auto* saveAction = fileMenu->addAction(QStringLiteral("Snapshot speichern…"), this, [this] {
+            const QString path = QFileDialog::getSaveFileName(
+                this, QStringLiteral("Snapshot speichern"), QString(),
+                QStringLiteral("InMemDB-Snapshot (*.inmemdb.json *.json);;Alle Dateien (*)"));
+            if (!path.isEmpty()) {
+                QString err;
+                if (!core_->saveSnapshot(path, &err))
+                    core_->log(QStringLiteral("Snapshot speichern fehlgeschlagen: %1").arg(err), true);
+            }
+        });
+        auto* saveEncAction = fileMenu->addAction(QStringLiteral("Snapshot verschlüsselt speichern…"), this, [this] {
+            const QString path = QFileDialog::getSaveFileName(
+                this, QStringLiteral("Verschlüsselten Snapshot speichern"), QString(),
+                QStringLiteral("Verschlüsselter Snapshot (*.enc);;Alle Dateien (*)"));
+            if (path.isEmpty())
+                return;
+            bool ok = false;
+            const QString pw = QInputDialog::getText(this, QStringLiteral("Verschlüsselter Snapshot"),
+                                                     QStringLiteral("Passwort:"), QLineEdit::Password, QString(), &ok);
+            if (!ok || pw.isEmpty())
+                return;
+            QString err;
+            if (!core_->saveSnapshotEncrypted(path, pw, &err))
+                core_->log(QStringLiteral("Verschlüsselten Snapshot speichern fehlgeschlagen: %1").arg(err), true);
+        });
         auto* demoAction = fileMenu->addAction(QStringLiteral("Beispiel laden"), this, [this] {
             core_->loadDemoData();
         });
@@ -144,12 +184,14 @@ private:
         toolBar->addAction(openSnapAction);
         toolBar->addAction(newAction);
         toolBar->addAction(demoAction);
+        toolBar->addAction(saveAction);
     }
 
     ViewerCore* core_;
     DataInputWidget* inputWidget_ = nullptr;
     DataViewWidget* viewWidget_ = nullptr;
     AnalysisWidget* analysisWidget_ = nullptr;
+    OutputPanel* outputPanel_ = nullptr;
 };
 } // namespace
 

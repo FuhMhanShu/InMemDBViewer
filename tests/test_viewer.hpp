@@ -97,3 +97,22 @@ private slots:
     void runsAnalysisHeadless();
     void cancelDoesNotCrash();
 };
+
+class TestViewerCoreMutations : public QObject {
+    Q_OBJECT
+private slots:
+    void collectionOps();
+    void schemaOps();
+    void indexOps();
+    void referenceOps();
+    void documentCrud();
+    void csvTextImport();
+    void snapshotSave();
+    void dataMutatedOnImport();
+};
+
+class TestOutputPanel : public QObject {
+    Q_OBJECT
+private slots:
+    void logsAndFilters();
+};
