@@ -47,5 +47,7 @@ int main(int argc, char** argv) {
     run(&crudWidget);
     TestAutoAnalysis autoAnalysis;
     run(&autoAnalysis);
+    TestViewerTheme theme; // zuletzt: aendert App-Stylesheet/Palette
+    run(&theme);
     return rc;
 }

@@ -2,14 +2,15 @@
 
 Visualisierungs- und **Analysetool** für [InMemDB](https://github.com/FuhMhanShu/InMemDB) – C++17/Qt, strikte MVC-Architektur, als Bibliothek + App.
 
-- [Anforderungen](anforderungen.md) (v1.1)
+- [Anforderungen](anforderungen.md) (v1.2)
 
-## Konzept (v1.1)
+## Konzept (v1.2)
 
 Die GUI besteht aus **gekapselten MVC-Widgets**, die alle an einem gemeinsamen Model (`ViewerCore`: hält `memdb::Database` + `ReferenceIndex`) hängen:
 
 ```
-MainWindow: oben uebergreifend "Daten laden" (Menue/Toolbar/Drag & Drop), unten Ausgabe-Dock
+MainWindow (Theme: applyViewerTheme – Fusion + helle Palette + Stylesheet, UI-01):
+  oben Dock "Daten laden" (einklappbar), Mitte Tabs, unten Dock "Ausgabe" (einklappbar)
   ├─ DataInputWidget        – Dateneingabe: Datei-Dialog, Drag & Drop, CSV aus Zwischenablage,
   │                           Import-Optionen, Verlauf
   ├─ DataViewWidget         – Bereich Datenbetrachtung: Struktur (QGraphicsFramework/DbGraph),
@@ -21,7 +22,10 @@ MainWindow: oben uebergreifend "Daten laden" (Menue/Toolbar/Drag & Drop), unten 
   │                           Confusion-Matrix (v0.42), Worker-Thread, Health-Score, Report-Export,
   │                           Auto-Analyse nach jeder Datenmanipulation
   └─ OutputPanel (Dock)     – Ausgabe-Log: jede Operation wird verifiziert, Fehler rot
+Toolbar mit Icons (oeffnen/speichern/CSV/analysieren), Menues Datei/Ansicht, Shortcuts (Strg+O, Strg+N, Strg+Shift+V, F5)
 ```
+
+**UI (v1.2)**: schlankes Tab-/Dock-Layout statt breiter Spalten (UI-02), zentrales Theme (UI-01), kompakte Docks.
 
 **Daten laden** (übergeordnet, InMemDB FA-21 `ImportRegistry`/`Importer`): CSV, JSON/JSONL/NDJSON, SQL-Dump, BSON, SQLite (optional via `INMEMDB_WITH_SQLITE`), InMemDB-Snapshot (`.inmemdb.json`, inkl. verschlüsselt `.enc` mit Passwort, FA-14/FA-19) – sowie **CSV direkt aus der Zwischenablage**. Geladene Daten stehen Datenbetrachtung und Analyse zur Verfügung; Änderungen werden live per Observer (FA-15) an alle Widgets verteilt.
 

@@ -130,7 +130,7 @@ DataViewWidget::DataViewWidget(QWidget* parent) : QWidget(parent), impl_(std::ma
     delDocBtn->setToolTip(QStringLiteral("Ausgewaehlte Zeile (Dokument) loeschen – mit Sicherheitsabfrage"));
     auto* editHint = new QLabel(
         QStringLiteral("Doppelklick auf eine Zelle ändert den Wert (vom Programm geprüft und geloggt)."), tableWidget);
-    editHint->setStyleSheet(QStringLiteral("color: palette(mid); font-size: small;"));
+    editHint->setProperty("dim", true); // dezente Farbe ueber das zentrale Theme
     docBar->addWidget(newDocBtn);
     docBar->addWidget(delDocBtn);
     docBar->addStretch();

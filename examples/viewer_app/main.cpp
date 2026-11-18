@@ -1,9 +1,9 @@
-// InMemDBViewer-App (GA-01/GA-03): Shell mit uebergreifendem Datenladen oben
-// (Menue/Toolbar/Drag & Drop -> DataInputWidget) und zwei Bereichen darunter:
-// "Datenbetrachtung" (DataViewWidget, eigener Branch) und "Analyse" (AnalysisWidget,
-// eigener Branch). Alle Widgets haengen am gemeinsamen ViewerCore.
-// Headless (CI-Smoke): QT_QPA_PLATFORM=offscreen ./viewer_app laedt Demo-Daten und
-// beendet sich nach 300 ms selbst mit Exit-Code 0.
+// InMemDBViewer-App (GA-01/GA-03, UI-01..UI-06): schlanke Shell mit zentralem Theme
+// (applyViewerTheme): oben einklappbares Dock "Daten laden" (DataInputWidget),
+// in der Mitte Tabs statt breiter Spalten (Datenbetrachtung / Datenbank-Design / Analyse),
+// unten einklappbares Ausgabe-Dock mit Fehler-Zaehler. Drag & Drop ueberall im Fenster.
+// Headless (CI-Smoke): QT_QPA_PLATFORM=offscreen ./viewer_app laedt Demo-Daten, rendert die
+// Struktur-Szene, fuehrt eine Analyse aus und beendet sich selbst mit Exit-Code 0.
 #include <memdbviewer/viewer.hpp>
 
 #include <QAction>
@@ -13,20 +13,18 @@
 #include <QDropEvent>
 #include <QFileDialog>
 #include <QGuiApplication>
-#include <QGroupBox>
 #include <QInputDialog>
-#include <QLabel>
 #include <QLineEdit>
 #include <QMainWindow>
 #include <QMenuBar>
 #include <QMimeData>
-#include <QSplitter>
 #include <QStatusBar>
+#include <QStyle>
+#include <QTabWidget>
 #include <QTemporaryDir>
 #include <QTimer>
 #include <QToolBar>
 #include <QUrl>
-#include <QVBoxLayout>
 
 using namespace memdb::viewer;
 
@@ -36,56 +34,51 @@ public:
     explicit MainWindow(ViewerCore* core, QWidget* parent = nullptr) : QMainWindow(parent), core_(core) {
         setAcceptDrops(true);
         setWindowTitle(QStringLiteral("InMemDBViewer"));
+        setMinimumSize(940, 600);
 
+        // oben: Dateneingabe als einklappbares Dock (spart Platz, bleibt per Drag & Drop erreichbar)
         inputWidget_ = new DataInputWidget(this);
         inputWidget_->setCore(core_);
+        inputDock_ = new QDockWidget(QStringLiteral("Daten laden"), this);
+        inputDock_->setObjectName(QStringLiteral("inputDock"));
+        inputDock_->setWidget(inputWidget_);
+        inputDock_->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable |
+                                QDockWidget::DockWidgetClosable);
+        addDockWidget(Qt::TopDockWidgetArea, inputDock_);
 
-        auto* central = new QSplitter(Qt::Vertical, this);
-        central->addWidget(inputWidget_);
-
-        // Ausgabe-Panel als Dock unten
-        outputPanel_ = new OutputPanel(this);
-        outputPanel_->setCore(core_);
-        auto* dock = new QDockWidget(QStringLiteral("Ausgabe"), this);
-        dock->setObjectName(QStringLiteral("outputDock"));
-        dock->setWidget(outputPanel_);
-        dock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
-        addDockWidget(Qt::BottomDockWidgetArea, dock);
-
+        // Mitte: Tabs (Datenbetrachtung / Datenbank-Design / Analyse) statt drei Spalten
         viewWidget_ = new DataViewWidget(this);
         viewWidget_->setCore(core_);
-
-        auto* areas = new QSplitter(Qt::Horizontal, central);
-        auto* viewBox = new QGroupBox(QStringLiteral("Datenbetrachtung"), areas);
-        auto* viewLayout = new QVBoxLayout(viewBox);
-        viewLayout->setContentsMargins(2, 2, 2, 2);
-        viewLayout->addWidget(viewWidget_);
         designWidget_ = new DatabaseDesignWidget(this);
         designWidget_->setCore(core_);
-        auto* designBox = new QGroupBox(QStringLiteral("Datenbank-Design (Collections/Schema/Indizes/Referenzen)"), areas);
-        auto* designLayout = new QVBoxLayout(designBox);
-        designLayout->setContentsMargins(2, 2, 2, 2);
-        designLayout->addWidget(designWidget_);
         analysisWidget_ = new AnalysisWidget(this);
         analysisWidget_->setCore(core_);
-        auto* analysisBox = new QGroupBox(QStringLiteral("Analyse (Discovery + Analyse)"), areas);
-        auto* analysisLayout = new QVBoxLayout(analysisBox);
-        analysisLayout->setContentsMargins(2, 2, 2, 2);
-        analysisLayout->addWidget(analysisWidget_);
-        areas->addWidget(viewBox);
-        areas->addWidget(designBox);
-        areas->addWidget(analysisBox);
-        areas->setStretchFactor(0, 2);
-        areas->setStretchFactor(1, 1);
-        areas->setStretchFactor(2, 1);
+        auto* tabs = new QTabWidget(this);
+        tabs->setObjectName(QStringLiteral("areaTabs"));
+        tabs->addTab(viewWidget_, QStringLiteral("Datenbetrachtung"));
+        tabs->addTab(designWidget_, QStringLiteral("Datenbank-Design"));
+        tabs->addTab(analysisWidget_, QStringLiteral("Analyse (Discovery + Analyse)"));
+        setCentralWidget(tabs);
+
+        // unten: Ausgabe als einklappbares Dock; Titel zeigt Fehler-Zaehler
+        outputPanel_ = new OutputPanel(this);
+        outputPanel_->setCore(core_);
+        outputDock_ = new QDockWidget(QStringLiteral("Ausgabe"), this);
+        outputDock_->setObjectName(QStringLiteral("outputDock"));
+        outputDock_->setWidget(outputPanel_);
+        outputDock_->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable |
+                                 QDockWidget::DockWidgetClosable);
+        addDockWidget(Qt::BottomDockWidgetArea, outputDock_);
+        connect(core_, &ViewerCore::logged, this, [this](const QString&, bool error) {
+            if (error) {
+                ++errorCount_;
+                outputDock_->setWindowTitle(QStringLiteral("Ausgabe (%1 Fehler)").arg(errorCount_));
+            }
+        });
 
         // Selektion aus der Datenbetrachtung als Analyse-Umfang uebernehmen
         connect(viewWidget_, &DataViewWidget::collectionSelected, analysisWidget_,
                 &AnalysisWidget::setScopeCollection);
-        central->addWidget(areas);
-        central->setStretchFactor(0, 0);
-        central->setStretchFactor(1, 1);
-        setCentralWidget(central);
 
         buildMenuAndToolbar();
 
@@ -101,13 +94,13 @@ public:
         });
         connect(viewWidget_, &DataViewWidget::statusMessage, this,
                 [this](const QString& msg) { statusBar()->showMessage(msg, 10000); });
+        connect(designWidget_, &DatabaseDesignWidget::statusMessage, this,
+                [this](const QString& msg) { statusBar()->showMessage(msg, 10000); });
         connect(analysisWidget_, &AnalysisWidget::statusMessage, this,
                 [this](const QString& msg) { statusBar()->showMessage(msg, 10000); });
-        // F5: Analyse starten
-        auto* analyzeAction = new QAction(QStringLiteral("Analysieren"), this);
-        analyzeAction->setShortcut(QKeySequence(QStringLiteral("F5")));
-        connect(analyzeAction, &QAction::triggered, analysisWidget_, &AnalysisWidget::runAnalysis);
-        addAction(analyzeAction);
+
+        statusBar()->showMessage(
+            QStringLiteral("Dateien per Drag & Drop ins Fenster ziehen oder Datei → Daten öffnen… (Strg+O)"));
     }
 
     void handleDroppedFiles(const QStringList& paths) { inputWidget_->handleDroppedFiles(paths); }
@@ -133,20 +126,30 @@ protected:
     }
 
 private:
+    QIcon icon(QStyle::StandardPixmap sp) const { return style()->standardIcon(sp); }
+
     void buildMenuAndToolbar() {
         auto* fileMenu = menuBar()->addMenu(QStringLiteral("&Datei"));
-        auto* openAction = fileMenu->addAction(QStringLiteral("Daten oeffnen…"), this, [this] {
-            inputWidget_->openFileDialog();
-        });
+        auto* openAction = fileMenu->addAction(icon(QStyle::SP_DialogOpenButton),
+                                               QStringLiteral("Daten öffnen…"), this, [this] {
+                                                   inputWidget_->openFileDialog();
+                                               });
         openAction->setShortcut(QKeySequence::Open);
-        auto* openSnapAction = fileMenu->addAction(QStringLiteral("Snapshot oeffnen…"), this, [this] {
+        auto* openSnapAction = fileMenu->addAction(icon(QStyle::SP_DialogOpenButton),
+                                                   QStringLiteral("Snapshot öffnen…"), this, [this] {
             const QString path = QFileDialog::getOpenFileName(
-                this, QStringLiteral("InMemDB-Snapshot oeffnen"), QString(),
+                this, QStringLiteral("InMemDB-Snapshot öffnen"), QString(),
                 QStringLiteral("InMemDB-Snapshot (*.json *.inmemdb.json *.enc);;Alle Dateien (*)"));
             if (!path.isEmpty())
                 inputWidget_->handleDroppedFiles({path});
         });
-        auto* newAction = fileMenu->addAction(QStringLiteral("Neue leere Database…"), this, [this] {
+        auto* csvAction = fileMenu->addAction(icon(QStyle::SP_FileDialogListView),
+                                              QStringLiteral("CSV aus Zwischenablage…"), this, [this] {
+                                                  inputWidget_->importCsvFromClipboard();
+                                              });
+        csvAction->setShortcut(QKeySequence(QStringLiteral("Ctrl+Shift+V")));
+        auto* newAction = fileMenu->addAction(icon(QStyle::SP_FileIcon), QStringLiteral("Neue leere Database…"),
+                                              this, [this] {
             bool ok = false;
             const QString name = QInputDialog::getText(this, QStringLiteral("Neue Database"),
                                                        QStringLiteral("Name der Database:"), QLineEdit::Normal,
@@ -155,7 +158,10 @@ private:
                 core_->resetDatabase(name);
         });
         newAction->setShortcut(QKeySequence::New);
-        auto* saveAction = fileMenu->addAction(QStringLiteral("Snapshot speichern…"), this, [this] {
+        auto* demoAction = fileMenu->addAction(icon(QStyle::SP_ComputerIcon), QStringLiteral("Beispiel laden"),
+                                               this, [this] { core_->loadDemoData(); });
+        auto* saveAction = fileMenu->addAction(icon(QStyle::SP_DialogSaveButton),
+                                               QStringLiteral("Snapshot speichern…"), this, [this] {
             const QString path = QFileDialog::getSaveFileName(
                 this, QStringLiteral("Snapshot speichern"), QString(),
                 QStringLiteral("InMemDB-Snapshot (*.inmemdb.json *.json);;Alle Dateien (*)"));
@@ -165,7 +171,8 @@ private:
                     core_->log(QStringLiteral("Snapshot speichern fehlgeschlagen: %1").arg(err), true);
             }
         });
-        auto* saveEncAction = fileMenu->addAction(QStringLiteral("Snapshot verschlüsselt speichern…"), this, [this] {
+        auto* saveEncAction = fileMenu->addAction(icon(QStyle::SP_DialogSaveButton),
+                                                  QStringLiteral("Snapshot verschlüsselt speichern…"), this, [this] {
             const QString path = QFileDialog::getSaveFileName(
                 this, QStringLiteral("Verschlüsselten Snapshot speichern"), QString(),
                 QStringLiteral("Verschlüsselter Snapshot (*.enc);;Alle Dateien (*)"));
@@ -180,19 +187,30 @@ private:
             if (!core_->saveSnapshotEncrypted(path, pw, &err))
                 core_->log(QStringLiteral("Verschlüsselten Snapshot speichern fehlgeschlagen: %1").arg(err), true);
         });
-        auto* demoAction = fileMenu->addAction(QStringLiteral("Beispiel laden"), this, [this] {
-            core_->loadDemoData();
-        });
         fileMenu->addSeparator();
         auto* quitAction = fileMenu->addAction(QStringLiteral("Beenden"), this, &QWidget::close);
         quitAction->setShortcut(QKeySequence::Quit);
 
+        auto* viewMenu = menuBar()->addMenu(QStringLiteral("&Ansicht"));
+        viewMenu->addAction(inputDock_->toggleViewAction());
+        viewMenu->addAction(outputDock_->toggleViewAction());
+
+        auto* analyzeAction = new QAction(icon(QStyle::SP_MediaPlay), QStringLiteral("Analysieren"), this);
+        analyzeAction->setShortcut(QKeySequence(QStringLiteral("F5")));
+        connect(analyzeAction, &QAction::triggered, analysisWidget_, &AnalysisWidget::runAnalysis);
+        addAction(analyzeAction);
+
         auto* toolBar = addToolBar(QStringLiteral("Daten"));
+        toolBar->setMovable(false);
         toolBar->addAction(openAction);
         toolBar->addAction(openSnapAction);
+        toolBar->addAction(csvAction);
+        toolBar->addSeparator();
         toolBar->addAction(newAction);
         toolBar->addAction(demoAction);
         toolBar->addAction(saveAction);
+        toolBar->addSeparator();
+        toolBar->addAction(analyzeAction);
     }
 
     ViewerCore* core_;
@@ -201,17 +219,21 @@ private:
     AnalysisWidget* analysisWidget_ = nullptr;
     OutputPanel* outputPanel_ = nullptr;
     DatabaseDesignWidget* designWidget_ = nullptr;
+    QDockWidget* inputDock_ = nullptr;
+    QDockWidget* outputDock_ = nullptr;
+    int errorCount_ = 0;
 };
 } // namespace
 
 int main(int argc, char** argv) {
     QApplication app(argc, argv);
+    applyViewerTheme(&app); // UI-01: zentrales Theme (Fusion + helle Palette + Stylesheet)
     const bool offscreen = QGuiApplication::platformName() == QLatin1String("offscreen");
 
     ViewerCore core;
     MainWindow window(&core);
     core.loadDemoData();
-    window.resize(1200, 750);
+    window.resize(1180, 820);
     window.show();
 
     if (offscreen) {

@@ -12,3 +12,4 @@
 #include "analysis_widget.hpp"
 #include "output_panel.hpp"
 #include "database_design_widget.hpp"
+#include "app_style.hpp"
