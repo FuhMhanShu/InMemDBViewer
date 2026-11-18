@@ -9,7 +9,6 @@
 
 #include <memdb/memdb.hpp>
 
-#include <QDebug>
 #include <QTimer>
 
 #include <thread>
@@ -95,6 +94,8 @@ void DataViewController::scheduleRefresh() {
 void DataViewController::selectCollection(const QString& name) {
     if (!core_ || name.isEmpty() || !core_->database().hasCollection(name.toStdString()))
         return;
+    if (name == current_)
+        return; // gleiche Collection: nichts neu laden (aktiver DSL-Filter bleibt erhalten)
     current_ = name;
     tableModel_->setCollection(core_->database().collection(name.toStdString()));
     treeModel_->clearDocument();
@@ -126,7 +127,6 @@ bool DataViewController::applyQuery(const QString& dsl, QString* error) {
 }
 
 void DataViewController::applyQueryAsync(const QString& dsl) {
-    qDebug() << "[diag] applyQueryAsync enter, current=" << current_ << "dsl=" << dsl;
     if (!core_ || current_.isEmpty())
         return;
     // Query im Worker-Thread rechnen (UI blockiert nicht, UI-09); Collection-Handle ist mutex-geschuetzt
@@ -139,18 +139,13 @@ void DataViewController::applyQueryAsync(const QString& dsl) {
             ids = coll.findIds(dsl.toStdString());
             usedIndex = coll.metrics().lastQueryUsedIndex;
             cand = coll.lastQueryCandidateCount();
-            qDebug() << "[diag] worker findIds done, ids=" << ids.size() << "usedIndex=" << usedIndex;
         } catch (const std::exception& e) {
-            qDebug() << "[diag] worker exception:" << e.what();
             ids.clear();
         }
-        qDebug() << "[diag] worker posting queued call";
         QMetaObject::invokeMethod(this, [this, dsl, ids = std::move(ids), usedIndex, cand] {
-            qDebug() << "[diag] delivered in GUI thread, ids=" << ids.size();
             if (!core_)
                 return;
             tableModel_->setQueryIds(dsl, std::move(ids), usedIndex, cand);
-            qDebug() << "[diag] after setQueryIds rowCount=" << tableModel_->rowCount() << "query=" << tableModel_->query();
             const std::size_t total = core_->database().hasCollection(current_.toStdString())
                                           ? core_->database().collection(current_.toStdString()).size()
                                           : 0;

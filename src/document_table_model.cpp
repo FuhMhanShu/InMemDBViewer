@@ -3,7 +3,6 @@
 #include <memdb/exceptions.hpp>
 #include <memdb/query_dsl.hpp>
 
-#include <QDebug>
 #include <QSet>
 
 #include <algorithm>
@@ -69,7 +68,6 @@ void DocumentTableModel::setQueryIds(const QString& dsl, std::vector<memdb::Docu
     beginResetModel();
     query_ = dsl;
     ids_ = std::move(ids);
-    qDebug() << "[diag] setQueryIds dsl=" << dsl << "ids=" << ids_.size();
     lastUsedIndex_ = usedIndex;
     lastCandidates_ = candidates;
     rebuildColumns();
@@ -95,7 +93,6 @@ void DocumentTableModel::doRefresh() {
             ids_ = coll_->findIds();
         else
             ids_ = coll_->findIds(query_.toStdString());
-        qDebug() << "[diag] doRefresh query=" << query_ << "ids=" << ids_.size();
         lastUsedIndex_ = coll_->metrics().lastQueryUsedIndex;
         lastCandidates_ = coll_->lastQueryCandidateCount();
     } catch (const std::exception&) {

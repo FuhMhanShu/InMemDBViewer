@@ -28,7 +28,6 @@
 #include <QToolButton>
 #include "tool_button.hpp"
 
-#include <QDebug>
 #include <thread>
 #include <QSplitter>
 #include <QTabWidget>
@@ -312,7 +311,6 @@ QString DataViewWidget::queryDiagnostics() const {
 }
 
 void DataViewWidget::applyQuery(const QString& dsl) {
-    qDebug() << "[diag] widget applyQuery" << dsl << "current=" << impl_->controller->currentCollection();
     if (!impl_->core || impl_->controller->currentCollection().isEmpty())
         return;
     // DSL synchron validieren (billig) -> Fehler sofort anzeigen
