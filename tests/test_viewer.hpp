@@ -153,3 +153,9 @@ private slots:
     void rapidMutationsAreDebounced();
     void rerunAfterBusyMutation();
 };
+
+class TestViewerTheme : public QObject {
+    Q_OBJECT
+private slots:
+    void themeAppliesFusionPaletteAndStylesheet();
+};

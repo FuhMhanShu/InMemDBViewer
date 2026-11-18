@@ -7,13 +7,18 @@
 #include "../src/import_model.hpp"
 
 #include <memdb/memdb.hpp>
+#include <memdbviewer/app_style.hpp>
 #include <memdbviewer/data_input_widget.hpp>
 #include <memdbviewer/viewer_core.hpp>
 
+#include <QApplication>
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QMimeData>
+#include <QPalette>
 #include <QSignalSpy>
+#include <QStyle>
+#include <QStyleFactory>
 #include <QTemporaryDir>
 #include <QTest>
 #include <QUrl>
@@ -326,4 +331,28 @@ void TestDataInputWidget::encryptedDropOffscreenIsHandled() {
     widget.handleDroppedFiles({encPath});
     QTRY_VERIFY_WITH_TIMEOUT(statusSpy.count() >= 1, 3000);
     QVERIFY(core.collectionNames().isEmpty()); // nichts geladen
+}
+
+// ---------------------------------------------------------------- UI-Theme (NFA-07)
+
+void TestViewerTheme::themeAppliesFusionPaletteAndStylesheet() {
+    auto* app = qobject_cast<QApplication*>(QApplication::instance());
+    QVERIFY(app);
+    applyViewerTheme(app); // UI-01: zentrales Theme
+    // durch das Stylesheet liegt oben ein QStyleSheetStyle; Fusion ist als Basis aktiv
+    QVERIFY(QStyleFactory::keys().contains(QStringLiteral("fusion"), Qt::CaseInsensitive));
+    QVERIFY(QString::fromLatin1(app->style()->metaObject()->className())
+                .contains(QLatin1String("QStyleSheetStyle")));
+    const QString ss = app->styleSheet();
+    QVERIFY(ss.contains(QStringLiteral("QPushButton")));
+    QVERIFY(ss.contains(QStringLiteral("QTabWidget")));
+    QVERIFY(ss.contains(QStringLiteral("QGroupBox")));
+    QVERIFY(ss.contains(QStringLiteral("QDockWidget")));
+    QVERIFY(ss.contains(QStringLiteral("#2f6fdd"))); // Akzentfarbe zentral im Theme
+    QVERIFY(app->palette().color(QPalette::Window).lightness() > 200); // helle Palette
+    QVERIFY(app->palette().color(QPalette::Highlight).name() == QStringLiteral("#2f6fdd"));
+    // Theme ist idempotent (erneutes Anwenden aendert nichts kaputt)
+    applyViewerTheme(app);
+    QVERIFY(QString::fromLatin1(app->style()->metaObject()->className())
+                .contains(QLatin1String("QStyleSheetStyle")));
 }

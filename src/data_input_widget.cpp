@@ -151,18 +151,21 @@ DataInputWidget::DataInputWidget(QWidget* parent) : QWidget(parent), impl_(std::
     impl_->dropFrame = new QFrame(this);
     impl_->dropFrame->setFrameShape(QFrame::StyledPanel);
     impl_->dropFrame->setAcceptDrops(true);
+    impl_->dropFrame->setMaximumHeight(56); // kompakt, Dock bleibt schlank
+    impl_->dropFrame->setStyleSheet(
+        QStringLiteral("QFrame { border: 1.5px dashed palette(mid); border-radius: 6px; }"));
     auto* dropLayout = new QVBoxLayout(impl_->dropFrame);
     auto* dropLabel = new QLabel(
         QStringLiteral("Dateien hierher ziehen (Drag & Drop) oder ueber die Knoepfe oben laden"), impl_->dropFrame);
     dropLabel->setAlignment(Qt::AlignCenter);
-    dropLabel->setStyleSheet(QStringLiteral("color: palette(mid);"));
+    dropLabel->setProperty("dim", true); // dezente Farbe ueber das zentrale Theme (QLabel[dim="true"])
     dropLayout->addWidget(dropLabel);
     outer->addWidget(impl_->dropFrame);
 
     // Unterstuetzte Formate
     impl_->formatsLabel = new QLabel(this);
     impl_->formatsLabel->setWordWrap(true);
-    impl_->formatsLabel->setStyleSheet(QStringLiteral("color: palette(mid); font-size: small;"));
+    impl_->formatsLabel->setProperty("dim", true);
     impl_->formatsLabel->setText(QStringLiteral("Formate: %1").arg(supportedFormatsText()));
     outer->addWidget(impl_->formatsLabel);
 
@@ -183,6 +186,7 @@ DataInputWidget::DataInputWidget(QWidget* parent) : QWidget(parent), impl_(std::
     splitter->addWidget(impl_->log);
     splitter->setStretchFactor(0, 1);
     splitter->setStretchFactor(1, 2);
+    splitter->setMaximumHeight(104); // kompakt: Dock oben bleibt schlank (UI-02)
     outer->addWidget(splitter, 1);
 
     impl_->model = new detail::ImportModel(this);
