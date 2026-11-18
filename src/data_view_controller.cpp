@@ -150,6 +150,7 @@ void DataViewController::applyQueryAsync(const QString& dsl) {
             if (!core_)
                 return;
             tableModel_->setQueryIds(dsl, std::move(ids), usedIndex, cand);
+            qDebug() << "[diag] after setQueryIds rowCount=" << tableModel_->rowCount() << "query=" << tableModel_->query();
             const std::size_t total = core_->database().hasCollection(current_.toStdString())
                                           ? core_->database().collection(current_.toStdString()).size()
                                           : 0;
