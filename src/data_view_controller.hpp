@@ -6,6 +6,7 @@
 namespace memdb {
 class Database;
 }
+class QTimer;
 
 namespace memdb::viewer {
 class ViewerCore;
@@ -36,6 +37,9 @@ public:
 
     /// @brief DSL-Filter auf die Tabelle anwenden; false + Fehlertext bei QueryError.
     bool applyQuery(const QString& dsl, QString* error);
+    /// @brief Wie applyQuery, aber die Query läuft im Worker-Thread (UI blockiert nicht, UI-09);
+    ///        Ergebnis landet per queued Aufruf im Model und wird über `queryApplied` gemeldet.
+    void applyQueryAsync(const QString& dsl);
     void clearQuery();
 
     /// @brief Dokument-Zeile ausgewaehlt -> Detailbaum aktualisieren.
@@ -60,12 +64,15 @@ signals:
     void collectionSelected(const QString& name);
     void documentSelected(quint64 id);
     void metricsTextChanged(const QString& html);
+    /// @brief Ergebnis der asynchronen Query (UI-09): Zeilen, Index genutzt, Kandidaten.
+    void queryApplied(int rowCount, bool usedIndex, std::size_t candidates);
 
 private:
-    void onCollectionsChanged();
-    void onCollectionChanged(const QString& name);
+    void onCollectionsChanged(); // fuehrt den Refresh sofort aus
+    void scheduleRefresh();      // UI-08: bündelt Change-Events (SingleShot-Timer, restart bei laufendem Timer)
 
     ViewerCore* core_ = nullptr;
+    QTimer* debounce_ = nullptr;
     DatabaseModel* dbModel_;
     DocumentTableModel* tableModel_;
     DocumentTreeModel* treeModel_;

@@ -25,7 +25,7 @@ MainWindow (Theme: applyViewerTheme – Fusion + helle Palette + Stylesheet, UI-
 Toolbar mit Icons (oeffnen/speichern/CSV/analysieren), Menues Datei/Ansicht, Shortcuts (Strg+O, Strg+N, Strg+Shift+V, F5)
 ```
 
-**UI (v1.2)**: schlankes Tab-/Dock-Layout statt breiter Spalten (UI-02), zentrales Theme (UI-01), kompakte Docks.
+**UI (v1.2)**: schlankes Tab-/Dock-Layout statt breiter Spalten (UI-02), zentrales Theme (UI-01), kompakte Docks, **Icons auf allen Buttons** (QToolButton + QStyle-Standard-Icons, UI-07), **Debounce** der Ansichts-Refreshs bei Change-Events (UI-08) und **asynchrone Query/Aggregation** im Worker-Thread plus ID-Sampling in der Tabelle – auch bei >100k Dokumenten flüssig (UI-09).
 
 **Daten laden** (übergeordnet, InMemDB FA-21 `ImportRegistry`/`Importer`): CSV, JSON/JSONL/NDJSON, SQL-Dump, BSON, SQLite (optional via `INMEMDB_WITH_SQLITE`), InMemDB-Snapshot (`.inmemdb.json`, inkl. verschlüsselt `.enc` mit Passwort, FA-14/FA-19) – sowie **CSV direkt aus der Zwischenablage**. Geladene Daten stehen Datenbetrachtung und Analyse zur Verfügung; Änderungen werden live per Observer (FA-15) an alle Widgets verteilt.
 

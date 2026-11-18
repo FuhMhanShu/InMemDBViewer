@@ -21,7 +21,9 @@
 #include <QItemSelectionModel>
 #include <QLabel>
 #include <QProgressBar>
-#include <QPushButton>
+#include <QStyle>
+#include <QToolButton>
+#include "tool_button.hpp"
 #include <QSpinBox>
 #include <QSplitter>
 #include <QTabWidget>
@@ -163,9 +165,9 @@ struct AnalysisWidget::Impl {
     detail::ConfusionModel* confusionModel = nullptr;
 
     QComboBox* scopeBox = nullptr;
-    QPushButton* runBtn = nullptr;
-    QPushButton* cancelBtn = nullptr;
-    QPushButton* optionsBtn = nullptr;
+    QToolButton* runBtn = nullptr;
+    QToolButton* cancelBtn = nullptr;
+    QToolButton* optionsBtn = nullptr;
     QCheckBox* autoBox = nullptr;
     QTimer* debounce = nullptr;   // DE-06: buendelt dataMutated-Ereignisse
     bool rerunPending = false;    // DE-06: Mutation waehrend laufender Analyse
@@ -189,11 +191,11 @@ AnalysisWidget::AnalysisWidget(QWidget* parent) : QWidget(parent), impl_(std::ma
 
     // Werkzeugleiste
     auto* bar = new QHBoxLayout();
-    impl_->runBtn = new QPushButton(QStringLiteral("Analysieren (F5)"), this);
+    impl_->runBtn = detail::makeToolButton(this, QStyle::SP_MediaPlay, QStringLiteral("Analysieren (F5)"));
     impl_->runBtn->setToolTip(QStringLiteral("Discovery + Analyse der geladenen Daten im Hintergrund ausfuehren"));
-    impl_->cancelBtn = new QPushButton(QStringLiteral("Abbrechen"), this);
+    impl_->cancelBtn = detail::makeToolButton(this, QStyle::SP_MediaStop, QStringLiteral("Abbrechen"));
     impl_->cancelBtn->setEnabled(false);
-    impl_->optionsBtn = new QPushButton(QStringLiteral("Optionen…"), this);
+    impl_->optionsBtn = detail::makeToolButton(this, QStyle::SP_FileDialogInfoView, QStringLiteral("Optionen…"));
     impl_->autoBox = new QCheckBox(QStringLiteral("Auto-Analyse nach Änderung"), this);
     impl_->autoBox->setChecked(true);
     impl_->autoBox->setToolTip(QStringLiteral(
@@ -320,9 +322,9 @@ AnalysisWidget::AnalysisWidget(QWidget* parent) : QWidget(parent), impl_(std::ma
 
     // Report-Export
     auto* exportBar = new QHBoxLayout();
-    auto* mdBtn = new QPushButton(QStringLiteral("Report: Markdown…"), this);
-    auto* jsBtn = new QPushButton(QStringLiteral("Report: JSON…"), this);
-    auto* mmBtn = new QPushButton(QStringLiteral("Report: Mermaid…"), this);
+    auto* mdBtn = detail::makeToolButton(this, QStyle::SP_DialogSaveButton, QStringLiteral("Report: Markdown…"));
+    auto* jsBtn = detail::makeToolButton(this, QStyle::SP_DialogSaveButton, QStringLiteral("Report: JSON…"));
+    auto* mmBtn = detail::makeToolButton(this, QStyle::SP_DialogSaveButton, QStringLiteral("Report: Mermaid…"));
     exportBar->addWidget(mdBtn);
     exportBar->addWidget(jsBtn);
     exportBar->addWidget(mmBtn);
@@ -379,9 +381,9 @@ AnalysisWidget::AnalysisWidget(QWidget* parent) : QWidget(parent), impl_(std::ma
             &AnalysisWidget::statusMessage);
 
     // Interaktionen
-    connect(impl_->runBtn, &QPushButton::clicked, this, &AnalysisWidget::runAnalysis);
-    connect(impl_->cancelBtn, &QPushButton::clicked, this, &AnalysisWidget::cancelAnalysis);
-    connect(impl_->optionsBtn, &QPushButton::clicked, this, [this] {
+    connect(impl_->runBtn, &QToolButton::clicked, this, &AnalysisWidget::runAnalysis);
+    connect(impl_->cancelBtn, &QToolButton::clicked, this, &AnalysisWidget::cancelAnalysis);
+    connect(impl_->optionsBtn, &QToolButton::clicked, this, [this] {
         AnalysisOptionsDialog dlg(impl_->controller->discoveryOptions, impl_->controller->numericOptions,
                                   impl_->controller->influenceOptions, this);
         if (dlg.exec() == QDialog::Accepted) {
@@ -420,11 +422,11 @@ AnalysisWidget::AnalysisWidget(QWidget* parent) : QWidget(parent), impl_(std::ma
             emit statusMessage(QStringLiteral("Report exportiert: %1").arg(path));
         }
     };
-    connect(mdBtn, &QPushButton::clicked, this,
+    connect(mdBtn, &QToolButton::clicked, this,
             [this, saveReport] { saveReport(QStringLiteral("Report als Markdown"), QStringLiteral("Markdown (*.md)"), impl_->controller->reportMarkdown()); });
-    connect(jsBtn, &QPushButton::clicked, this,
+    connect(jsBtn, &QToolButton::clicked, this,
             [this, saveReport] { saveReport(QStringLiteral("Report als JSON"), QStringLiteral("JSON (*.json)"), impl_->controller->reportJson()); });
-    connect(mmBtn, &QPushButton::clicked, this,
+    connect(mmBtn, &QToolButton::clicked, this,
             [this, saveReport] { saveReport(QStringLiteral("Beziehungsgraph als Mermaid"), QStringLiteral("Mermaid (*.mmd *.md)"), impl_->controller->reportMermaid()); });
 }
 

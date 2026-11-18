@@ -13,7 +13,9 @@
 #include <memdbviewer/viewer_core.hpp>
 
 #include <QGraphicsSceneMouseEvent>
+#include <QAbstractItemModel>
 #include <QSignalSpy>
+#include <QTableView>
 #include <QTemporaryDir>
 #include <QTest>
 
@@ -242,8 +244,34 @@ void TestDataViewWidget::applyQueryViaWidget() {
     QTRY_VERIFY_WITH_TIMEOUT(widget.currentCollection() == QStringLiteral("orders"), 3000);
     QCOMPARE(widget.tableRowCount(), 3);
     widget.applyQuery(QStringLiteral("total > 50"));
-    QTRY_VERIFY_WITH_TIMEOUT(widget.tableRowCount() == 1, 3000);
+    // UI-09: Query laeuft asynchron im Worker-Thread – auf ausgelasteten CI-Runnern mehr Puffer
+    QTRY_VERIFY_WITH_TIMEOUT(widget.tableRowCount() == 1, 10000);
     QVERIFY(widget.queryDiagnostics().contains(QStringLiteral("Index: ja"))); // Index auf total
     widget.resetQuery();
+    QTRY_VERIFY_WITH_TIMEOUT(widget.tableRowCount() == 3, 10000);
+}
+
+void TestDataViewWidget::refreshIsDebouncedOnBulkInsert() {
+    // UI-08: Massen-Inserts (viele Change-Events) duerfen nicht pro Event die Ansicht
+    // neu aufbauen – der Refresh ist debounced (SingleShot-Timer, restart bei laufendem Timer)
+    ViewerCore core;
+    core.loadDemoData();
+    DataViewWidget widget;
+    widget.setCore(&core);
+    widget.show();
+    QTRY_VERIFY_WITH_TIMEOUT(widget.currentCollection() == QStringLiteral("orders"), 3000);
     QTRY_VERIFY_WITH_TIMEOUT(widget.tableRowCount() == 3, 3000);
+    auto* table = widget.findChild<QTableView*>();
+    QVERIFY(table);
+    QAbstractItemModel* model = table->model();
+    QSignalSpy resetSpy(model, &QAbstractItemModel::modelReset);
+    QVERIFY(resetSpy.isValid());
+    // 3000 Inserts -> 3000 collectionChanged-Events
+    auto coll = core.database().collection("orders");
+    for (int i = 0; i < 3000; ++i)
+        coll.insert({{"total", static_cast<double>(i)}, {"status", "bulk"}});
+    QTRY_VERIFY_WITH_TIMEOUT(widget.tableRowCount() == 3 + 3000, 20000);
+    QTest::qWait(700); // Debounce-Fenster (200 ms) sicher abwarten
+    // statt 3000 Model-Resets nur wenige (debounced)
+    QVERIFY2(resetSpy.count() <= 3, qPrintable(QStringLiteral("modelReset count: %1").arg(resetSpy.count())));
 }

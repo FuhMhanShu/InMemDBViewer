@@ -4,7 +4,9 @@
 #include <QCheckBox>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QPushButton>
+#include <QStyle>
+#include <QToolButton>
+#include "tool_button.hpp"
 #include <QTextBrowser>
 #include <QTime>
 #include <QVBoxLayout>
@@ -31,7 +33,7 @@ OutputPanel::OutputPanel(QWidget* parent) : QWidget(parent), impl_(std::make_uni
     bar->addWidget(title);
     impl_->onlyErrors = new QCheckBox(QStringLiteral("nur Fehler"), this);
     impl_->countLabel = new QLabel(this);
-    auto* clearBtn = new QPushButton(QStringLiteral("Leeren"), this);
+    auto* clearBtn = detail::makeToolButton(this, QStyle::SP_DialogResetButton, QStringLiteral("Leeren"));
     bar->addStretch();
     bar->addWidget(impl_->onlyErrors);
     bar->addWidget(impl_->countLabel);
@@ -40,7 +42,7 @@ OutputPanel::OutputPanel(QWidget* parent) : QWidget(parent), impl_(std::make_uni
     impl_->browser = new QTextBrowser(this);
     impl_->browser->setOpenExternalLinks(false);
     layout->addWidget(impl_->browser, 1);
-    connect(clearBtn, &QPushButton::clicked, this, &OutputPanel::clear);
+    connect(clearBtn, &QToolButton::clicked, this, &OutputPanel::clear);
     connect(impl_->onlyErrors, &QCheckBox::toggled, this, [this] {
         impl_->browser->setProperty("onlyErrors", impl_->onlyErrors->isChecked());
     });

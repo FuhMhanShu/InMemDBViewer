@@ -5,6 +5,8 @@
 
 #include <QSet>
 
+#include <algorithm>
+
 namespace {
 /// @brief Anzeige-Text eines Werts: Strings ungequotet, Binary gekuerzt.
 QString displayValue(const memdb::Value& v) {
@@ -51,14 +53,25 @@ bool DocumentTableModel::applyQuery(const QString& dsl, QString* error) {
     }
     try {
         memdb::parseQuery(dsl.toStdString()); // validieren, bevor query_ uebernommen wird
+        auto ids = coll_->findIds(dsl.toStdString());
+        setQueryIds(dsl, std::move(ids), coll_->metrics().lastQueryUsedIndex, coll_->lastQueryCandidateCount());
     } catch (const std::exception& e) {
         if (error)
             *error = QString::fromUtf8(e.what());
         return false;
     }
-    query_ = dsl;
-    refresh();
     return true;
+}
+
+void DocumentTableModel::setQueryIds(const QString& dsl, std::vector<memdb::DocumentId> ids, bool usedIndex,
+                                     std::size_t candidates) {
+    beginResetModel();
+    query_ = dsl;
+    ids_ = std::move(ids);
+    lastUsedIndex_ = usedIndex;
+    lastCandidates_ = candidates;
+    rebuildColumns();
+    endResetModel();
 }
 
 void DocumentTableModel::clearQuery() {
@@ -154,11 +167,14 @@ void DocumentTableModel::rebuildColumns() {
         for (const auto& [path, fs] : schema->fields())
             fields.insert(QString::fromStdString(path));
     } else {
-        std::size_t seen = 0;
-        coll_->forEach(memdb::Expression{}, [&](const memdb::Document& doc) {
-            if (++seen > 500)
-                return;
-            doc.forEachField([&](const std::string& key, const memdb::Value& val) {
+        // UI-09: Feldnamen per Sampling ueber die bereits geladenen IDs (max. 500 Dokumente
+        // via findById) – kein Voll-Scan der Collection (sonst O(n) pro Refresh, >100k langsam)
+        const std::size_t n = std::min<std::size_t>(ids_.size(), 500);
+        for (std::size_t i = 0; i < n; ++i) {
+            const auto doc = coll_->findById(ids_[i]);
+            if (!doc)
+                continue;
+            doc->forEachField([&](const std::string& key, const memdb::Value& val) {
                 fields.insert(QString::fromStdString(key));
                 if (val.isDocument() && val.asDocument()) {
                     val.asDocument()->forEachField([&](const std::string& sub, const memdb::Value&) {
@@ -167,7 +183,7 @@ void DocumentTableModel::rebuildColumns() {
                     });
                 }
             });
-        });
+        }
     }
     const QStringList sorted = QSet<QString>(fields).values();
     for (const QString& f : sorted) {

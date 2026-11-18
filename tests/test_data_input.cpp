@@ -345,6 +345,7 @@ void TestViewerTheme::themeAppliesFusionPaletteAndStylesheet() {
                 .contains(QLatin1String("QStyleSheetStyle")));
     const QString ss = app->styleSheet();
     QVERIFY(ss.contains(QStringLiteral("QPushButton")));
+    QVERIFY(ss.contains(QStringLiteral("QToolButton"))); // kompakte Buttons mit Icon (UI-07)
     QVERIFY(ss.contains(QStringLiteral("QTabWidget")));
     QVERIFY(ss.contains(QStringLiteral("QGroupBox")));
     QVERIFY(ss.contains(QStringLiteral("QDockWidget")));

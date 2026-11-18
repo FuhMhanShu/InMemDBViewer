@@ -90,8 +90,13 @@ QCheckBox::indicator, QRadioButton::indicator { width: 15px; height: 15px; borde
 QCheckBox::indicator:checked { background: #2f6fdd; border-color: #2f6fdd; }
 
 QToolBar { background: #ffffff; border: none; border-bottom: 1px solid #d5dbe3; spacing: 6px; padding: 4px 6px; }
-QToolButton { border-radius: 5px; padding: 4px; }
-QToolButton:hover { background: #eaf1fd; }
+QToolButton {
+    background: transparent; border: 1px solid transparent; border-radius: 5px; padding: 4px 9px;
+}
+QToolButton:hover { background: #eaf1fd; border-color: #2f6fdd; }
+QToolButton:pressed { background: #d7e5fb; }
+QToolButton:checked { background: #d7e5fb; border-color: #2f6fdd; color: #1f4fb0; }
+QToolButton:disabled { color: #9aa4b2; }
 
 QMenuBar { background: #ffffff; border-bottom: 1px solid #d5dbe3; }
 QMenuBar::item { padding: 5px 10px; border-radius: 4px; }

@@ -70,6 +70,7 @@ private slots:
     void loadsAndSelectsCollection();
     void liveRefreshOnInsert();
     void applyQueryViaWidget();
+    void refreshIsDebouncedOnBulkInsert();
 };
 
 class TestDiscoveryModel : public QObject {
