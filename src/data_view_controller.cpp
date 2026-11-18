@@ -9,6 +9,7 @@
 
 #include <memdb/memdb.hpp>
 
+#include <QDebug>
 #include <QTimer>
 
 #include <thread>
@@ -125,6 +126,7 @@ bool DataViewController::applyQuery(const QString& dsl, QString* error) {
 }
 
 void DataViewController::applyQueryAsync(const QString& dsl) {
+    qDebug() << "[diag] applyQueryAsync enter, current=" << current_ << "dsl=" << dsl;
     if (!core_ || current_.isEmpty())
         return;
     // Query im Worker-Thread rechnen (UI blockiert nicht, UI-09); Collection-Handle ist mutex-geschuetzt
@@ -137,10 +139,14 @@ void DataViewController::applyQueryAsync(const QString& dsl) {
             ids = coll.findIds(dsl.toStdString());
             usedIndex = coll.metrics().lastQueryUsedIndex;
             cand = coll.lastQueryCandidateCount();
-        } catch (const std::exception&) {
+            qDebug() << "[diag] worker findIds done, ids=" << ids.size() << "usedIndex=" << usedIndex;
+        } catch (const std::exception& e) {
+            qDebug() << "[diag] worker exception:" << e.what();
             ids.clear();
         }
+        qDebug() << "[diag] worker posting queued call";
         QMetaObject::invokeMethod(this, [this, dsl, ids = std::move(ids), usedIndex, cand] {
+            qDebug() << "[diag] delivered in GUI thread, ids=" << ids.size();
             if (!core_)
                 return;
             tableModel_->setQueryIds(dsl, std::move(ids), usedIndex, cand);
