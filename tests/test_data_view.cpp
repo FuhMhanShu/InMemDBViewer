@@ -244,10 +244,11 @@ void TestDataViewWidget::applyQueryViaWidget() {
     QTRY_VERIFY_WITH_TIMEOUT(widget.currentCollection() == QStringLiteral("orders"), 3000);
     QCOMPARE(widget.tableRowCount(), 3);
     widget.applyQuery(QStringLiteral("total > 50"));
-    QTRY_VERIFY_WITH_TIMEOUT(widget.tableRowCount() == 1, 3000);
+    // UI-09: Query laeuft asynchron im Worker-Thread – auf ausgelasteten CI-Runnern mehr Puffer
+    QTRY_VERIFY_WITH_TIMEOUT(widget.tableRowCount() == 1, 10000);
     QVERIFY(widget.queryDiagnostics().contains(QStringLiteral("Index: ja"))); // Index auf total
     widget.resetQuery();
-    QTRY_VERIFY_WITH_TIMEOUT(widget.tableRowCount() == 3, 3000);
+    QTRY_VERIFY_WITH_TIMEOUT(widget.tableRowCount() == 3, 10000);
 }
 
 void TestDataViewWidget::refreshIsDebouncedOnBulkInsert() {
