@@ -1,0 +1,1211 @@
+﻿2026-11-18T20:47:50.8926480Z Current runner version: '2.338.2'
+2026-11-18T20:47:50.8951067Z ##[group]Runner Image Provisioner
+2026-11-18T20:47:50.8951965Z Hosted Compute Agent
+2026-11-18T20:47:50.8952499Z Version: 20261103.629
+2026-11-18T20:47:50.8953017Z Commit: 15dbd9ccb5dbf34fae002b6ed1a2670f52df37bc
+2026-11-18T20:47:50.8953685Z Build Date: 2026-11-03T17:26:59Z
+2026-11-18T20:47:50.8954280Z Worker ID: {09f1a9f4-44ce-42e5-bd70-6c1a37e5a38b}
+2026-11-18T20:47:50.8954888Z Region: eastus2
+2026-11-18T20:47:50.8955610Z Cloud: Azure
+2026-11-18T20:47:50.8956064Z ##[endgroup]
+2026-11-18T20:47:50.8957652Z ##[group]Operating System
+2026-11-18T20:47:50.8958198Z Ubuntu
+2026-11-18T20:47:50.8958619Z 26.04.1
+2026-11-18T20:47:50.8959101Z LTS
+2026-11-18T20:47:50.8959532Z ##[endgroup]
+2026-11-18T20:47:50.8960054Z ##[group]Runner Image
+2026-11-18T20:47:50.8960592Z Image: ubuntu-26.04
+2026-11-18T20:47:50.8961045Z Version: 20261111.196.1
+2026-11-18T20:47:50.8962127Z Included Software: https://github.com/actions/runner-images/blob/ubuntu26/20261111.196/images/ubuntu/Ubuntu2604-Readme.md
+2026-11-18T20:47:50.8963423Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu26%2F20261111.196
+2026-11-18T20:47:50.8964202Z ##[endgroup]
+2026-11-18T20:47:50.8965408Z ##[group]GITHUB_TOKEN Permissions
+2026-11-18T20:47:50.8967532Z Contents: read
+2026-11-18T20:47:50.8968184Z Metadata: read
+2026-11-18T20:47:50.8968695Z Packages: read
+2026-11-18T20:47:50.8969162Z ##[endgroup]
+2026-11-18T20:47:50.8971115Z Secret source: Actions
+2026-11-18T20:47:50.8971920Z Cache mode: write
+2026-11-18T20:47:50.8972852Z Prepare workflow directory
+2026-11-18T20:47:50.9247906Z Prepare all required actions
+2026-11-18T20:47:50.9291159Z Getting action download info
+2026-11-18T20:47:51.0828345Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-11-18T20:47:51.2810496Z Complete job name: CMake / Qt6 / Ubuntu
+2026-11-18T20:47:51.3596889Z ##[group]Run actions/checkout@v4
+2026-11-18T20:47:51.3597584Z with:
+2026-11-18T20:47:51.3597960Z   path: InMemDBViewer
+2026-11-18T20:47:51.3598391Z   repository: FuhMhanShu/InMemDBViewer
+2026-11-18T20:47:51.3601559Z   token: ***
+2026-11-18T20:47:51.3601919Z   ssh-strict: true
+2026-11-18T20:47:51.3602288Z   ssh-user: git
+2026-11-18T20:47:51.3602651Z   persist-credentials: true
+2026-11-18T20:47:51.3603056Z   clean: true
+2026-11-18T20:47:51.3603419Z   sparse-checkout-cone-mode: true
+2026-11-18T20:47:51.3603838Z   fetch-depth: 1
+2026-11-18T20:47:51.3604183Z   fetch-tags: false
+2026-11-18T20:47:51.3604549Z   show-progress: true
+2026-11-18T20:47:51.3604906Z   lfs: false
+2026-11-18T20:47:51.3605385Z   submodules: false
+2026-11-18T20:47:51.3605743Z   set-safe-directory: true
+2026-11-18T20:47:51.3606149Z   allow-unsafe-pr-checkout: false
+2026-11-18T20:47:51.3606775Z ##[endgroup]
+2026-11-18T20:47:51.6458522Z Syncing repository: FuhMhanShu/InMemDBViewer
+2026-11-18T20:47:51.6461313Z ##[group]Getting Git version info
+2026-11-18T20:47:51.6462482Z Working directory is '/home/runner/work/InMemDBViewer/InMemDBViewer/InMemDBViewer'
+2026-11-18T20:47:51.6464150Z [command]/usr/bin/git version
+2026-11-18T20:47:51.6481786Z git version 2.56.1
+2026-11-18T20:47:51.6501497Z ##[endgroup]
+2026-11-18T20:47:51.6516148Z Temporarily overriding HOME='/home/runner/work/_temp/c7b26605-cb7e-4aa4-96ef-477d8fc5a210' before making global git config changes
+2026-11-18T20:47:51.6517488Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-18T20:47:51.6521391Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/InMemDBViewer/InMemDBViewer/InMemDBViewer
+2026-11-18T20:47:51.6622103Z ##[group]Initializing the repository
+2026-11-18T20:47:51.6628047Z [command]/usr/bin/git init /home/runner/work/InMemDBViewer/InMemDBViewer/InMemDBViewer
+2026-11-18T20:47:51.6741308Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-18T20:47:51.6742475Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-18T20:47:51.6743309Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-18T20:47:51.6744275Z hint: call:
+2026-11-18T20:47:51.6744661Z hint:
+2026-11-18T20:47:51.6745382Z hint: 	git config --global init.defaultBranch <name>
+2026-11-18T20:47:51.6746133Z hint:
+2026-11-18T20:47:51.6746661Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-18T20:47:51.6747506Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-18T20:47:51.6748316Z hint:
+2026-11-18T20:47:51.6748713Z hint: 	git branch -m <name>
+2026-11-18T20:47:51.6749127Z hint:
+2026-11-18T20:47:51.6749659Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-18T20:47:51.6757828Z Initialized empty Git repository in /home/runner/work/InMemDBViewer/InMemDBViewer/InMemDBViewer/.git/
+2026-11-18T20:47:51.6770173Z [command]/usr/bin/git remote add origin https://github.com/FuhMhanShu/InMemDBViewer
+2026-11-18T20:47:51.6835543Z ##[endgroup]
+2026-11-18T20:47:51.6836719Z ##[group]Disabling automatic garbage collection
+2026-11-18T20:47:51.6838310Z [command]/usr/bin/git config --local gc.auto 0
+2026-11-18T20:47:51.6908165Z ##[endgroup]
+2026-11-18T20:47:51.6909974Z ##[group]Setting up auth
+2026-11-18T20:47:51.6911697Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-18T20:47:51.6947721Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-18T20:47:51.7399251Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-18T20:47:51.7437192Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-18T20:47:51.7705818Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-18T20:47:51.7741789Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-18T20:47:51.7987756Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-18T20:47:51.8027489Z ##[endgroup]
+2026-11-18T20:47:51.8028402Z ##[group]Fetching the repository
+2026-11-18T20:47:51.8036309Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +3fee30cb003a752c28e8519cf4226adc5ddaf03c:refs/remotes/pull/15/merge
+2026-11-18T20:47:52.0882536Z From https://github.com/FuhMhanShu/InMemDBViewer
+2026-11-18T20:47:52.0884310Z  * [new ref]         3fee30cb003a752c28e8519cf4226adc5ddaf03c -> pull/15/merge
+2026-11-18T20:47:52.0888562Z ##[endgroup]
+2026-11-18T20:47:52.0890354Z ##[group]Determining the checkout info
+2026-11-18T20:47:52.0892194Z ##[endgroup]
+2026-11-18T20:47:52.0896236Z [command]/usr/bin/git sparse-checkout disable
+2026-11-18T20:47:52.0953796Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-18T20:47:52.0980865Z ##[group]Checking out the ref
+2026-11-18T20:47:52.0983262Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/15/merge
+2026-11-18T20:47:52.1101143Z Note: switching to 'refs/remotes/pull/15/merge'.
+2026-11-18T20:47:52.1101883Z 
+2026-11-18T20:47:52.1102488Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-11-18T20:47:52.1103933Z changes and commit them, and you can discard any commits you make in this
+2026-11-18T20:47:52.1105579Z state without impacting any branches by switching back to a branch.
+2026-11-18T20:47:52.1106494Z 
+2026-11-18T20:47:52.1107144Z If you want to create a new branch to retain commits you create, you may
+2026-11-18T20:47:52.1109052Z do so (now or later) by using -c with the switch command. Example:
+2026-11-18T20:47:52.1110415Z 
+2026-11-18T20:47:52.1110944Z   git switch -c <new-branch-name>
+2026-11-18T20:47:52.1111789Z 
+2026-11-18T20:47:52.1112609Z Or undo this operation with:
+2026-11-18T20:47:52.1113403Z 
+2026-11-18T20:47:52.1113859Z   git switch -
+2026-11-18T20:47:52.1114475Z 
+2026-11-18T20:47:52.1115484Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-11-18T20:47:52.1116742Z 
+2026-11-18T20:47:52.1118164Z HEAD is now at 3fee30c Merge 71f2fc30b0e8724ffbb0d9c2bb0eb623048e5ae9 into 92473d17b6d095e9b5f5329b51f1bda473f87ea4
+2026-11-18T20:47:52.1121906Z ##[endgroup]
+2026-11-18T20:47:52.1160560Z [command]/usr/bin/git log -1 --format=%H
+2026-11-18T20:47:52.1183220Z 3fee30cb003a752c28e8519cf4226adc5ddaf03c
+2026-11-18T20:47:52.1630959Z ##[group]Run actions/checkout@v4
+2026-11-18T20:47:52.1631874Z with:
+2026-11-18T20:47:52.1632550Z   repository: FuhMhanShu/InMemDB
+2026-11-18T20:47:52.1633437Z   path: InMemDBViewer/../InMemDB
+2026-11-18T20:47:52.1641076Z   token: ***
+2026-11-18T20:47:52.1641761Z   ssh-strict: true
+2026-11-18T20:47:52.1642467Z   ssh-user: git
+2026-11-18T20:47:52.1643174Z   persist-credentials: true
+2026-11-18T20:47:52.1643991Z   clean: true
+2026-11-18T20:47:52.1644701Z   sparse-checkout-cone-mode: true
+2026-11-18T20:47:52.1645656Z   fetch-depth: 1
+2026-11-18T20:47:52.1646340Z   fetch-tags: false
+2026-11-18T20:47:52.1647051Z   show-progress: true
+2026-11-18T20:47:52.1647766Z   lfs: false
+2026-11-18T20:47:52.1648409Z   submodules: false
+2026-11-18T20:47:52.1649123Z   set-safe-directory: true
+2026-11-18T20:47:52.1649956Z   allow-unsafe-pr-checkout: false
+2026-11-18T20:47:52.1650813Z ##[endgroup]
+2026-11-18T20:47:52.2433859Z Syncing repository: FuhMhanShu/InMemDB
+2026-11-18T20:47:52.2439278Z ##[group]Getting Git version info
+2026-11-18T20:47:52.2441749Z Working directory is '/home/runner/work/InMemDBViewer/InMemDBViewer/InMemDB'
+2026-11-18T20:47:52.2476669Z [command]/usr/bin/git version
+2026-11-18T20:47:52.2517374Z git version 2.56.1
+2026-11-18T20:47:52.2534463Z ##[endgroup]
+2026-11-18T20:47:52.2546364Z Temporarily overriding HOME='/home/runner/work/_temp/150c905e-83fd-405b-8a78-582bdce51931' before making global git config changes
+2026-11-18T20:47:52.2550247Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-18T20:47:52.2553747Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/InMemDBViewer/InMemDBViewer/InMemDB
+2026-11-18T20:47:52.2596833Z ##[group]Initializing the repository
+2026-11-18T20:47:52.2598438Z [command]/usr/bin/git init /home/runner/work/InMemDBViewer/InMemDBViewer/InMemDB
+2026-11-18T20:47:52.2637015Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-18T20:47:52.2639965Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-18T20:47:52.2644329Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-18T20:47:52.2646678Z hint: call:
+2026-11-18T20:47:52.2648040Z hint:
+2026-11-18T20:47:52.2649551Z hint: 	git config --global init.defaultBranch <name>
+2026-11-18T20:47:52.2651408Z hint:
+2026-11-18T20:47:52.2653511Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-18T20:47:52.2656491Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-18T20:47:52.2658767Z hint:
+2026-11-18T20:47:52.2660123Z hint: 	git branch -m <name>
+2026-11-18T20:47:52.2661627Z hint:
+2026-11-18T20:47:52.2663540Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-18T20:47:52.2666772Z Initialized empty Git repository in /home/runner/work/InMemDBViewer/InMemDBViewer/InMemDB/.git/
+2026-11-18T20:47:52.2671581Z [command]/usr/bin/git remote add origin https://github.com/FuhMhanShu/InMemDB
+2026-11-18T20:47:52.2682665Z ##[endgroup]
+2026-11-18T20:47:52.2684517Z ##[group]Disabling automatic garbage collection
+2026-11-18T20:47:52.2686547Z [command]/usr/bin/git config --local gc.auto 0
+2026-11-18T20:47:52.2723364Z ##[endgroup]
+2026-11-18T20:47:52.2725618Z ##[group]Setting up auth
+2026-11-18T20:47:52.2729933Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-18T20:47:52.2767468Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-18T20:47:52.3064927Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-18T20:47:52.3103094Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-18T20:47:52.3365408Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-18T20:47:52.3398158Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-18T20:47:52.3641897Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-18T20:47:52.3680147Z ##[endgroup]
+2026-11-18T20:47:52.3681463Z ##[group]Determining the default branch
+2026-11-18T20:47:52.3683005Z Retrieving the default branch name
+2026-11-18T20:47:52.6892141Z Default branch 'main'
+2026-11-18T20:47:52.6893923Z ##[endgroup]
+2026-11-18T20:47:52.6894507Z ##[group]Fetching the repository
+2026-11-18T20:47:52.6896246Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/main:refs/remotes/origin/main
+2026-11-18T20:47:53.1000179Z From https://github.com/FuhMhanShu/InMemDB
+2026-11-18T20:47:53.1000873Z  * [new branch]      main       -> origin/main
+2026-11-18T20:47:53.1002814Z ##[endgroup]
+2026-11-18T20:47:53.1003480Z ##[group]Determining the checkout info
+2026-11-18T20:47:53.1006263Z ##[endgroup]
+2026-11-18T20:47:53.1010427Z [command]/usr/bin/git sparse-checkout disable
+2026-11-18T20:47:53.1058202Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-18T20:47:53.1093105Z ##[group]Checking out the ref
+2026-11-18T20:47:53.1097091Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-11-18T20:47:53.1263548Z Switched to a new branch 'main'
+2026-11-18T20:47:53.1264671Z branch 'main' set up to track 'origin/main'.
+2026-11-18T20:47:53.1271398Z ##[endgroup]
+2026-11-18T20:47:53.1313877Z [command]/usr/bin/git log -1 --format=%H
+2026-11-18T20:47:53.1342822Z bade72ada7da1ce795ab4fe451bdcee9852781fd
+2026-11-18T20:47:53.1517161Z ##[group]Run sudo apt-get update
+2026-11-18T20:47:53.1517591Z [36;1msudo apt-get update[0m
+2026-11-18T20:47:53.1518043Z [36;1msudo apt-get install -y qt6-base-dev qt6-base-dev-tools qt6-svg-dev libsqlite3-dev libgl1-mesa-dev[0m
+2026-11-18T20:47:53.1570925Z shell: /usr/bin/bash -e {0}
+2026-11-18T20:47:53.1571254Z ##[endgroup]
+2026-11-18T20:47:53.2514371Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-11-18T20:47:53.2699045Z Get:6 https://packages.microsoft.com/ubuntu/26.04/prod resolute InRelease [3964 B]
+2026-11-18T20:47:53.2821475Z Hit:2 http://azure.archive.ubuntu.com/ubuntu resolute InRelease
+2026-11-18T20:47:53.2849311Z Get:3 http://azure.archive.ubuntu.com/ubuntu resolute-updates InRelease [137 kB]
+2026-11-18T20:47:53.2880624Z Get:4 http://azure.archive.ubuntu.com/ubuntu resolute-backports InRelease [137 kB]
+2026-11-18T20:47:53.2888988Z Get:5 http://azure.archive.ubuntu.com/ubuntu resolute-security InRelease [137 kB]
+2026-11-18T20:47:53.3037863Z Get:7 https://packages.microsoft.com/ubuntu/26.04/prod resolute/main amd64 Packages [165 kB]
+2026-11-18T20:47:53.3277300Z Get:8 https://packages.microsoft.com/ubuntu/26.04/prod resolute/main arm64 Packages [151 kB]
+2026-11-18T20:47:53.3401251Z Get:9 http://azure.archive.ubuntu.com/ubuntu resolute-updates/main amd64v3 Packages [874 kB]
+2026-11-18T20:47:53.3506738Z Get:10 http://azure.archive.ubuntu.com/ubuntu resolute-updates/main Translation-en [196 kB]
+2026-11-18T20:47:53.3508028Z Get:11 http://azure.archive.ubuntu.com/ubuntu resolute-updates/universe amd64v3 Packages [392 kB]
+2026-11-18T20:47:53.3528756Z Get:12 http://azure.archive.ubuntu.com/ubuntu resolute-updates/universe Translation-en [123 kB]
+2026-11-18T20:47:53.3661605Z Get:13 http://azure.archive.ubuntu.com/ubuntu resolute-security/main amd64v3 Packages [721 kB]
+2026-11-18T20:47:53.3691166Z Get:14 http://azure.archive.ubuntu.com/ubuntu resolute-security/main Translation-en [158 kB]
+2026-11-18T20:47:53.3707226Z Get:15 http://azure.archive.ubuntu.com/ubuntu resolute-security/universe amd64v3 Packages [221 kB]
+2026-11-18T20:47:53.3733933Z Get:16 http://azure.archive.ubuntu.com/ubuntu resolute-security/universe Translation-en [72.7 kB]
+2026-11-18T20:47:53.3744854Z Get:17 http://azure.archive.ubuntu.com/ubuntu resolute-security/restricted amd64v3 Packages [590 kB]
+2026-11-18T20:47:53.3770851Z Get:18 http://azure.archive.ubuntu.com/ubuntu resolute-security/restricted Translation-en [122 kB]
+2026-11-18T20:47:56.4489815Z Fetched 4200 kB in 0s (13.1 MB/s)
+2026-11-18T20:47:57.0756782Z Reading package lists...
+2026-11-18T20:47:57.1064953Z Reading package lists...
+2026-11-18T20:47:57.3358275Z Building dependency tree...
+2026-11-18T20:47:57.3366025Z Reading state information...
+2026-11-18T20:47:57.3880723Z libsqlite3-dev is already the newest version (3.46.1-9ubuntu0.3).
+2026-11-18T20:47:57.4704148Z Solving dependencies...
+2026-11-18T20:47:57.6403659Z The following additional packages will be installed:
+2026-11-18T20:47:57.6406328Z   gnome-themes-extra-data libb2-1 libdouble-conversion3 libegl-dev
+2026-11-18T20:47:57.6407137Z   libegl-mesa0 libegl1 libgl-dev libgles-dev libgles1 libgles2
+2026-11-18T20:47:57.6408714Z   libglvnd-core-dev libglvnd-dev libglx-dev libinput-bin libinput10 libmd4c0
+2026-11-18T20:47:57.6409644Z   libmtdev1t64 libopengl-dev libopengl0 libproxy1v5 libqt6concurrent6
+2026-11-18T20:47:57.6410036Z   libqt6core6t64 libqt6dbus6 libqt6gui6 libqt6network6 libqt6opengl6
+2026-11-18T20:47:57.6410411Z   libqt6openglwidgets6 libqt6printsupport6 libqt6qml6 libqt6qmlmeta6
+2026-11-18T20:47:57.6410781Z   libqt6qmlmodels6 libqt6qmlworkerscript6 libqt6quick6 libqt6sql6
+2026-11-18T20:47:57.6411158Z   libqt6sql6-sqlite libqt6svg6 libqt6svgwidgets6 libqt6test6
+2026-11-18T20:47:57.6411495Z   libqt6waylandclient6 libqt6waylandcompositor6 libqt6widgets6
+2026-11-18T20:47:57.6416509Z   libqt6wlshellintegration6 libqt6xml6 libts0t64 libvulkan-dev libwacom-common
+2026-11-18T20:47:57.6416915Z   libwacom9 libwayland-server0 libx11-dev libxau-dev libxcb-cursor0
+2026-11-18T20:47:57.6417712Z   libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0
+2026-11-18T20:47:57.6418060Z   libxcb-shape0 libxcb-util1 libxcb-xinput0 libxcb-xkb1 libxcb1-dev
+2026-11-18T20:47:57.6422330Z   libxdmcp-dev libxkbcommon-x11-0 qmake6 qmake6-bin qt6-gtk-platformtheme
+2026-11-18T20:47:57.6424944Z   qt6-qpa-plugins qt6-svg-plugins qt6-translations-l10n qt6-wayland
+2026-11-18T20:47:57.6425499Z   x11proto-dev xorg-sgml-doctools xtrans-dev
+2026-11-18T20:47:57.6444944Z Suggested packages:
+2026-11-18T20:47:57.6445504Z   qt6-qmltooling-plugins libwacom-bin libx11-doc libxcb-doc cmake
+2026-11-18T20:47:57.6812664Z The following NEW packages will be installed:
+2026-11-18T20:47:57.6813479Z   gnome-themes-extra-data libb2-1 libdouble-conversion3 libegl-dev
+2026-11-18T20:47:57.6814267Z   libegl-mesa0 libegl1 libgl-dev libgl1-mesa-dev libgles-dev libgles1 libgles2
+2026-11-18T20:47:57.6815328Z   libglvnd-core-dev libglvnd-dev libglx-dev libinput-bin libinput10 libmd4c0
+2026-11-18T20:47:57.6816064Z   libmtdev1t64 libopengl-dev libopengl0 libproxy1v5 libqt6concurrent6
+2026-11-18T20:47:57.6816488Z   libqt6core6t64 libqt6dbus6 libqt6gui6 libqt6network6 libqt6opengl6
+2026-11-18T20:47:57.6816967Z   libqt6openglwidgets6 libqt6printsupport6 libqt6qml6 libqt6qmlmeta6
+2026-11-18T20:47:57.6817546Z   libqt6qmlmodels6 libqt6qmlworkerscript6 libqt6quick6 libqt6sql6
+2026-11-18T20:47:57.6818037Z   libqt6sql6-sqlite libqt6svg6 libqt6svgwidgets6 libqt6test6
+2026-11-18T20:47:57.6818545Z   libqt6waylandclient6 libqt6waylandcompositor6 libqt6widgets6
+2026-11-18T20:47:57.6820661Z   libqt6wlshellintegration6 libqt6xml6 libts0t64 libvulkan-dev libwacom-common
+2026-11-18T20:47:57.6821376Z   libwacom9 libwayland-server0 libx11-dev libxau-dev libxcb-cursor0
+2026-11-18T20:47:57.6821727Z   libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0
+2026-11-18T20:47:57.6822058Z   libxcb-shape0 libxcb-util1 libxcb-xinput0 libxcb-xkb1 libxcb1-dev
+2026-11-18T20:47:57.6823827Z   libxdmcp-dev libxkbcommon-x11-0 qmake6 qmake6-bin qt6-base-dev
+2026-11-18T20:47:57.6824232Z   qt6-base-dev-tools qt6-gtk-platformtheme qt6-qpa-plugins qt6-svg-dev
+2026-11-18T20:47:57.6825305Z   qt6-svg-plugins qt6-translations-l10n qt6-wayland x11proto-dev
+2026-11-18T20:47:57.6825737Z   xorg-sgml-doctools xtrans-dev
+2026-11-18T20:47:57.7039457Z 0 upgraded, 76 newly installed, 0 to remove and 32 not upgraded.
+2026-11-18T20:47:57.7039976Z Need to get 28.2 MB of archives.
+2026-11-18T20:47:57.7040376Z After this operation, 158 MB of additional disk space will be used.
+2026-11-18T20:47:57.7040708Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-11-18T20:47:57.7800438Z Get:2 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 gnome-themes-extra-data all 3.28-5 [69.4 kB]
+2026-11-18T20:47:57.7995653Z Get:3 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libb2-1 amd64 0.98.1-1.1build2 [31.3 kB]
+2026-11-18T20:47:57.8181658Z Get:4 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libdouble-conversion3 amd64 3.4.0-1 [42.7 kB]
+2026-11-18T20:47:57.8407921Z Get:5 http://azure.archive.ubuntu.com/ubuntu resolute-updates/main amd64v3 libegl-mesa0 amd64 26.0.8-1ubuntu0.3 [134 kB]
+2026-11-18T20:47:57.8592542Z Get:6 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 libegl1 amd64 1.7.0-3 [29.8 kB]
+2026-11-18T20:47:57.8769221Z Get:7 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 xorg-sgml-doctools all 1:1.11-1.1build1 [10.3 kB]
+2026-11-18T20:47:57.8959704Z Get:8 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 x11proto-dev all 2025.1-1 [608 kB]
+2026-11-18T20:47:57.9166323Z Get:9 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 libxau-dev amd64 1:1.0.11-1build2 [9780 B]
+2026-11-18T20:47:57.9341626Z Get:10 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 libxdmcp-dev amd64 1:1.1.5-2 [25.7 kB]
+2026-11-18T20:47:57.9518545Z Get:11 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 xtrans-dev all 1.6.0-1build1 [66.2 kB]
+2026-11-18T20:47:57.9696544Z Get:12 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 libxcb1-dev amd64 1.17.0-2ubuntu1 [86.4 kB]
+2026-11-18T20:47:57.9878371Z Get:13 http://azure.archive.ubuntu.com/ubuntu resolute-updates/main amd64v3 libx11-dev amd64 2:1.8.13-1ubuntu0.1 [743 kB]
+2026-11-18T20:47:58.0094019Z Get:14 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 libglx-dev amd64 1.7.0-3 [14.1 kB]
+2026-11-18T20:47:58.0695536Z Get:15 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 libgl-dev amd64 1.7.0-3 [103 kB]
+2026-11-18T20:47:58.1176013Z Get:16 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 libegl-dev amd64 1.7.0-3 [18.2 kB]
+2026-11-18T20:47:58.2189833Z Get:17 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 libgles1 amd64 1.7.0-3 [11.5 kB]
+2026-11-18T20:47:58.2363926Z Get:18 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 libgles2 amd64 1.7.0-3 [17.5 kB]
+2026-11-18T20:47:58.3275248Z Get:19 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 libgles-dev amd64 1.7.0-3 [50.6 kB]
+2026-11-18T20:47:58.3561496Z Get:20 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 libwacom-common all 2.18.0-1 [117 kB]
+2026-11-18T20:47:58.4992623Z Get:21 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 libwacom9 amd64 2.18.0-1 [28.5 kB]
+2026-11-18T20:47:58.5471474Z Get:22 http://azure.archive.ubuntu.com/ubuntu resolute-updates/main amd64v3 libinput-bin amd64 1.31.1-1ubuntu1.2 [24.5 kB]
+2026-11-18T20:47:58.5739598Z Get:23 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 libmtdev1t64 amd64 1.1.7-1build1 [15.7 kB]
+2026-11-18T20:47:58.6844937Z Get:24 http://azure.archive.ubuntu.com/ubuntu resolute-updates/main amd64v3 libinput10 amd64 1.31.1-1ubuntu1.2 [162 kB]
+2026-11-18T20:47:58.7223133Z Get:25 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libmd4c0 amd64 0.5.2-2build1 [43.7 kB]
+2026-11-18T20:47:58.7400844Z Get:26 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 libopengl0 amd64 1.7.0-3 [32.8 kB]
+2026-11-18T20:47:58.7578747Z Get:27 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 libopengl-dev amd64 1.7.0-3 [3408 B]
+2026-11-18T20:47:58.7768288Z Get:28 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 libproxy1v5 amd64 0.5.12-1 [28.3 kB]
+2026-11-18T20:47:58.7956619Z Get:29 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libqt6core6t64 amd64 6.10.2+dfsg-7 [2092 kB]
+2026-11-18T20:47:58.8244877Z Get:30 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libqt6concurrent6 amd64 6.10.2+dfsg-7 [33.4 kB]
+2026-11-18T20:47:58.8424957Z Get:31 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libqt6dbus6 amd64 6.10.2+dfsg-7 [287 kB]
+2026-11-18T20:47:58.8625369Z Get:32 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libts0t64 amd64 1.22-1.1build2 [63.9 kB]
+2026-11-18T20:47:58.8811699Z Get:33 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 libxcb-util1 amd64 0.4.1-1build1 [11.1 kB]
+2026-11-18T20:47:58.8993407Z Get:34 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libxcb-image0 amd64 0.4.0-2build2 [11.1 kB]
+2026-11-18T20:47:58.9172270Z Get:35 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libxcb-render-util0 amd64 0.3.10-1build1 [10.5 kB]
+2026-11-18T20:47:58.9358164Z Get:36 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libxcb-cursor0 amd64 0.1.6-1 [10.6 kB]
+2026-11-18T20:47:58.9537872Z Get:37 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libxcb-icccm4 amd64 0.4.2-1build1 [11.0 kB]
+2026-11-18T20:47:58.9715587Z Get:38 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libxcb-keysyms1 amd64 0.4.1-1build1 [8728 B]
+2026-11-18T20:47:59.0311326Z Get:39 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 libxcb-shape0 amd64 1.17.0-2ubuntu1 [6196 B]
+2026-11-18T20:47:59.0809676Z Get:40 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 libxcb-xinput0 amd64 1.17.0-2ubuntu1 [32.6 kB]
+2026-11-18T20:47:59.1783017Z Get:41 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 libxcb-xkb1 amd64 1.17.0-2ubuntu1 [32.7 kB]
+2026-11-18T20:47:59.1961774Z Get:42 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 libxkbcommon-x11-0 amd64 1.13.1-1 [15.1 kB]
+2026-11-18T20:47:59.2139783Z Get:43 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libqt6gui6 amd64 6.10.2+dfsg-7 [3561 kB]
+2026-11-18T20:47:59.2517985Z Get:44 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libqt6network6 amd64 6.10.2+dfsg-7 [863 kB]
+2026-11-18T20:47:59.2739684Z Get:45 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libqt6opengl6 amd64 6.10.2+dfsg-7 [440 kB]
+2026-11-18T20:47:59.2939983Z Get:46 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libqt6widgets6 amd64 6.10.2+dfsg-7 [2829 kB]
+2026-11-18T20:47:59.3270909Z Get:47 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libqt6openglwidgets6 amd64 6.10.2+dfsg-7 [43.6 kB]
+2026-11-18T20:47:59.3448478Z Get:48 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libqt6printsupport6 amd64 6.10.2+dfsg-7 [224 kB]
+2026-11-18T20:47:59.3634794Z Get:49 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libqt6qml6 amd64 6.10.2+dfsg-3 [1901 kB]
+2026-11-18T20:47:59.3916124Z Get:50 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libqt6qmlmodels6 amd64 6.10.2+dfsg-3 [391 kB]
+2026-11-18T20:47:59.4112371Z Get:51 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libqt6qmlworkerscript6 amd64 6.10.2+dfsg-3 [35.9 kB]
+2026-11-18T20:47:59.4303520Z Get:52 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libqt6qmlmeta6 amd64 6.10.2+dfsg-3 [69.7 kB]
+2026-11-18T20:47:59.4482007Z Get:53 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libqt6quick6 amd64 6.10.2+dfsg-3 [2524 kB]
+2026-11-18T20:47:59.4796058Z Get:54 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libqt6sql6 amd64 6.10.2+dfsg-7 [149 kB]
+2026-11-18T20:47:59.4979785Z Get:55 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libqt6sql6-sqlite amd64 6.10.2+dfsg-7 [61.7 kB]
+2026-11-18T20:47:59.5157284Z Get:56 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libqt6svg6 amd64 6.10.2-2 [236 kB]
+2026-11-18T20:47:59.5753146Z Get:57 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libqt6svgwidgets6 amd64 6.10.2-2 [18.3 kB]
+2026-11-18T20:47:59.5930172Z Get:58 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libqt6test6 amd64 6.10.2+dfsg-7 [195 kB]
+2026-11-18T20:47:59.6130024Z Get:59 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libqt6waylandclient6 amd64 6.10.2+dfsg-7 [378 kB]
+2026-11-18T20:47:59.6360302Z Get:60 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 libwayland-server0 amd64 1.24.0-2 [36.0 kB]
+2026-11-18T20:47:59.6545935Z Get:61 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libqt6waylandcompositor6 amd64 6.10.2-4 [473 kB]
+2026-11-18T20:47:59.6746574Z Get:62 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libqt6wlshellintegration6 amd64 6.10.2+dfsg-7 [95.8 kB]
+2026-11-18T20:47:59.6932524Z Get:63 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 libqt6xml6 amd64 6.10.2+dfsg-7 [82.3 kB]
+2026-11-18T20:47:59.7119944Z Get:64 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 libvulkan-dev amd64 1.4.341.0-1 [1710 kB]
+2026-11-18T20:47:59.7380250Z Get:65 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 qmake6-bin amd64 6.10.2+dfsg-7 [666 kB]
+2026-11-18T20:47:59.7585417Z Get:66 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 qmake6 amd64 6.10.2+dfsg-7 [143 kB]
+2026-11-18T20:47:59.7768120Z Get:67 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 qt6-base-dev-tools amd64 6.10.2+dfsg-7 [1171 kB]
+2026-11-18T20:47:59.8012751Z Get:68 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 qt6-qpa-plugins amd64 6.10.2+dfsg-7 [90.2 kB]
+2026-11-18T20:47:59.8198244Z Get:69 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 qt6-base-dev amd64 6.10.2+dfsg-7 [2295 kB]
+2026-11-18T20:47:59.8499839Z Get:70 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 qt6-gtk-platformtheme amd64 6.10.2+dfsg-7 [97.4 kB]
+2026-11-18T20:47:59.8688058Z Get:71 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 qt6-svg-dev amd64 6.10.2-2 [22.4 kB]
+2026-11-18T20:47:59.8871454Z Get:72 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 qt6-svg-plugins amd64 6.10.2-2 [32.9 kB]
+2026-11-18T20:47:59.9056626Z Get:73 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 qt6-translations-l10n all 6.10.2-1 [2027 kB]
+2026-11-18T20:47:59.9333924Z Get:74 http://azure.archive.ubuntu.com/ubuntu resolute/universe amd64v3 qt6-wayland amd64 6.10.2-4 [106 kB]
+2026-11-18T20:47:59.9514218Z Get:75 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 libglvnd-core-dev amd64 1.7.0-3 [13.7 kB]
+2026-11-18T20:48:00.0162610Z Get:76 http://azure.archive.ubuntu.com/ubuntu resolute/main amd64v3 libglvnd-dev amd64 1.7.0-3 [3156 B]
+2026-11-18T20:48:00.0342004Z Get:77 http://azure.archive.ubuntu.com/ubuntu resolute-updates/main amd64v3 libgl1-mesa-dev amd64 26.0.8-1ubuntu0.3 [15.9 kB]
+2026-11-18T20:48:00.4706878Z Fetched 28.2 MB in 2s (12.0 MB/s)
+2026-11-18T20:48:00.4937571Z Selecting previously unselected package gnome-themes-extra-data.
+2026-11-18T20:48:00.5235396Z (Reading database ... 
+2026-11-18T20:48:00.5235776Z (Reading database ... 5%
+2026-11-18T20:48:00.5236073Z (Reading database ... 10%
+2026-11-18T20:48:00.5236349Z (Reading database ... 15%
+2026-11-18T20:48:00.5236613Z (Reading database ... 20%
+2026-11-18T20:48:00.5236818Z (Reading database ... 25%
+2026-11-18T20:48:00.5237429Z (Reading database ... 30%
+2026-11-18T20:48:00.5237621Z (Reading database ... 35%
+2026-11-18T20:48:00.5237799Z (Reading database ... 40%
+2026-11-18T20:48:00.5238065Z (Reading database ... 45%
+2026-11-18T20:48:00.5238327Z (Reading database ... 50%
+2026-11-18T20:48:00.5976254Z (Reading database ... 55%
+2026-11-18T20:48:00.7956697Z (Reading database ... 60%
+2026-11-18T20:48:00.9333893Z (Reading database ... 65%
+2026-11-18T20:48:01.0384954Z (Reading database ... 70%
+2026-11-18T20:48:01.2399863Z (Reading database ... 75%
+2026-11-18T20:48:01.3457904Z (Reading database ... 80%
+2026-11-18T20:48:01.4956439Z (Reading database ... 85%
+2026-11-18T20:48:01.6379190Z (Reading database ... 90%
+2026-11-18T20:48:01.7894145Z (Reading database ... 95%
+2026-11-18T20:48:01.7894517Z (Reading database ... 100%
+2026-11-18T20:48:01.7894926Z (Reading database ... 213946 files and directories currently installed.)
+2026-11-18T20:48:01.7944484Z Preparing to unpack .../00-gnome-themes-extra-data_3.28-5_all.deb ...
+2026-11-18T20:48:01.7971681Z Unpacking gnome-themes-extra-data (3.28-5) ...
+2026-11-18T20:48:01.8722275Z Selecting previously unselected package libb2-1:amd64.
+2026-11-18T20:48:01.8866266Z Preparing to unpack .../01-libb2-1_0.98.1-1.1build2_amd64v3.deb ...
+2026-11-18T20:48:01.8882981Z Unpacking libb2-1:amd64 (0.98.1-1.1build2) ...
+2026-11-18T20:48:01.9114671Z Selecting previously unselected package libdouble-conversion3:amd64.
+2026-11-18T20:48:01.9247972Z Preparing to unpack .../02-libdouble-conversion3_3.4.0-1_amd64v3.deb ...
+2026-11-18T20:48:01.9256417Z Unpacking libdouble-conversion3:amd64 (3.4.0-1) ...
+2026-11-18T20:48:01.9486974Z Selecting previously unselected package libegl-mesa0:amd64.
+2026-11-18T20:48:01.9619583Z Preparing to unpack .../03-libegl-mesa0_26.0.8-1ubuntu0.3_amd64v3.deb ...
+2026-11-18T20:48:01.9628126Z Unpacking libegl-mesa0:amd64 (26.0.8-1ubuntu0.3) ...
+2026-11-18T20:48:01.9902854Z Selecting previously unselected package libegl1:amd64.
+2026-11-18T20:48:02.0039082Z Preparing to unpack .../04-libegl1_1.7.0-3_amd64v3.deb ...
+2026-11-18T20:48:02.0047084Z Unpacking libegl1:amd64 (1.7.0-3) ...
+2026-11-18T20:48:02.0256255Z Selecting previously unselected package xorg-sgml-doctools.
+2026-11-18T20:48:02.0387505Z Preparing to unpack .../05-xorg-sgml-doctools_1%3a1.11-1.1build1_all.deb ...
+2026-11-18T20:48:02.0395196Z Unpacking xorg-sgml-doctools (1:1.11-1.1build1) ...
+2026-11-18T20:48:02.0680145Z Selecting previously unselected package x11proto-dev.
+2026-11-18T20:48:02.0812716Z Preparing to unpack .../06-x11proto-dev_2025.1-1_all.deb ...
+2026-11-18T20:48:02.0820003Z Unpacking x11proto-dev (2025.1-1) ...
+2026-11-18T20:48:02.1234786Z Selecting previously unselected package libxau-dev:amd64.
+2026-11-18T20:48:02.1367531Z Preparing to unpack .../07-libxau-dev_1%3a1.0.11-1build2_amd64v3.deb ...
+2026-11-18T20:48:02.1376807Z Unpacking libxau-dev:amd64 (1:1.0.11-1build2) ...
+2026-11-18T20:48:02.1623452Z Selecting previously unselected package libxdmcp-dev:amd64.
+2026-11-18T20:48:02.1754951Z Preparing to unpack .../08-libxdmcp-dev_1%3a1.1.5-2_amd64v3.deb ...
+2026-11-18T20:48:02.1761621Z Unpacking libxdmcp-dev:amd64 (1:1.1.5-2) ...
+2026-11-18T20:48:02.1955609Z Selecting previously unselected package xtrans-dev.
+2026-11-18T20:48:02.2084315Z Preparing to unpack .../09-xtrans-dev_1.6.0-1build1_all.deb ...
+2026-11-18T20:48:02.2091771Z Unpacking xtrans-dev (1.6.0-1build1) ...
+2026-11-18T20:48:02.2360971Z Selecting previously unselected package libxcb1-dev:amd64.
+2026-11-18T20:48:02.2491654Z Preparing to unpack .../10-libxcb1-dev_1.17.0-2ubuntu1_amd64v3.deb ...
+2026-11-18T20:48:02.2498671Z Unpacking libxcb1-dev:amd64 (1.17.0-2ubuntu1) ...
+2026-11-18T20:48:02.2892144Z Selecting previously unselected package libx11-dev:amd64.
+2026-11-18T20:48:02.3022764Z Preparing to unpack .../11-libx11-dev_2%3a1.8.13-1ubuntu0.1_amd64v3.deb ...
+2026-11-18T20:48:02.3029970Z Unpacking libx11-dev:amd64 (2:1.8.13-1ubuntu0.1) ...
+2026-11-18T20:48:02.3387089Z Selecting previously unselected package libglx-dev:amd64.
+2026-11-18T20:48:02.3516984Z Preparing to unpack .../12-libglx-dev_1.7.0-3_amd64v3.deb ...
+2026-11-18T20:48:02.3523401Z Unpacking libglx-dev:amd64 (1.7.0-3) ...
+2026-11-18T20:48:02.3729644Z Selecting previously unselected package libgl-dev:amd64.
+2026-11-18T20:48:02.3861949Z Preparing to unpack .../13-libgl-dev_1.7.0-3_amd64v3.deb ...
+2026-11-18T20:48:02.3868754Z Unpacking libgl-dev:amd64 (1.7.0-3) ...
+2026-11-18T20:48:02.4127013Z Selecting previously unselected package libegl-dev:amd64.
+2026-11-18T20:48:02.4262647Z Preparing to unpack .../14-libegl-dev_1.7.0-3_amd64v3.deb ...
+2026-11-18T20:48:02.4270110Z Unpacking libegl-dev:amd64 (1.7.0-3) ...
+2026-11-18T20:48:02.4503793Z Selecting previously unselected package libgles1:amd64.
+2026-11-18T20:48:02.4634421Z Preparing to unpack .../15-libgles1_1.7.0-3_amd64v3.deb ...
+2026-11-18T20:48:02.4641554Z Unpacking libgles1:amd64 (1.7.0-3) ...
+2026-11-18T20:48:02.5023933Z Selecting previously unselected package libgles2:amd64.
+2026-11-18T20:48:02.5156189Z Preparing to unpack .../16-libgles2_1.7.0-3_amd64v3.deb ...
+2026-11-18T20:48:02.5163721Z Unpacking libgles2:amd64 (1.7.0-3) ...
+2026-11-18T20:48:02.5388422Z Selecting previously unselected package libgles-dev:amd64.
+2026-11-18T20:48:02.5521652Z Preparing to unpack .../17-libgles-dev_1.7.0-3_amd64v3.deb ...
+2026-11-18T20:48:02.5529035Z Unpacking libgles-dev:amd64 (1.7.0-3) ...
+2026-11-18T20:48:02.5773570Z Selecting previously unselected package libwacom-common.
+2026-11-18T20:48:02.5906067Z Preparing to unpack .../18-libwacom-common_2.18.0-1_all.deb ...
+2026-11-18T20:48:02.5913262Z Unpacking libwacom-common (2.18.0-1) ...
+2026-11-18T20:48:02.7044677Z Selecting previously unselected package libwacom9:amd64.
+2026-11-18T20:48:02.7177922Z Preparing to unpack .../19-libwacom9_2.18.0-1_amd64v3.deb ...
+2026-11-18T20:48:02.7185309Z Unpacking libwacom9:amd64 (2.18.0-1) ...
+2026-11-18T20:48:02.7384008Z Selecting previously unselected package libinput-bin.
+2026-11-18T20:48:02.7513311Z Preparing to unpack .../20-libinput-bin_1.31.1-1ubuntu1.2_amd64v3.deb ...
+2026-11-18T20:48:02.7520544Z Unpacking libinput-bin (1.31.1-1ubuntu1.2) ...
+2026-11-18T20:48:02.7777240Z Selecting previously unselected package libmtdev1t64:amd64.
+2026-11-18T20:48:02.7907992Z Preparing to unpack .../21-libmtdev1t64_1.1.7-1build1_amd64v3.deb ...
+2026-11-18T20:48:02.7914737Z Unpacking libmtdev1t64:amd64 (1.1.7-1build1) ...
+2026-11-18T20:48:02.8134151Z Selecting previously unselected package libinput10:amd64.
+2026-11-18T20:48:02.8264021Z Preparing to unpack .../22-libinput10_1.31.1-1ubuntu1.2_amd64v3.deb ...
+2026-11-18T20:48:02.8272196Z Unpacking libinput10:amd64 (1.31.1-1ubuntu1.2) ...
+2026-11-18T20:48:02.8498524Z Selecting previously unselected package libmd4c0:amd64.
+2026-11-18T20:48:02.8628250Z Preparing to unpack .../23-libmd4c0_0.5.2-2build1_amd64v3.deb ...
+2026-11-18T20:48:02.8635342Z Unpacking libmd4c0:amd64 (0.5.2-2build1) ...
+2026-11-18T20:48:02.9057901Z Selecting previously unselected package libopengl0:amd64.
+2026-11-18T20:48:02.9193237Z Preparing to unpack .../24-libopengl0_1.7.0-3_amd64v3.deb ...
+2026-11-18T20:48:02.9201695Z Unpacking libopengl0:amd64 (1.7.0-3) ...
+2026-11-18T20:48:02.9433323Z Selecting previously unselected package libopengl-dev:amd64.
+2026-11-18T20:48:02.9568026Z Preparing to unpack .../25-libopengl-dev_1.7.0-3_amd64v3.deb ...
+2026-11-18T20:48:02.9596523Z Unpacking libopengl-dev:amd64 (1.7.0-3) ...
+2026-11-18T20:48:02.9957197Z Selecting previously unselected package libproxy1v5:amd64.
+2026-11-18T20:48:03.0093236Z Preparing to unpack .../26-libproxy1v5_0.5.12-1_amd64v3.deb ...
+2026-11-18T20:48:03.0102400Z Unpacking libproxy1v5:amd64 (0.5.12-1) ...
+2026-11-18T20:48:03.0362901Z Selecting previously unselected package libqt6core6t64:amd64.
+2026-11-18T20:48:03.0498806Z Preparing to unpack .../27-libqt6core6t64_6.10.2+dfsg-7_amd64v3.deb ...
+2026-11-18T20:48:03.0507295Z Unpacking libqt6core6t64:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:03.1432350Z Selecting previously unselected package libqt6concurrent6:amd64.
+2026-11-18T20:48:03.1565408Z Preparing to unpack .../28-libqt6concurrent6_6.10.2+dfsg-7_amd64v3.deb ...
+2026-11-18T20:48:03.1573513Z Unpacking libqt6concurrent6:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:03.1856612Z Selecting previously unselected package libqt6dbus6:amd64.
+2026-11-18T20:48:03.1989708Z Preparing to unpack .../29-libqt6dbus6_6.10.2+dfsg-7_amd64v3.deb ...
+2026-11-18T20:48:03.2081608Z Unpacking libqt6dbus6:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:03.2340140Z Selecting previously unselected package libts0t64:amd64.
+2026-11-18T20:48:03.2474096Z Preparing to unpack .../30-libts0t64_1.22-1.1build2_amd64v3.deb ...
+2026-11-18T20:48:03.2482596Z Unpacking libts0t64:amd64 (1.22-1.1build2) ...
+2026-11-18T20:48:03.2812868Z Selecting previously unselected package libxcb-util1:amd64.
+2026-11-18T20:48:03.2946233Z Preparing to unpack .../31-libxcb-util1_0.4.1-1build1_amd64v3.deb ...
+2026-11-18T20:48:03.2954792Z Unpacking libxcb-util1:amd64 (0.4.1-1build1) ...
+2026-11-18T20:48:03.3422007Z Selecting previously unselected package libxcb-image0:amd64.
+2026-11-18T20:48:03.3553752Z Preparing to unpack .../32-libxcb-image0_0.4.0-2build2_amd64v3.deb ...
+2026-11-18T20:48:03.3614144Z Unpacking libxcb-image0:amd64 (0.4.0-2build2) ...
+2026-11-18T20:48:03.4048217Z Selecting previously unselected package libxcb-render-util0:amd64.
+2026-11-18T20:48:03.4185900Z Preparing to unpack .../33-libxcb-render-util0_0.3.10-1build1_amd64v3.deb ...
+2026-11-18T20:48:03.4194675Z Unpacking libxcb-render-util0:amd64 (0.3.10-1build1) ...
+2026-11-18T20:48:03.4423770Z Selecting previously unselected package libxcb-cursor0:amd64.
+2026-11-18T20:48:03.4559514Z Preparing to unpack .../34-libxcb-cursor0_0.1.6-1_amd64v3.deb ...
+2026-11-18T20:48:03.4567761Z Unpacking libxcb-cursor0:amd64 (0.1.6-1) ...
+2026-11-18T20:48:03.4779014Z Selecting previously unselected package libxcb-icccm4:amd64.
+2026-11-18T20:48:03.4918122Z Preparing to unpack .../35-libxcb-icccm4_0.4.2-1build1_amd64v3.deb ...
+2026-11-18T20:48:03.4927021Z Unpacking libxcb-icccm4:amd64 (0.4.2-1build1) ...
+2026-11-18T20:48:03.5196604Z Selecting previously unselected package libxcb-keysyms1:amd64.
+2026-11-18T20:48:03.5326976Z Preparing to unpack .../36-libxcb-keysyms1_0.4.1-1build1_amd64v3.deb ...
+2026-11-18T20:48:03.5526963Z Unpacking libxcb-keysyms1:amd64 (0.4.1-1build1) ...
+2026-11-18T20:48:03.5763044Z Selecting previously unselected package libxcb-shape0:amd64.
+2026-11-18T20:48:03.5897469Z Preparing to unpack .../37-libxcb-shape0_1.17.0-2ubuntu1_amd64v3.deb ...
+2026-11-18T20:48:03.5906212Z Unpacking libxcb-shape0:amd64 (1.17.0-2ubuntu1) ...
+2026-11-18T20:48:03.6111537Z Selecting previously unselected package libxcb-xinput0:amd64.
+2026-11-18T20:48:03.6244143Z Preparing to unpack .../38-libxcb-xinput0_1.17.0-2ubuntu1_amd64v3.deb ...
+2026-11-18T20:48:03.6251727Z Unpacking libxcb-xinput0:amd64 (1.17.0-2ubuntu1) ...
+2026-11-18T20:48:03.6468847Z Selecting previously unselected package libxcb-xkb1:amd64.
+2026-11-18T20:48:03.6600697Z Preparing to unpack .../39-libxcb-xkb1_1.17.0-2ubuntu1_amd64v3.deb ...
+2026-11-18T20:48:03.6608604Z Unpacking libxcb-xkb1:amd64 (1.17.0-2ubuntu1) ...
+2026-11-18T20:48:03.6832659Z Selecting previously unselected package libxkbcommon-x11-0:amd64.
+2026-11-18T20:48:03.6964187Z Preparing to unpack .../40-libxkbcommon-x11-0_1.13.1-1_amd64v3.deb ...
+2026-11-18T20:48:03.6970813Z Unpacking libxkbcommon-x11-0:amd64 (1.13.1-1) ...
+2026-11-18T20:48:03.7196698Z Selecting previously unselected package libqt6gui6:amd64.
+2026-11-18T20:48:03.7333476Z Preparing to unpack .../41-libqt6gui6_6.10.2+dfsg-7_amd64v3.deb ...
+2026-11-18T20:48:03.7336545Z Unpacking libqt6gui6:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:03.8378155Z Selecting previously unselected package libqt6network6:amd64.
+2026-11-18T20:48:03.8511393Z Preparing to unpack .../42-libqt6network6_6.10.2+dfsg-7_amd64v3.deb ...
+2026-11-18T20:48:03.8519515Z Unpacking libqt6network6:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:03.8863940Z Selecting previously unselected package libqt6opengl6:amd64.
+2026-11-18T20:48:03.8996940Z Preparing to unpack .../43-libqt6opengl6_6.10.2+dfsg-7_amd64v3.deb ...
+2026-11-18T20:48:03.9005440Z Unpacking libqt6opengl6:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:03.9294032Z Selecting previously unselected package libqt6widgets6:amd64.
+2026-11-18T20:48:03.9424774Z Preparing to unpack .../44-libqt6widgets6_6.10.2+dfsg-7_amd64v3.deb ...
+2026-11-18T20:48:03.9432154Z Unpacking libqt6widgets6:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:04.0248646Z Selecting previously unselected package libqt6openglwidgets6:amd64.
+2026-11-18T20:48:04.0377178Z Preparing to unpack .../45-libqt6openglwidgets6_6.10.2+dfsg-7_amd64v3.deb ...
+2026-11-18T20:48:04.0384513Z Unpacking libqt6openglwidgets6:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:04.0607723Z Selecting previously unselected package libqt6printsupport6:amd64.
+2026-11-18T20:48:04.0738733Z Preparing to unpack .../46-libqt6printsupport6_6.10.2+dfsg-7_amd64v3.deb ...
+2026-11-18T20:48:04.0771376Z Unpacking libqt6printsupport6:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:04.1021469Z Selecting previously unselected package libqt6qml6:amd64.
+2026-11-18T20:48:04.1151923Z Preparing to unpack .../47-libqt6qml6_6.10.2+dfsg-3_amd64v3.deb ...
+2026-11-18T20:48:04.1159571Z Unpacking libqt6qml6:amd64 (6.10.2+dfsg-3) ...
+2026-11-18T20:48:04.2061283Z Selecting previously unselected package libqt6qmlmodels6:amd64.
+2026-11-18T20:48:04.2193883Z Preparing to unpack .../48-libqt6qmlmodels6_6.10.2+dfsg-3_amd64v3.deb ...
+2026-11-18T20:48:04.2202256Z Unpacking libqt6qmlmodels6:amd64 (6.10.2+dfsg-3) ...
+2026-11-18T20:48:04.2461652Z Selecting previously unselected package libqt6qmlworkerscript6:amd64.
+2026-11-18T20:48:04.2594030Z Preparing to unpack .../49-libqt6qmlworkerscript6_6.10.2+dfsg-3_amd64v3.deb ...
+2026-11-18T20:48:04.2601740Z Unpacking libqt6qmlworkerscript6:amd64 (6.10.2+dfsg-3) ...
+2026-11-18T20:48:04.2822967Z Selecting previously unselected package libqt6qmlmeta6:amd64.
+2026-11-18T20:48:04.2952803Z Preparing to unpack .../50-libqt6qmlmeta6_6.10.2+dfsg-3_amd64v3.deb ...
+2026-11-18T20:48:04.2960708Z Unpacking libqt6qmlmeta6:amd64 (6.10.2+dfsg-3) ...
+2026-11-18T20:48:04.3200202Z Selecting previously unselected package libqt6quick6:amd64.
+2026-11-18T20:48:04.3334627Z Preparing to unpack .../51-libqt6quick6_6.10.2+dfsg-3_amd64v3.deb ...
+2026-11-18T20:48:04.3343582Z Unpacking libqt6quick6:amd64 (6.10.2+dfsg-3) ...
+2026-11-18T20:48:04.4330941Z Selecting previously unselected package libqt6sql6:amd64.
+2026-11-18T20:48:04.4464468Z Preparing to unpack .../52-libqt6sql6_6.10.2+dfsg-7_amd64v3.deb ...
+2026-11-18T20:48:04.4474367Z Unpacking libqt6sql6:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:04.4705886Z Selecting previously unselected package libqt6sql6-sqlite:amd64.
+2026-11-18T20:48:04.4839837Z Preparing to unpack .../53-libqt6sql6-sqlite_6.10.2+dfsg-7_amd64v3.deb ...
+2026-11-18T20:48:04.4847170Z Unpacking libqt6sql6-sqlite:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:04.5096709Z Selecting previously unselected package libqt6svg6:amd64.
+2026-11-18T20:48:04.5230946Z Preparing to unpack .../54-libqt6svg6_6.10.2-2_amd64v3.deb ...
+2026-11-18T20:48:04.5240019Z Unpacking libqt6svg6:amd64 (6.10.2-2) ...
+2026-11-18T20:48:04.5486140Z Selecting previously unselected package libqt6svgwidgets6:amd64.
+2026-11-18T20:48:04.5630455Z Preparing to unpack .../55-libqt6svgwidgets6_6.10.2-2_amd64v3.deb ...
+2026-11-18T20:48:04.5639362Z Unpacking libqt6svgwidgets6:amd64 (6.10.2-2) ...
+2026-11-18T20:48:04.5861877Z Selecting previously unselected package libqt6test6:amd64.
+2026-11-18T20:48:04.6004179Z Preparing to unpack .../56-libqt6test6_6.10.2+dfsg-7_amd64v3.deb ...
+2026-11-18T20:48:04.6012443Z Unpacking libqt6test6:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:04.6349224Z Selecting previously unselected package libqt6waylandclient6:amd64.
+2026-11-18T20:48:04.6492327Z Preparing to unpack .../57-libqt6waylandclient6_6.10.2+dfsg-7_amd64v3.deb ...
+2026-11-18T20:48:04.6500796Z Unpacking libqt6waylandclient6:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:04.9801410Z Selecting previously unselected package libwayland-server0:amd64.
+2026-11-18T20:48:04.9930571Z Preparing to unpack .../58-libwayland-server0_1.24.0-2_amd64v3.deb ...
+2026-11-18T20:48:05.0596598Z Unpacking libwayland-server0:amd64 (1.24.0-2) ...
+2026-11-18T20:48:05.0819624Z Selecting previously unselected package libqt6waylandcompositor6:amd64.
+2026-11-18T20:48:05.0949023Z Preparing to unpack .../59-libqt6waylandcompositor6_6.10.2-4_amd64v3.deb ...
+2026-11-18T20:48:05.0995621Z Unpacking libqt6waylandcompositor6:amd64 (6.10.2-4) ...
+2026-11-18T20:48:05.1348032Z Selecting previously unselected package libqt6wlshellintegration6:amd64.
+2026-11-18T20:48:05.1479553Z Preparing to unpack .../60-libqt6wlshellintegration6_6.10.2+dfsg-7_amd64v3.deb ...
+2026-11-18T20:48:05.1487407Z Unpacking libqt6wlshellintegration6:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:05.1710540Z Selecting previously unselected package libqt6xml6:amd64.
+2026-11-18T20:48:05.1842770Z Preparing to unpack .../61-libqt6xml6_6.10.2+dfsg-7_amd64v3.deb ...
+2026-11-18T20:48:05.1850788Z Unpacking libqt6xml6:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:05.2073303Z Selecting previously unselected package libvulkan-dev:amd64.
+2026-11-18T20:48:05.2205208Z Preparing to unpack .../62-libvulkan-dev_1.4.341.0-1_amd64v3.deb ...
+2026-11-18T20:48:05.2219768Z Unpacking libvulkan-dev:amd64 (1.4.341.0-1) ...
+2026-11-18T20:48:05.4511338Z Selecting previously unselected package qmake6-bin.
+2026-11-18T20:48:05.4639477Z Preparing to unpack .../63-qmake6-bin_6.10.2+dfsg-7_amd64v3.deb ...
+2026-11-18T20:48:05.4646627Z Unpacking qmake6-bin (6.10.2+dfsg-7) ...
+2026-11-18T20:48:05.4957128Z Selecting previously unselected package qmake6:amd64.
+2026-11-18T20:48:05.5088510Z Preparing to unpack .../64-qmake6_6.10.2+dfsg-7_amd64v3.deb ...
+2026-11-18T20:48:05.5118356Z Unpacking qmake6:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:05.5865900Z Selecting previously unselected package qt6-base-dev-tools.
+2026-11-18T20:48:05.6000893Z Preparing to unpack .../65-qt6-base-dev-tools_6.10.2+dfsg-7_amd64v3.deb ...
+2026-11-18T20:48:05.6008991Z Unpacking qt6-base-dev-tools (6.10.2+dfsg-7) ...
+2026-11-18T20:48:05.6417419Z Selecting previously unselected package qt6-qpa-plugins:amd64.
+2026-11-18T20:48:05.6550916Z Preparing to unpack .../66-qt6-qpa-plugins_6.10.2+dfsg-7_amd64v3.deb ...
+2026-11-18T20:48:05.6558779Z Unpacking qt6-qpa-plugins:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:05.6790861Z Selecting previously unselected package qt6-base-dev:amd64.
+2026-11-18T20:48:05.6922657Z Preparing to unpack .../67-qt6-base-dev_6.10.2+dfsg-7_amd64v3.deb ...
+2026-11-18T20:48:05.6930487Z Unpacking qt6-base-dev:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:06.1951443Z Selecting previously unselected package qt6-gtk-platformtheme:amd64.
+2026-11-18T20:48:06.2107590Z Preparing to unpack .../68-qt6-gtk-platformtheme_6.10.2+dfsg-7_amd64v3.deb ...
+2026-11-18T20:48:06.2180580Z Unpacking qt6-gtk-platformtheme:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:06.2423274Z Selecting previously unselected package qt6-svg-dev:amd64.
+2026-11-18T20:48:06.2560475Z Preparing to unpack .../69-qt6-svg-dev_6.10.2-2_amd64v3.deb ...
+2026-11-18T20:48:06.2569763Z Unpacking qt6-svg-dev:amd64 (6.10.2-2) ...
+2026-11-18T20:48:06.2856794Z Selecting previously unselected package qt6-svg-plugins:amd64.
+2026-11-18T20:48:06.2994908Z Preparing to unpack .../70-qt6-svg-plugins_6.10.2-2_amd64v3.deb ...
+2026-11-18T20:48:06.3011146Z Unpacking qt6-svg-plugins:amd64 (6.10.2-2) ...
+2026-11-18T20:48:06.3239554Z Selecting previously unselected package qt6-translations-l10n.
+2026-11-18T20:48:06.3381799Z Preparing to unpack .../71-qt6-translations-l10n_6.10.2-1_all.deb ...
+2026-11-18T20:48:06.3390783Z Unpacking qt6-translations-l10n (6.10.2-1) ...
+2026-11-18T20:48:06.5081641Z Selecting previously unselected package qt6-wayland:amd64.
+2026-11-18T20:48:06.5216951Z Preparing to unpack .../72-qt6-wayland_6.10.2-4_amd64v3.deb ...
+2026-11-18T20:48:06.5225359Z Unpacking qt6-wayland:amd64 (6.10.2-4) ...
+2026-11-18T20:48:06.5446816Z Selecting previously unselected package libglvnd-core-dev:amd64.
+2026-11-18T20:48:06.5581684Z Preparing to unpack .../73-libglvnd-core-dev_1.7.0-3_amd64v3.deb ...
+2026-11-18T20:48:06.5589356Z Unpacking libglvnd-core-dev:amd64 (1.7.0-3) ...
+2026-11-18T20:48:06.5787580Z Selecting previously unselected package libglvnd-dev:amd64.
+2026-11-18T20:48:06.5919236Z Preparing to unpack .../74-libglvnd-dev_1.7.0-3_amd64v3.deb ...
+2026-11-18T20:48:06.5927224Z Unpacking libglvnd-dev:amd64 (1.7.0-3) ...
+2026-11-18T20:48:06.6205589Z Selecting previously unselected package libgl1-mesa-dev:amd64.
+2026-11-18T20:48:06.6339722Z Preparing to unpack .../75-libgl1-mesa-dev_26.0.8-1ubuntu0.3_amd64v3.deb ...
+2026-11-18T20:48:06.6347272Z Unpacking libgl1-mesa-dev:amd64 (26.0.8-1ubuntu0.3) ...
+2026-11-18T20:48:06.7173083Z Setting up libb2-1:amd64 (0.98.1-1.1build2) ...
+2026-11-18T20:48:06.7272671Z Setting up libwayland-server0:amd64 (1.24.0-2) ...
+2026-11-18T20:48:06.7293061Z Setting up libdouble-conversion3:amd64 (3.4.0-1) ...
+2026-11-18T20:48:06.7311380Z Setting up libproxy1v5:amd64 (0.5.12-1) ...
+2026-11-18T20:48:06.7333040Z Setting up libvulkan-dev:amd64 (1.4.341.0-1) ...
+2026-11-18T20:48:06.7351136Z Setting up libglvnd-core-dev:amd64 (1.7.0-3) ...
+2026-11-18T20:48:06.7371811Z Setting up libxcb-xinput0:amd64 (1.17.0-2ubuntu1) ...
+2026-11-18T20:48:06.7392464Z Setting up libts0t64:amd64 (1.22-1.1build2) ...
+2026-11-18T20:48:06.7423008Z Setting up libxcb-keysyms1:amd64 (0.4.1-1build1) ...
+2026-11-18T20:48:06.7443149Z Setting up libxcb-shape0:amd64 (1.17.0-2ubuntu1) ...
+2026-11-18T20:48:06.7469493Z Setting up gnome-themes-extra-data (3.28-5) ...
+2026-11-18T20:48:06.7489773Z Setting up libxcb-render-util0:amd64 (0.3.10-1build1) ...
+2026-11-18T20:48:06.7509413Z Setting up libxcb-icccm4:amd64 (0.4.2-1build1) ...
+2026-11-18T20:48:06.7528576Z Setting up libopengl0:amd64 (1.7.0-3) ...
+2026-11-18T20:48:06.7553801Z Setting up libxcb-util1:amd64 (0.4.1-1build1) ...
+2026-11-18T20:48:06.7576422Z Setting up libxcb-xkb1:amd64 (1.17.0-2ubuntu1) ...
+2026-11-18T20:48:06.7601049Z Setting up libxcb-image0:amd64 (0.4.0-2build2) ...
+2026-11-18T20:48:06.7620006Z Setting up qt6-translations-l10n (6.10.2-1) ...
+2026-11-18T20:48:06.7650143Z Setting up xtrans-dev (1.6.0-1build1) ...
+2026-11-18T20:48:06.7668984Z Setting up libegl-mesa0:amd64 (26.0.8-1ubuntu0.3) ...
+2026-11-18T20:48:06.7684004Z Setting up libgles2:amd64 (1.7.0-3) ...
+2026-11-18T20:48:06.7700185Z Setting up libxcb-cursor0:amd64 (0.1.6-1) ...
+2026-11-18T20:48:06.7726304Z Setting up libgles1:amd64 (1.7.0-3) ...
+2026-11-18T20:48:06.7741506Z Setting up libxkbcommon-x11-0:amd64 (1.13.1-1) ...
+2026-11-18T20:48:06.7761892Z Setting up libmtdev1t64:amd64 (1.1.7-1build1) ...
+2026-11-18T20:48:06.7777112Z Setting up libegl1:amd64 (1.7.0-3) ...
+2026-11-18T20:48:06.7798334Z Setting up libmd4c0:amd64 (0.5.2-2build1) ...
+2026-11-18T20:48:06.7812553Z Setting up xorg-sgml-doctools (1:1.11-1.1build1) ...
+2026-11-18T20:48:06.7826820Z Setting up libopengl-dev:amd64 (1.7.0-3) ...
+2026-11-18T20:48:06.7841369Z Setting up libwacom-common (2.18.0-1) ...
+2026-11-18T20:48:06.7857599Z Setting up libqt6core6t64:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:06.7875819Z Setting up libqt6test6:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:06.7892896Z Setting up libwacom9:amd64 (2.18.0-1) ...
+2026-11-18T20:48:06.7907438Z Setting up libinput-bin (1.31.1-1ubuntu1.2) ...
+2026-11-18T20:48:06.7922855Z Setting up libqt6xml6:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:06.7942847Z Setting up libqt6sql6:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:06.7957387Z Setting up libqt6sql6-sqlite:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:06.7973758Z Setting up qmake6-bin (6.10.2+dfsg-7) ...
+2026-11-18T20:48:06.7990489Z Setting up libqt6dbus6:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:06.8006970Z Setting up libqt6concurrent6:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:06.8021758Z Setting up libinput10:amd64 (1.31.1-1ubuntu1.2) ...
+2026-11-18T20:48:06.8040116Z Setting up qt6-base-dev-tools (6.10.2+dfsg-7) ...
+2026-11-18T20:48:06.8054649Z Setting up qmake6:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:06.8069424Z Setting up libqt6gui6:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:06.8088737Z Setting up qt6-gtk-platformtheme:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:06.8103269Z Setting up libqt6network6:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:06.8119686Z Setting up qt6-qpa-plugins:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:06.8136315Z Setting up libqt6qml6:amd64 (6.10.2+dfsg-3) ...
+2026-11-18T20:48:06.8151299Z Setting up libqt6opengl6:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:06.8167846Z Setting up libqt6qmlmodels6:amd64 (6.10.2+dfsg-3) ...
+2026-11-18T20:48:06.8184081Z Setting up libqt6widgets6:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:06.8203535Z Setting up libqt6qmlworkerscript6:amd64 (6.10.2+dfsg-3) ...
+2026-11-18T20:48:06.8218226Z Setting up libqt6svg6:amd64 (6.10.2-2) ...
+2026-11-18T20:48:06.8233144Z Setting up libqt6waylandclient6:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:06.8251391Z Setting up qt6-svg-plugins:amd64 (6.10.2-2) ...
+2026-11-18T20:48:06.8266022Z Setting up libqt6svgwidgets6:amd64 (6.10.2-2) ...
+2026-11-18T20:48:06.8287634Z Setting up libqt6qmlmeta6:amd64 (6.10.2+dfsg-3) ...
+2026-11-18T20:48:06.8303908Z Setting up libqt6openglwidgets6:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:06.8321903Z Setting up libqt6wlshellintegration6:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:06.8337496Z Setting up libqt6printsupport6:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:06.8369447Z Setting up qt6-svg-dev:amd64 (6.10.2-2) ...
+2026-11-18T20:48:06.8384567Z Setting up libqt6quick6:amd64 (6.10.2+dfsg-3) ...
+2026-11-18T20:48:06.8402924Z Setting up libqt6waylandcompositor6:amd64 (6.10.2-4) ...
+2026-11-18T20:48:06.8418251Z Setting up qt6-wayland:amd64 (6.10.2-4) ...
+2026-11-18T20:48:06.8525322Z Processing triggers for udev (259.9-0ubuntu0.1) ...
+2026-11-18T20:48:07.5513797Z Processing triggers for sgml-base (1.31+nmu1build1) ...
+2026-11-18T20:48:07.5625751Z Setting up x11proto-dev (2025.1-1) ...
+2026-11-18T20:48:07.5645946Z Setting up libxau-dev:amd64 (1:1.0.11-1build2) ...
+2026-11-18T20:48:07.5668043Z Processing triggers for libc-bin (2.43-2ubuntu2.4) ...
+2026-11-18T20:48:07.7696570Z Processing triggers for man-db (2.13.1-1build1) ...
+2026-11-18T20:48:07.7719094Z Not building database; man-db/auto-update is not 'true'.
+2026-11-18T20:48:07.7742040Z Setting up libxdmcp-dev:amd64 (1:1.1.5-2) ...
+2026-11-18T20:48:07.7773221Z Setting up libxcb1-dev:amd64 (1.17.0-2ubuntu1) ...
+2026-11-18T20:48:07.7793788Z Setting up libx11-dev:amd64 (2:1.8.13-1ubuntu0.1) ...
+2026-11-18T20:48:07.7830891Z Setting up libglx-dev:amd64 (1.7.0-3) ...
+2026-11-18T20:48:07.7859858Z Setting up libgl-dev:amd64 (1.7.0-3) ...
+2026-11-18T20:48:07.7880676Z Setting up libegl-dev:amd64 (1.7.0-3) ...
+2026-11-18T20:48:07.7909459Z Setting up qt6-base-dev:amd64 (6.10.2+dfsg-7) ...
+2026-11-18T20:48:07.7932696Z Setting up libgles-dev:amd64 (1.7.0-3) ...
+2026-11-18T20:48:07.7950168Z Setting up libglvnd-dev:amd64 (1.7.0-3) ...
+2026-11-18T20:48:07.7968695Z Setting up libgl1-mesa-dev:amd64 (26.0.8-1ubuntu0.3) ...
+2026-11-18T20:48:08.3543825Z 
+2026-11-18T20:48:08.3544400Z Running kernel seems to be up-to-date.
+2026-11-18T20:48:08.3544711Z 
+2026-11-18T20:48:08.3544834Z Restarting services...
+2026-11-18T20:48:08.3631344Z 
+2026-11-18T20:48:08.3632470Z Service restarts being deferred:
+2026-11-18T20:48:08.3633850Z  systemctl restart hosted-compute-agent.service
+2026-11-18T20:48:08.3634139Z 
+2026-11-18T20:48:08.3634889Z No containers need to be restarted.
+2026-11-18T20:48:08.3635223Z 
+2026-11-18T20:48:08.3635378Z No user sessions are running outdated binaries.
+2026-11-18T20:48:08.3635632Z 
+2026-11-18T20:48:08.3635884Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+2026-11-18T20:48:09.7148002Z ##[group]Run cmake -S InMemDBViewer -B build -DINMEMDB_DIR="$GITHUB_WORKSPACE/InMemDB" -DINMEMDBVIEWER_WITH_SQLITE=ON
+2026-11-18T20:48:09.7148657Z [36;1mcmake -S InMemDBViewer -B build -DINMEMDB_DIR="$GITHUB_WORKSPACE/InMemDB" -DINMEMDBVIEWER_WITH_SQLITE=ON[0m
+2026-11-18T20:48:09.7149080Z [36;1mcmake --build build -j"$(nproc)"[0m
+2026-11-18T20:48:09.7195999Z shell: /usr/bin/bash -e {0}
+2026-11-18T20:48:09.7196217Z ##[endgroup]
+2026-11-18T20:48:10.7976573Z -- The CXX compiler identification is GNU 15.2.0
+2026-11-18T20:48:10.8114872Z -- Detecting CXX compiler ABI info
+2026-11-18T20:48:10.9220639Z -- Detecting CXX compiler ABI info - done
+2026-11-18T20:48:10.9361103Z -- Check for working CXX compiler: /usr/bin/c++ - skipped
+2026-11-18T20:48:10.9367826Z -- Detecting CXX compile features
+2026-11-18T20:48:10.9374921Z -- Detecting CXX compile features - done
+2026-11-18T20:48:11.2353297Z -- Performing Test HAVE_STDATOMIC
+2026-11-18T20:48:11.4476857Z -- Performing Test HAVE_STDATOMIC - Success
+2026-11-18T20:48:11.4981537Z -- Found OpenGL: /usr/lib/x86_64-linux-gnu/libOpenGL.so
+2026-11-18T20:48:11.6854925Z -- Found SQLite3: /usr/lib/x86_64-linux-gnu/libsqlite3.so (found version "3.46.1")
+2026-11-18T20:48:11.6893457Z -- Configuring done (1.9s)
+2026-11-18T20:48:11.6970119Z CMake Warning (author) at /home/runner/work/InMemDBViewer/InMemDBViewer/InMemDB/CMakeLists.txt:67 (target_link_libraries):
+2026-11-18T20:48:11.6975595Z   The library that is being linked to, SQLite::SQLite3, is marked as being
+2026-11-18T20:48:11.6976014Z   deprecated by the owner.  The message provided by the developer is:
+2026-11-18T20:48:11.6976279Z 
+2026-11-18T20:48:11.6976472Z   The target name SQLite::SQLite3 is deprecated.  Please use SQLite3::SQLite3
+2026-11-18T20:48:11.6976783Z   instead.
+2026-11-18T20:48:11.6976877Z 
+2026-11-18T20:48:11.6977057Z This warning is for project developers.  Use -Wno-author to suppress it.
+2026-11-18T20:48:11.6977283Z 
+2026-11-18T20:48:11.7029876Z CMake Warning (author) at /home/runner/work/InMemDBViewer/InMemDBViewer/InMemDB/CMakeLists.txt:67 (target_link_libraries):
+2026-11-18T20:48:11.7030794Z   The library that is being linked to, SQLite::SQLite3, is marked as being
+2026-11-18T20:48:11.7031349Z   deprecated by the owner.  The message provided by the developer is:
+2026-11-18T20:48:11.7031581Z 
+2026-11-18T20:48:11.7031766Z   The target name SQLite::SQLite3 is deprecated.  Please use SQLite3::SQLite3
+2026-11-18T20:48:11.7032071Z   instead.
+2026-11-18T20:48:11.7032163Z 
+2026-11-18T20:48:11.7032327Z This warning is for project developers.  Use -Wno-author to suppress it.
+2026-11-18T20:48:11.7032567Z 
+2026-11-18T20:48:11.7032855Z CMake Warning (author) at /home/runner/work/InMemDBViewer/InMemDBViewer/InMemDB/CMakeLists.txt:67 (target_link_libraries):
+2026-11-18T20:48:11.7033354Z   The library that is being linked to, SQLite::SQLite3, is marked as being
+2026-11-18T20:48:11.7033869Z   deprecated by the owner.  The message provided by the developer is:
+2026-11-18T20:48:11.7034199Z 
+2026-11-18T20:48:11.7034460Z   The target name SQLite::SQLite3 is deprecated.  Please use SQLite3::SQLite3
+2026-11-18T20:48:11.7034906Z   instead.
+2026-11-18T20:48:11.7035214Z 
+2026-11-18T20:48:11.7035469Z This warning is for project developers.  Use -Wno-author to suppress it.
+2026-11-18T20:48:11.7035822Z 
+2026-11-18T20:48:11.7036274Z CMake Warning (author) at /home/runner/work/InMemDBViewer/InMemDBViewer/InMemDB/CMakeLists.txt:67 (target_link_libraries):
+2026-11-18T20:48:11.7037103Z   The library that is being linked to, SQLite::SQLite3, is marked as being
+2026-11-18T20:48:11.7037692Z   deprecated by the owner.  The message provided by the developer is:
+2026-11-18T20:48:11.7038049Z 
+2026-11-18T20:48:11.7038359Z   The target name SQLite::SQLite3 is deprecated.  Please use SQLite3::SQLite3
+2026-11-18T20:48:11.7038827Z   instead.
+2026-11-18T20:48:11.7038954Z 
+2026-11-18T20:48:11.7039198Z This warning is for project developers.  Use -Wno-author to suppress it.
+2026-11-18T20:48:11.7039529Z 
+2026-11-18T20:48:11.7040522Z CMake Warning (author) at /home/runner/work/InMemDBViewer/InMemDBViewer/InMemDB/CMakeLists.txt:67 (target_link_libraries):
+2026-11-18T20:48:11.7041364Z   The library that is being linked to, SQLite::SQLite3, is marked as being
+2026-11-18T20:48:11.7041918Z   deprecated by the owner.  The message provided by the developer is:
+2026-11-18T20:48:11.7042222Z 
+2026-11-18T20:48:11.7042445Z   The target name SQLite::SQLite3 is deprecated.  Please use SQLite3::SQLite3
+2026-11-18T20:48:11.7042848Z   instead.
+2026-11-18T20:48:11.7042968Z 
+2026-11-18T20:48:11.7043186Z This warning is for project developers.  Use -Wno-author to suppress it.
+2026-11-18T20:48:11.7043713Z 
+2026-11-18T20:48:11.7390201Z CMake Warning (author) at /home/runner/work/InMemDBViewer/InMemDBViewer/InMemDB/CMakeLists.txt:67 (target_link_libraries):
+2026-11-18T20:48:11.7391224Z   The library that is being linked to, SQLite::SQLite3, is marked as being
+2026-11-18T20:48:11.7391819Z   deprecated by the owner.  The message provided by the developer is:
+2026-11-18T20:48:11.7392220Z 
+2026-11-18T20:48:11.7392488Z   The target name SQLite::SQLite3 is deprecated.  Please use SQLite3::SQLite3
+2026-11-18T20:48:11.7392975Z   instead.
+2026-11-18T20:48:11.7393105Z 
+2026-11-18T20:48:11.7393345Z This warning is for project developers.  Use -Wno-author to suppress it.
+2026-11-18T20:48:11.7393702Z 
+2026-11-18T20:48:11.7394239Z CMake Warning (author) at /home/runner/work/InMemDBViewer/InMemDBViewer/InMemDB/CMakeLists.txt:67 (target_link_libraries):
+2026-11-18T20:48:11.7395270Z   The library that is being linked to, SQLite::SQLite3, is marked as being
+2026-11-18T20:48:11.7395866Z   deprecated by the owner.  The message provided by the developer is:
+2026-11-18T20:48:11.7396188Z 
+2026-11-18T20:48:11.7396425Z   The target name SQLite::SQLite3 is deprecated.  Please use SQLite3::SQLite3
+2026-11-18T20:48:11.7396891Z   instead.
+2026-11-18T20:48:11.7397014Z 
+2026-11-18T20:48:11.7397251Z This warning is for project developers.  Use -Wno-author to suppress it.
+2026-11-18T20:48:11.7397608Z 
+2026-11-18T20:48:11.7398034Z CMake Warning (author) at /home/runner/work/InMemDBViewer/InMemDBViewer/InMemDB/CMakeLists.txt:67 (target_link_libraries):
+2026-11-18T20:48:11.7398670Z   The library that is being linked to, SQLite::SQLite3, is marked as being
+2026-11-18T20:48:11.7399010Z   deprecated by the owner.  The message provided by the developer is:
+2026-11-18T20:48:11.7399221Z 
+2026-11-18T20:48:11.7399378Z   The target name SQLite::SQLite3 is deprecated.  Please use SQLite3::SQLite3
+2026-11-18T20:48:11.7399667Z   instead.
+2026-11-18T20:48:11.7399757Z 
+2026-11-18T20:48:11.7399913Z This warning is for project developers.  Use -Wno-author to suppress it.
+2026-11-18T20:48:11.7400126Z 
+2026-11-18T20:48:11.7400438Z CMake Warning (author) at /home/runner/work/InMemDBViewer/InMemDBViewer/InMemDB/CMakeLists.txt:67 (target_link_libraries):
+2026-11-18T20:48:11.7401090Z   The library that is being linked to, SQLite::SQLite3, is marked as being
+2026-11-18T20:48:11.7401655Z   deprecated by the owner.  The message provided by the developer is:
+2026-11-18T20:48:11.7402017Z 
+2026-11-18T20:48:11.7402266Z   The target name SQLite::SQLite3 is deprecated.  Please use SQLite3::SQLite3
+2026-11-18T20:48:11.7402724Z   instead.
+2026-11-18T20:48:11.7402860Z 
+2026-11-18T20:48:11.7403105Z This warning is for project developers.  Use -Wno-author to suppress it.
+2026-11-18T20:48:11.7403464Z 
+2026-11-18T20:48:11.7403955Z CMake Warning (author) at /home/runner/work/InMemDBViewer/InMemDBViewer/InMemDB/CMakeLists.txt:67 (target_link_libraries):
+2026-11-18T20:48:11.7404770Z   The library that is being linked to, SQLite::SQLite3, is marked as being
+2026-11-18T20:48:11.7405550Z   deprecated by the owner.  The message provided by the developer is:
+2026-11-18T20:48:11.7405896Z 
+2026-11-18T20:48:11.7406146Z   The target name SQLite::SQLite3 is deprecated.  Please use SQLite3::SQLite3
+2026-11-18T20:48:11.7406614Z   instead.
+2026-11-18T20:48:11.7406750Z 
+2026-11-18T20:48:11.7407415Z This warning is for project developers.  Use -Wno-author to suppress it.
+2026-11-18T20:48:11.7407802Z 
+2026-11-18T20:48:11.7409791Z CMake Warning (author) at /home/runner/work/InMemDBViewer/InMemDBViewer/InMemDB/CMakeLists.txt:67 (target_link_libraries):
+2026-11-18T20:48:11.7410652Z   The library that is being linked to, SQLite::SQLite3, is marked as being
+2026-11-18T20:48:11.7411250Z   deprecated by the owner.  The message provided by the developer is:
+2026-11-18T20:48:11.7411606Z 
+2026-11-18T20:48:11.7411859Z   The target name SQLite::SQLite3 is deprecated.  Please use SQLite3::SQLite3
+2026-11-18T20:48:11.7412327Z   instead.
+2026-11-18T20:48:11.7412698Z 
+2026-11-18T20:48:11.7412948Z This warning is for project developers.  Use -Wno-author to suppress it.
+2026-11-18T20:48:11.7413304Z 
+2026-11-18T20:48:11.7413785Z CMake Warning (author) at /home/runner/work/InMemDBViewer/InMemDBViewer/InMemDB/CMakeLists.txt:67 (target_link_libraries):
+2026-11-18T20:48:11.7414620Z   The library that is being linked to, SQLite::SQLite3, is marked as being
+2026-11-18T20:48:11.7415382Z   deprecated by the owner.  The message provided by the developer is:
+2026-11-18T20:48:11.7415748Z 
+2026-11-18T20:48:11.7416006Z   The target name SQLite::SQLite3 is deprecated.  Please use SQLite3::SQLite3
+2026-11-18T20:48:11.7416468Z   instead.
+2026-11-18T20:48:11.7416609Z 
+2026-11-18T20:48:11.7416851Z This warning is for project developers.  Use -Wno-author to suppress it.
+2026-11-18T20:48:11.7417224Z 
+2026-11-18T20:48:11.7417722Z CMake Warning (author) at /home/runner/work/InMemDBViewer/InMemDBViewer/InMemDB/CMakeLists.txt:67 (target_link_libraries):
+2026-11-18T20:48:11.7418540Z   The library that is being linked to, SQLite::SQLite3, is marked as being
+2026-11-18T20:48:11.7419099Z   deprecated by the owner.  The message provided by the developer is:
+2026-11-18T20:48:11.7419435Z 
+2026-11-18T20:48:11.7419676Z   The target name SQLite::SQLite3 is deprecated.  Please use SQLite3::SQLite3
+2026-11-18T20:48:11.7420129Z   instead.
+2026-11-18T20:48:11.7420267Z 
+2026-11-18T20:48:11.7420512Z This warning is for project developers.  Use -Wno-author to suppress it.
+2026-11-18T20:48:11.7420863Z 
+2026-11-18T20:48:11.7421323Z CMake Warning (author) at /home/runner/work/InMemDBViewer/InMemDBViewer/InMemDB/CMakeLists.txt:67 (target_link_libraries):
+2026-11-18T20:48:11.7422113Z   The library that is being linked to, SQLite::SQLite3, is marked as being
+2026-11-18T20:48:11.7422676Z   deprecated by the owner.  The message provided by the developer is:
+2026-11-18T20:48:11.7422996Z 
+2026-11-18T20:48:11.7423249Z   The target name SQLite::SQLite3 is deprecated.  Please use SQLite3::SQLite3
+2026-11-18T20:48:11.7423551Z   instead.
+2026-11-18T20:48:11.7423639Z 
+2026-11-18T20:48:11.7423796Z This warning is for project developers.  Use -Wno-author to suppress it.
+2026-11-18T20:48:11.7424019Z 
+2026-11-18T20:48:11.7976269Z -- Generating done (0.1s)
+2026-11-18T20:48:11.7984902Z -- Build files have been written to: /home/runner/work/InMemDBViewer/InMemDBViewer/build
+2026-11-18T20:48:11.8300821Z [  0%] Built target memdb_autogen_timestamp_deps
+2026-11-18T20:48:11.8369495Z [  1%] Automatic MOC for target memdb
+2026-11-18T20:48:11.8653605Z [  1%] Built target memdb_autogen
+2026-11-18T20:48:11.8733605Z [  3%] Building CXX object InMemDB/CMakeFiles/memdb.dir/memdb_autogen/mocs_compilation.cpp.o
+2026-11-18T20:48:11.8742027Z [  4%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/value.cpp.o
+2026-11-18T20:48:11.8742782Z [  6%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/document_id.cpp.o
+2026-11-18T20:48:11.8750266Z [  8%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/document.cpp.o
+2026-11-18T20:48:11.8908658Z [  9%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/query.cpp.o
+2026-11-18T20:48:12.2630435Z [ 11%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/json.cpp.o
+2026-11-18T20:48:12.8209414Z [ 13%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/crypto.cpp.o
+2026-11-18T20:48:13.2636344Z [ 14%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/schema.cpp.o
+2026-11-18T20:48:13.3327024Z [ 16%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/import.cpp.o
+2026-11-18T20:48:13.4396502Z [ 18%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/import_bson.cpp.o
+2026-11-18T20:48:13.4656358Z [ 19%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/import_csv.cpp.o
+2026-11-18T20:48:13.9216417Z [ 21%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/import_json.cpp.o
+2026-11-18T20:48:14.9876465Z [ 22%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/import_snapshot.cpp.o
+2026-11-18T20:48:15.1802970Z [ 24%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/import_sqldump.cpp.o
+2026-11-18T20:48:15.3722828Z [ 26%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/query_dsl.cpp.o
+2026-11-18T20:48:15.6274070Z [ 27%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/regex.cpp.o
+2026-11-18T20:48:16.4736468Z [ 29%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/db_graph.cpp.o
+2026-11-18T20:48:16.5816479Z [ 31%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/discovery.cpp.o
+2026-11-18T20:48:17.0146722Z [ 32%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/character.cpp.o
+2026-11-18T20:48:17.1856303Z [ 34%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/numeric_analysis.cpp.o
+2026-11-18T20:48:17.2156394Z /home/runner/work/InMemDBViewer/InMemDBViewer/InMemDB/src/discovery.cpp: In lambda function:
+2026-11-18T20:48:17.2186810Z /home/runner/work/InMemDBViewer/InMemDBViewer/InMemDB/src/discovery.cpp:88:63: warning: unused parameter ‘v’ [-Wunused-parameter]
+2026-11-18T20:48:17.2216084Z    88 |         d.forEachField([&](const std::string& k, const Value& v) { fieldNames.insert(k); });
+2026-11-18T20:48:17.2245790Z       |                                                  ~~~~~~~~~~~~~^
+2026-11-18T20:48:18.1626573Z [ 36%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/mixed_analysis.cpp.o
+2026-11-18T20:48:18.1856042Z [ 37%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/complex_analysis.cpp.o
+2026-11-18T20:48:19.3225960Z [ 39%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/influence.cpp.o
+2026-11-18T20:48:20.0426495Z [ 40%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/cross_influence.cpp.o
+2026-11-18T20:48:20.5666621Z [ 42%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/collection.cpp.o
+2026-11-18T20:48:21.7926418Z [ 44%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/transaction.cpp.o
+2026-11-18T20:48:22.0556540Z [ 45%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/database.cpp.o
+2026-11-18T20:48:23.3571836Z [ 47%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/references.cpp.o
+2026-11-18T20:48:24.2846668Z [ 49%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/message_handler.cpp.o
+2026-11-18T20:48:24.8436589Z [ 50%] Building CXX object InMemDB/CMakeFiles/memdb.dir/src/import_sqlite.cpp.o
+2026-11-18T20:48:25.7272851Z [ 52%] Linking CXX static library libmemdb.a
+2026-11-18T20:48:27.0535682Z [ 52%] Built target memdb
+2026-11-18T20:48:27.0600733Z [ 52%] Built target InMemDBViewer_autogen_timestamp_deps
+2026-11-18T20:48:27.0664763Z [ 54%] Automatic MOC for target InMemDBViewer
+2026-11-18T20:48:29.5044860Z [ 54%] Built target InMemDBViewer_autogen
+2026-11-18T20:48:29.5126995Z [ 57%] Building CXX object CMakeFiles/InMemDBViewer.dir/InMemDBViewer_autogen/mocs_compilation.cpp.o
+2026-11-18T20:48:29.5128182Z [ 57%] Building CXX object CMakeFiles/InMemDBViewer.dir/src/viewer_core.cpp.o
+2026-11-18T20:48:29.5129126Z [ 59%] Building CXX object CMakeFiles/InMemDBViewer.dir/src/output_panel.cpp.o
+2026-11-18T20:48:29.5130007Z [ 60%] Building CXX object CMakeFiles/InMemDBViewer.dir/src/data_input_widget.cpp.o
+2026-11-18T20:48:32.2344019Z [ 62%] Building CXX object CMakeFiles/InMemDBViewer.dir/src/data_input_controller.cpp.o
+2026-11-18T20:48:33.0706511Z [ 63%] Building CXX object CMakeFiles/InMemDBViewer.dir/src/data_view_widget.cpp.o
+2026-11-18T20:48:33.5226331Z [ 65%] Building CXX object CMakeFiles/InMemDBViewer.dir/src/data_view_controller.cpp.o
+2026-11-18T20:48:34.0306499Z [ 67%] Building CXX object CMakeFiles/InMemDBViewer.dir/src/document_table_model.cpp.o
+2026-11-18T20:48:35.8837208Z [ 68%] Building CXX object CMakeFiles/InMemDBViewer.dir/src/document_tree_model.cpp.o
+2026-11-18T20:48:36.6096192Z [ 70%] Building CXX object CMakeFiles/InMemDBViewer.dir/src/graph_scene.cpp.o
+2026-11-18T20:48:37.0150292Z [ 72%] Building CXX object CMakeFiles/InMemDBViewer.dir/src/analysis_widget.cpp.o
+2026-11-18T20:48:37.5436641Z [ 73%] Building CXX object CMakeFiles/InMemDBViewer.dir/src/analysis_controller.cpp.o
+2026-11-18T20:48:38.3252937Z [ 75%] Building CXX object CMakeFiles/InMemDBViewer.dir/src/database_design_widget.cpp.o
+2026-11-18T20:48:39.3497485Z /home/runner/work/InMemDBViewer/InMemDBViewer/InMemDBViewer/src/graph_scene.cpp: In member function ‘void memdb::viewer::detail::GraphScene::drawEdges()’:
+2026-11-18T20:48:39.3526827Z /home/runner/work/InMemDBViewer/InMemDBViewer/InMemDBViewer/src/graph_scene.cpp:168:77: warning: ISO C++ does not allow ‘?:’ with omitted middle operand [-Wpedantic]
+2026-11-18T20:48:39.3556047Z   168 |         const qreal len = std::sqrt(dir.x() * dir.x() + dir.y() * dir.y()) ?: 1.0;
+2026-11-18T20:48:39.3585847Z       |                                                                             ^
+2026-11-18T20:48:39.3616675Z /home/runner/work/InMemDBViewer/InMemDBViewer/InMemDBViewer/src/graph_scene.cpp:168:76: warning: ISO C++ forbids omitting the middle term of a ‘?:’ expression [-Wpedantic]
+2026-11-18T20:48:39.3645876Z   168 |         const qreal len = std::sqrt(dir.x() * dir.x() + dir.y() * dir.y()) ?: 1.0;
+2026-11-18T20:48:39.3674281Z       |                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+2026-11-18T20:48:40.0436572Z [ 77%] Building CXX object CMakeFiles/InMemDBViewer.dir/src/design_controller.cpp.o
+2026-11-18T20:48:40.9789194Z [ 78%] Building CXX object CMakeFiles/InMemDBViewer.dir/src/analysis_model.cpp.o
+2026-11-18T20:48:42.9711062Z [ 80%] Linking CXX static library libInMemDBViewer.a
+2026-11-18T20:48:43.1810460Z [ 80%] Built target InMemDBViewer
+2026-11-18T20:48:43.1883441Z [ 80%] Built target viewer_tests_autogen_timestamp_deps
+2026-11-18T20:48:43.1883971Z [ 80%] Built target viewer_app_autogen_timestamp_deps
+2026-11-18T20:48:43.1951542Z [ 83%] Automatic MOC for target viewer_tests
+2026-11-18T20:48:43.1952003Z [ 83%] Automatic MOC for target viewer_app
+2026-11-18T20:48:43.2112224Z [ 83%] Built target viewer_app_autogen
+2026-11-18T20:48:43.2191900Z [ 85%] Building CXX object CMakeFiles/viewer_app.dir/viewer_app_autogen/mocs_compilation.cpp.o
+2026-11-18T20:48:43.2192732Z [ 86%] Building CXX object CMakeFiles/viewer_app.dir/examples/viewer_app/main.cpp.o
+2026-11-18T20:48:43.4004179Z [ 86%] Built target viewer_tests_autogen
+2026-11-18T20:48:43.4088524Z [ 88%] Building CXX object CMakeFiles/viewer_tests.dir/viewer_tests_autogen/mocs_compilation.cpp.o
+2026-11-18T20:48:43.4126031Z [ 90%] Building CXX object CMakeFiles/viewer_tests.dir/tests/main.cpp.o
+2026-11-18T20:48:43.4155900Z [ 91%] Building CXX object CMakeFiles/viewer_tests.dir/tests/test_data_input.cpp.o
+2026-11-18T20:48:45.5447702Z [ 93%] Building CXX object CMakeFiles/viewer_tests.dir/tests/test_data_view.cpp.o
+2026-11-18T20:48:46.5536376Z [ 95%] Linking CXX executable viewer_app
+2026-11-18T20:48:46.8316472Z [ 96%] Building CXX object CMakeFiles/viewer_tests.dir/tests/test_analysis.cpp.o
+2026-11-18T20:48:47.7176249Z [ 98%] Building CXX object CMakeFiles/viewer_tests.dir/tests/test_design.cpp.o
+2026-11-18T20:48:47.7466261Z [ 98%] Built target viewer_app
+2026-11-18T20:48:51.3695489Z [100%] Linking CXX executable viewer_tests
+2026-11-18T20:48:52.2218597Z [100%] Built target viewer_tests
+2026-11-18T20:48:52.2368360Z ##[group]Run QT_QPA_PLATFORM=offscreen ctest --test-dir build --output-on-failure
+2026-11-18T20:48:52.2368862Z [36;1mQT_QPA_PLATFORM=offscreen ctest --test-dir build --output-on-failure[0m
+2026-11-18T20:48:52.2414427Z shell: /usr/bin/bash -e {0}
+2026-11-18T20:48:52.2414679Z ##[endgroup]
+2026-11-18T20:48:52.2807313Z Test project /home/runner/work/InMemDBViewer/InMemDBViewer/build
+2026-11-18T20:48:52.2877548Z     Start 1: viewer_tests
+2026-11-18T20:50:37.9743994Z 1/1 Test #1: viewer_tests .....................***Failed  105.69 sec
+2026-11-18T20:50:37.9744488Z ********* Start testing of TestViewerCore *********
+2026-11-18T20:50:37.9744971Z Config: Using QtTest library 6.10.2, Qt 6.10.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 15.2.0), ubuntu 26.04
+2026-11-18T20:50:37.9745962Z PASS   : TestViewerCore::initTestCase()
+2026-11-18T20:50:37.9746334Z PASS   : TestViewerCore::importCsv()
+2026-11-18T20:50:37.9746685Z PASS   : TestViewerCore::importJson()
+2026-11-18T20:50:37.9747088Z PASS   : TestViewerCore::importJsonl()
+2026-11-18T20:50:37.9747732Z PASS   : TestViewerCore::importSqlDump()
+2026-11-18T20:50:37.9748088Z PASS   : TestViewerCore::importSqlite()
+2026-11-18T20:50:37.9748345Z PASS   : TestViewerCore::unknownExtensionFails()
+2026-11-18T20:50:37.9748752Z PASS   : TestViewerCore::encryptedSnapshotRoundtrip()
+2026-11-18T20:50:37.9749199Z PASS   : TestViewerCore::snapshotRoundtrip()
+2026-11-18T20:50:37.9749616Z PASS   : TestViewerCore::resetDatabaseEmitsSignals()
+2026-11-18T20:50:37.9750049Z PASS   : TestViewerCore::observerTriggersSignal()
+2026-11-18T20:50:37.9750383Z PASS   : TestViewerCore::autoSyncDetectsNewCollection()
+2026-11-18T20:50:37.9750652Z PASS   : TestViewerCore::demoDataLoads()
+2026-11-18T20:50:37.9750886Z PASS   : TestViewerCore::asyncImportWorks()
+2026-11-18T20:50:37.9751126Z PASS   : TestViewerCore::asyncImportQueue()
+2026-11-18T20:50:37.9751350Z PASS   : TestViewerCore::cleanupTestCase()
+2026-11-18T20:50:37.9751631Z Totals: 16 passed, 0 failed, 0 skipped, 0 blacklisted, 29762ms
+2026-11-18T20:50:37.9751931Z ********* Finished testing of TestViewerCore *********
+2026-11-18T20:50:37.9752185Z ********* Start testing of TestImportModel *********
+2026-11-18T20:50:37.9752637Z Config: Using QtTest library 6.10.2, Qt 6.10.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 15.2.0), ubuntu 26.04
+2026-11-18T20:50:37.9753069Z PASS   : TestImportModel::initTestCase()
+2026-11-18T20:50:37.9753300Z PASS   : TestImportModel::addUpdateClear()
+2026-11-18T20:50:37.9753538Z PASS   : TestImportModel::cleanupTestCase()
+2026-11-18T20:50:37.9753805Z Totals: 3 passed, 0 failed, 0 skipped, 0 blacklisted, 0ms
+2026-11-18T20:50:37.9754079Z ********* Finished testing of TestImportModel *********
+2026-11-18T20:50:37.9754344Z ********* Start testing of TestDataInputWidget *********
+2026-11-18T20:50:37.9754770Z Config: Using QtTest library 6.10.2, Qt 6.10.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 15.2.0), ubuntu 26.04
+2026-11-18T20:50:37.9755478Z PASS   : TestDataInputWidget::initTestCase()
+2026-11-18T20:50:37.9755759Z PASS   : TestDataInputWidget::supportedFormatsListed()
+2026-11-18T20:50:37.9756157Z QWARN  : TestDataInputWidget::dropCsvImports() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9756579Z PASS   : TestDataInputWidget::dropCsvImports()
+2026-11-18T20:50:37.9757011Z PASS   : TestDataInputWidget::handleDroppedFilesAsync()
+2026-11-18T20:50:37.9757479Z PASS   : TestDataInputWidget::encryptedDropOffscreenIsHandled()
+2026-11-18T20:50:37.9759240Z PASS   : TestDataInputWidget::cleanupTestCase()
+2026-11-18T20:50:37.9759672Z Totals: 6 passed, 0 failed, 0 skipped, 0 blacklisted, 10023ms
+2026-11-18T20:50:37.9760094Z ********* Finished testing of TestDataInputWidget *********
+2026-11-18T20:50:37.9760473Z ********* Start testing of TestDatabaseModel *********
+2026-11-18T20:50:37.9761132Z Config: Using QtTest library 6.10.2, Qt 6.10.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 15.2.0), ubuntu 26.04
+2026-11-18T20:50:37.9762102Z PASS   : TestDatabaseModel::initTestCase()
+2026-11-18T20:50:37.9762509Z PASS   : TestDatabaseModel::overviewAndRefresh()
+2026-11-18T20:50:37.9762923Z PASS   : TestDatabaseModel::cleanupTestCase()
+2026-11-18T20:50:37.9763307Z Totals: 3 passed, 0 failed, 0 skipped, 0 blacklisted, 1ms
+2026-11-18T20:50:37.9763723Z ********* Finished testing of TestDatabaseModel *********
+2026-11-18T20:50:37.9764122Z ********* Start testing of TestDocumentTableModel *********
+2026-11-18T20:50:37.9764835Z Config: Using QtTest library 6.10.2, Qt 6.10.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 15.2.0), ubuntu 26.04
+2026-11-18T20:50:37.9765701Z PASS   : TestDocumentTableModel::initTestCase()
+2026-11-18T20:50:37.9766061Z QDEBUG : TestDocumentTableModel::rowsColumnsAndValues() [diag] doRefresh query= "" ids= 2
+2026-11-18T20:50:37.9766450Z PASS   : TestDocumentTableModel::rowsColumnsAndValues()
+2026-11-18T20:50:37.9766868Z QDEBUG : TestDocumentTableModel::queryFilterAndIndexDiagnostics() [diag] doRefresh query= "" ids= 2
+2026-11-18T20:50:37.9767610Z QDEBUG : TestDocumentTableModel::queryFilterAndIndexDiagnostics() [diag] setQueryIds dsl= "age >= 18" ids= 1
+2026-11-18T20:50:37.9768156Z QDEBUG : TestDocumentTableModel::queryFilterAndIndexDiagnostics() [diag] doRefresh query= "" ids= 2
+2026-11-18T20:50:37.9768674Z QDEBUG : TestDocumentTableModel::queryFilterAndIndexDiagnostics() [diag] doRefresh query= "" ids= 2
+2026-11-18T20:50:37.9769233Z QDEBUG : TestDocumentTableModel::queryFilterAndIndexDiagnostics() [diag] setQueryIds dsl= "status = 'offen'" ids= 1
+2026-11-18T20:50:37.9769713Z PASS   : TestDocumentTableModel::queryFilterAndIndexDiagnostics()
+2026-11-18T20:50:37.9770137Z QDEBUG : TestDocumentTableModel::invalidQueryReportsError() [diag] doRefresh query= "" ids= 2
+2026-11-18T20:50:37.9770545Z PASS   : TestDocumentTableModel::invalidQueryReportsError()
+2026-11-18T20:50:37.9770838Z PASS   : TestDocumentTableModel::cleanupTestCase()
+2026-11-18T20:50:37.9771123Z Totals: 5 passed, 0 failed, 0 skipped, 0 blacklisted, 1ms
+2026-11-18T20:50:37.9771441Z ********* Finished testing of TestDocumentTableModel *********
+2026-11-18T20:50:37.9771932Z ********* Start testing of TestDocumentTreeModel *********
+2026-11-18T20:50:37.9772471Z Config: Using QtTest library 6.10.2, Qt 6.10.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 15.2.0), ubuntu 26.04
+2026-11-18T20:50:37.9773074Z PASS   : TestDocumentTreeModel::initTestCase()
+2026-11-18T20:50:37.9773468Z PASS   : TestDocumentTreeModel::nestedDocumentTree()
+2026-11-18T20:50:37.9773812Z PASS   : TestDocumentTreeModel::cleanupTestCase()
+2026-11-18T20:50:37.9774233Z Totals: 3 passed, 0 failed, 0 skipped, 0 blacklisted, 0ms
+2026-11-18T20:50:37.9774602Z ********* Finished testing of TestDocumentTreeModel *********
+2026-11-18T20:50:37.9824663Z ********* Start testing of TestGraphScene *********
+2026-11-18T20:50:37.9825551Z Config: Using QtTest library 6.10.2, Qt 6.10.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 15.2.0), ubuntu 26.04
+2026-11-18T20:50:37.9826203Z PASS   : TestGraphScene::initTestCase()
+2026-11-18T20:50:37.9826585Z PASS   : TestGraphScene::nodesAndEdgesMatchDbGraph()
+2026-11-18T20:50:37.9826948Z PASS   : TestGraphScene::clickSignal()
+2026-11-18T20:50:37.9827356Z PASS   : TestGraphScene::exportPngAndMermaid()
+2026-11-18T20:50:37.9827741Z PASS   : TestGraphScene::cleanupTestCase()
+2026-11-18T20:50:37.9828101Z Totals: 5 passed, 0 failed, 0 skipped, 0 blacklisted, 5ms
+2026-11-18T20:50:37.9828467Z ********* Finished testing of TestGraphScene *********
+2026-11-18T20:50:37.9828800Z ********* Start testing of TestDataViewWidget *********
+2026-11-18T20:50:37.9829410Z Config: Using QtTest library 6.10.2, Qt 6.10.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 15.2.0), ubuntu 26.04
+2026-11-18T20:50:37.9830055Z PASS   : TestDataViewWidget::initTestCase()
+2026-11-18T20:50:37.9830599Z QDEBUG : TestDataViewWidget::loadsAndSelectsCollection() [diag] doRefresh query= "" ids= 3
+2026-11-18T20:50:37.9831713Z QWARN  : TestDataViewWidget::loadsAndSelectsCollection() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9832458Z PASS   : TestDataViewWidget::loadsAndSelectsCollection()
+2026-11-18T20:50:37.9833058Z QDEBUG : TestDataViewWidget::liveRefreshOnInsert() [diag] doRefresh query= "" ids= 3
+2026-11-18T20:50:37.9833808Z QWARN  : TestDataViewWidget::liveRefreshOnInsert() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9834528Z QDEBUG : TestDataViewWidget::liveRefreshOnInsert() [diag] doRefresh query= "" ids= 4
+2026-11-18T20:50:37.9834889Z PASS   : TestDataViewWidget::liveRefreshOnInsert()
+2026-11-18T20:50:37.9835453Z QDEBUG : TestDataViewWidget::applyQueryViaWidget() [diag] doRefresh query= "" ids= 3
+2026-11-18T20:50:37.9835948Z QWARN  : TestDataViewWidget::applyQueryViaWidget() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9836484Z QDEBUG : TestDataViewWidget::applyQueryViaWidget() [diag] widget applyQuery "total > 50" current= "orders"
+2026-11-18T20:50:37.9837060Z QDEBUG : TestDataViewWidget::applyQueryViaWidget() [diag] applyQueryAsync enter, current= "orders" dsl= "total > 50"
+2026-11-18T20:50:37.9837783Z QDEBUG : TestDataViewWidget::applyQueryViaWidget() [diag] worker findIds done, ids= 1 usedIndex= true
+2026-11-18T20:50:37.9838261Z QDEBUG : TestDataViewWidget::applyQueryViaWidget() [diag] worker posting queued call
+2026-11-18T20:50:37.9838706Z QDEBUG : TestDataViewWidget::applyQueryViaWidget() [diag] delivered in GUI thread, ids= 1
+2026-11-18T20:50:37.9839180Z QDEBUG : TestDataViewWidget::applyQueryViaWidget() [diag] setQueryIds dsl= "total > 50" ids= 1
+2026-11-18T20:50:37.9839690Z QDEBUG : TestDataViewWidget::applyQueryViaWidget() [diag] after setQueryIds rowCount= 1 query= "total > 50"
+2026-11-18T20:50:37.9840169Z QDEBUG : TestDataViewWidget::applyQueryViaWidget() [diag] doRefresh query= "" ids= 3
+2026-11-18T20:50:37.9840600Z QDEBUG : TestDataViewWidget::applyQueryViaWidget() [diag] doRefresh query= "" ids= 3
+2026-11-18T20:50:37.9841126Z FAIL!  : TestDataViewWidget::applyQueryViaWidget() 'widget.tableRowCount() == 1' returned FALSE. ()
+2026-11-18T20:50:37.9841655Z    Loc: [/home/runner/work/InMemDBViewer/InMemDBViewer/InMemDBViewer/tests/test_data_view.cpp(248)]
+2026-11-18T20:50:37.9842165Z QDEBUG : TestDataViewWidget::refreshIsDebouncedOnBulkInsert() [diag] doRefresh query= "" ids= 3
+2026-11-18T20:50:37.9842719Z QWARN  : TestDataViewWidget::refreshIsDebouncedOnBulkInsert() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9843271Z QDEBUG : TestDataViewWidget::refreshIsDebouncedOnBulkInsert() [diag] doRefresh query= "" ids= 3003
+2026-11-18T20:50:37.9843769Z QDEBUG : TestDataViewWidget::refreshIsDebouncedOnBulkInsert() [diag] doRefresh query= "" ids= 3003
+2026-11-18T20:50:37.9844186Z PASS   : TestDataViewWidget::refreshIsDebouncedOnBulkInsert()
+2026-11-18T20:50:37.9844478Z PASS   : TestDataViewWidget::cleanupTestCase()
+2026-11-18T20:50:37.9844755Z Totals: 5 passed, 1 failed, 0 skipped, 0 blacklisted, 31128ms
+2026-11-18T20:50:37.9845246Z ********* Finished testing of TestDataViewWidget *********
+2026-11-18T20:50:37.9845536Z ********* Start testing of TestDiscoveryModel *********
+2026-11-18T20:50:37.9845991Z Config: Using QtTest library 6.10.2, Qt 6.10.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 15.2.0), ubuntu 26.04
+2026-11-18T20:50:37.9846427Z PASS   : TestDiscoveryModel::initTestCase()
+2026-11-18T20:50:37.9846671Z PASS   : TestDiscoveryModel::relationsTable()
+2026-11-18T20:50:37.9846913Z PASS   : TestDiscoveryModel::cleanupTestCase()
+2026-11-18T20:50:37.9847186Z Totals: 3 passed, 0 failed, 0 skipped, 0 blacklisted, 0ms
+2026-11-18T20:50:37.9847466Z ********* Finished testing of TestDiscoveryModel *********
+2026-11-18T20:50:37.9847723Z ********* Start testing of TestAnalysisModels *********
+2026-11-18T20:50:37.9848152Z Config: Using QtTest library 6.10.2, Qt 6.10.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 15.2.0), ubuntu 26.04
+2026-11-18T20:50:37.9848570Z PASS   : TestAnalysisModels::initTestCase()
+2026-11-18T20:50:37.9848918Z PASS   : TestAnalysisModels::modelsPopulate()
+2026-11-18T20:50:37.9849174Z PASS   : TestAnalysisModels::cleanupTestCase()
+2026-11-18T20:50:37.9849436Z Totals: 3 passed, 0 failed, 0 skipped, 0 blacklisted, 0ms
+2026-11-18T20:50:37.9849712Z ********* Finished testing of TestAnalysisModels *********
+2026-11-18T20:50:37.9849987Z ********* Start testing of TestAnalysisController *********
+2026-11-18T20:50:37.9850418Z Config: Using QtTest library 6.10.2, Qt 6.10.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 15.2.0), ubuntu 26.04
+2026-11-18T20:50:37.9850853Z PASS   : TestAnalysisController::initTestCase()
+2026-11-18T20:50:37.9851139Z PASS   : TestAnalysisController::discoversFkAndHealth()
+2026-11-18T20:50:37.9851429Z PASS   : TestAnalysisController::scopeSingleCollection()
+2026-11-18T20:50:37.9851704Z PASS   : TestAnalysisController::cleanupTestCase()
+2026-11-18T20:50:37.9852013Z Totals: 4 passed, 0 failed, 0 skipped, 0 blacklisted, 102ms
+2026-11-18T20:50:37.9852366Z ********* Finished testing of TestAnalysisController *********
+2026-11-18T20:50:37.9852755Z ********* Start testing of TestAnalysisWidget *********
+2026-11-18T20:50:37.9853187Z Config: Using QtTest library 6.10.2, Qt 6.10.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 15.2.0), ubuntu 26.04
+2026-11-18T20:50:37.9853611Z PASS   : TestAnalysisWidget::initTestCase()
+2026-11-18T20:50:37.9853997Z QWARN  : TestAnalysisWidget::runsAnalysisHeadless() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9854514Z QWARN  : TestAnalysisWidget::runsAnalysisHeadless() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9855154Z QWARN  : TestAnalysisWidget::runsAnalysisHeadless() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9855625Z PASS   : TestAnalysisWidget::runsAnalysisHeadless()
+2026-11-18T20:50:37.9855911Z PASS   : TestAnalysisWidget::cancelDoesNotCrash()
+2026-11-18T20:50:37.9856167Z PASS   : TestAnalysisWidget::cleanupTestCase()
+2026-11-18T20:50:37.9856454Z Totals: 4 passed, 0 failed, 0 skipped, 0 blacklisted, 112ms
+2026-11-18T20:50:37.9856770Z ********* Finished testing of TestAnalysisWidget *********
+2026-11-18T20:50:37.9857063Z ********* Start testing of TestViewerCoreMutations *********
+2026-11-18T20:50:37.9857530Z Config: Using QtTest library 6.10.2, Qt 6.10.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 15.2.0), ubuntu 26.04
+2026-11-18T20:50:37.9857999Z PASS   : TestViewerCoreMutations::initTestCase()
+2026-11-18T20:50:37.9858271Z PASS   : TestViewerCoreMutations::collectionOps()
+2026-11-18T20:50:37.9858538Z PASS   : TestViewerCoreMutations::schemaOps()
+2026-11-18T20:50:37.9858779Z PASS   : TestViewerCoreMutations::indexOps()
+2026-11-18T20:50:37.9859027Z PASS   : TestViewerCoreMutations::referenceOps()
+2026-11-18T20:50:37.9859274Z PASS   : TestViewerCoreMutations::documentCrud()
+2026-11-18T20:50:37.9859526Z PASS   : TestViewerCoreMutations::csvTextImport()
+2026-11-18T20:50:37.9859783Z PASS   : TestViewerCoreMutations::snapshotSave()
+2026-11-18T20:50:37.9860052Z PASS   : TestViewerCoreMutations::dataMutatedOnImport()
+2026-11-18T20:50:37.9860332Z PASS   : TestViewerCoreMutations::cleanupTestCase()
+2026-11-18T20:50:37.9860615Z Totals: 10 passed, 0 failed, 0 skipped, 0 blacklisted, 29462ms
+2026-11-18T20:50:37.9860920Z ********* Finished testing of TestViewerCoreMutations *********
+2026-11-18T20:50:37.9861209Z ********* Start testing of TestOutputPanel *********
+2026-11-18T20:50:37.9861637Z Config: Using QtTest library 6.10.2, Qt 6.10.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 15.2.0), ubuntu 26.04
+2026-11-18T20:50:37.9862057Z PASS   : TestOutputPanel::initTestCase()
+2026-11-18T20:50:37.9862411Z QWARN  : TestOutputPanel::logsAndFilters() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9862774Z PASS   : TestOutputPanel::logsAndFilters()
+2026-11-18T20:50:37.9863010Z PASS   : TestOutputPanel::cleanupTestCase()
+2026-11-18T20:50:37.9863378Z Totals: 3 passed, 0 failed, 0 skipped, 0 blacklisted, 1ms
+2026-11-18T20:50:37.9863659Z ********* Finished testing of TestOutputPanel *********
+2026-11-18T20:50:37.9863935Z ********* Start testing of TestDesignController *********
+2026-11-18T20:50:37.9864367Z Config: Using QtTest library 6.10.2, Qt 6.10.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 15.2.0), ubuntu 26.04
+2026-11-18T20:50:37.9864796Z PASS   : TestDesignController::initTestCase()
+2026-11-18T20:50:37.9865272Z PASS   : TestDesignController::collectionSchemaIndexReferenceFlow()
+2026-11-18T20:50:37.9865611Z PASS   : TestDesignController::cleanupTestCase()
+2026-11-18T20:50:37.9865880Z Totals: 3 passed, 0 failed, 0 skipped, 0 blacklisted, 1ms
+2026-11-18T20:50:37.9866167Z ********* Finished testing of TestDesignController *********
+2026-11-18T20:50:37.9866455Z ********* Start testing of TestDatabaseDesignWidget *********
+2026-11-18T20:50:37.9866918Z Config: Using QtTest library 6.10.2, Qt 6.10.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 15.2.0), ubuntu 26.04
+2026-11-18T20:50:37.9867371Z PASS   : TestDatabaseDesignWidget::initTestCase()
+2026-11-18T20:50:37.9867899Z QWARN  : TestDatabaseDesignWidget::reflectsCoreState() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9868322Z PASS   : TestDatabaseDesignWidget::reflectsCoreState()
+2026-11-18T20:50:37.9868602Z PASS   : TestDatabaseDesignWidget::cleanupTestCase()
+2026-11-18T20:50:37.9868884Z Totals: 3 passed, 0 failed, 0 skipped, 0 blacklisted, 4ms
+2026-11-18T20:50:37.9869175Z ********* Finished testing of TestDatabaseDesignWidget *********
+2026-11-18T20:50:37.9869473Z ********* Start testing of TestClipboardCsvImport *********
+2026-11-18T20:50:37.9869913Z Config: Using QtTest library 6.10.2, Qt 6.10.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 15.2.0), ubuntu 26.04
+2026-11-18T20:50:37.9870346Z PASS   : TestClipboardCsvImport::initTestCase()
+2026-11-18T20:50:37.9870790Z QWARN  : TestClipboardCsvImport::importsFromClipboardWithDialog() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9871409Z QWARN  : TestClipboardCsvImport::importsFromClipboardWithDialog() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9871896Z PASS   : TestClipboardCsvImport::importsFromClipboardWithDialog()
+2026-11-18T20:50:37.9872364Z QWARN  : TestClipboardCsvImport::emptyClipboardReportsStatus() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9872825Z PASS   : TestClipboardCsvImport::emptyClipboardReportsStatus()
+2026-11-18T20:50:37.9873122Z PASS   : TestClipboardCsvImport::cleanupTestCase()
+2026-11-18T20:50:37.9873400Z Totals: 4 passed, 0 failed, 0 skipped, 0 blacklisted, 104ms
+2026-11-18T20:50:37.9873696Z ********* Finished testing of TestClipboardCsvImport *********
+2026-11-18T20:50:37.9873972Z ********* Start testing of TestDocumentCrudWidget *********
+2026-11-18T20:50:37.9874404Z Config: Using QtTest library 6.10.2, Qt 6.10.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 15.2.0), ubuntu 26.04
+2026-11-18T20:50:37.9874835Z PASS   : TestDocumentCrudWidget::initTestCase()
+2026-11-18T20:50:37.9875406Z QDEBUG : TestDocumentCrudWidget::cellEditVerifiesAndMutates() [diag] doRefresh query= "" ids= 3
+2026-11-18T20:50:37.9875962Z QWARN  : TestDocumentCrudWidget::cellEditVerifiesAndMutates() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9876498Z QDEBUG : TestDocumentCrudWidget::cellEditVerifiesAndMutates() [diag] doRefresh query= "" ids= 3
+2026-11-18T20:50:37.9876918Z PASS   : TestDocumentCrudWidget::cellEditVerifiesAndMutates()
+2026-11-18T20:50:37.9877328Z QDEBUG : TestDocumentCrudWidget::cellEditSchemaErrorIsLogged() [diag] doRefresh query= "" ids= 3
+2026-11-18T20:50:37.9877878Z QWARN  : TestDocumentCrudWidget::cellEditSchemaErrorIsLogged() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9878423Z QDEBUG : TestDocumentCrudWidget::cellEditSchemaErrorIsLogged() [diag] doRefresh query= "" ids= 3
+2026-11-18T20:50:37.9879031Z QDEBUG : TestDocumentCrudWidget::cellEditSchemaErrorIsLogged() [diag] doRefresh query= "" ids= 3
+2026-11-18T20:50:37.9879461Z PASS   : TestDocumentCrudWidget::cellEditSchemaErrorIsLogged()
+2026-11-18T20:50:37.9879857Z QDEBUG : TestDocumentCrudWidget::insertAndDeleteDocument() [diag] doRefresh query= "" ids= 3
+2026-11-18T20:50:37.9880378Z QWARN  : TestDocumentCrudWidget::insertAndDeleteDocument() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9880904Z QDEBUG : TestDocumentCrudWidget::insertAndDeleteDocument() [diag] doRefresh query= "" ids= 3
+2026-11-18T20:50:37.9881419Z QWARN  : TestDocumentCrudWidget::insertAndDeleteDocument() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9881930Z QDEBUG : TestDocumentCrudWidget::insertAndDeleteDocument() [diag] doRefresh query= "" ids= 4
+2026-11-18T20:50:37.9882315Z PASS   : TestDocumentCrudWidget::insertAndDeleteDocument()
+2026-11-18T20:50:37.9882682Z QDEBUG : TestDocumentCrudWidget::invalidJsonIsLogged() [diag] doRefresh query= "" ids= 3
+2026-11-18T20:50:37.9883188Z QWARN  : TestDocumentCrudWidget::invalidJsonIsLogged() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9883821Z QDEBUG : TestDocumentCrudWidget::invalidJsonIsLogged() [diag] doRefresh query= "" ids= 3
+2026-11-18T20:50:37.9884312Z QWARN  : TestDocumentCrudWidget::invalidJsonIsLogged() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9884797Z QDEBUG : TestDocumentCrudWidget::invalidJsonIsLogged() [diag] doRefresh query= "" ids= 3
+2026-11-18T20:50:37.9885331Z PASS   : TestDocumentCrudWidget::invalidJsonIsLogged()
+2026-11-18T20:50:37.9885619Z PASS   : TestDocumentCrudWidget::cleanupTestCase()
+2026-11-18T20:50:37.9885908Z Totals: 6 passed, 0 failed, 0 skipped, 0 blacklisted, 620ms
+2026-11-18T20:50:37.9886203Z ********* Finished testing of TestDocumentCrudWidget *********
+2026-11-18T20:50:37.9886482Z ********* Start testing of TestAutoAnalysis *********
+2026-11-18T20:50:37.9886924Z Config: Using QtTest library 6.10.2, Qt 6.10.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 15.2.0), ubuntu 26.04
+2026-11-18T20:50:37.9887363Z PASS   : TestAutoAnalysis::initTestCase()
+2026-11-18T20:50:37.9887769Z QWARN  : TestAutoAnalysis::mutationTriggersAutoAnalysis() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9888332Z QWARN  : TestAutoAnalysis::mutationTriggersAutoAnalysis() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9888878Z QWARN  : TestAutoAnalysis::mutationTriggersAutoAnalysis() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9889298Z PASS   : TestAutoAnalysis::mutationTriggersAutoAnalysis()
+2026-11-18T20:50:37.9889698Z QWARN  : TestAutoAnalysis::disabledDoesNotRun() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9890075Z PASS   : TestAutoAnalysis::disabledDoesNotRun()
+2026-11-18T20:50:37.9890471Z QWARN  : TestAutoAnalysis::rapidMutationsAreDebounced() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9891019Z QWARN  : TestAutoAnalysis::rapidMutationsAreDebounced() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9891553Z QWARN  : TestAutoAnalysis::rapidMutationsAreDebounced() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9891965Z PASS   : TestAutoAnalysis::rapidMutationsAreDebounced()
+2026-11-18T20:50:37.9892365Z QWARN  : TestAutoAnalysis::rerunAfterBusyMutation() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9892873Z QWARN  : TestAutoAnalysis::rerunAfterBusyMutation() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9893375Z QWARN  : TestAutoAnalysis::rerunAfterBusyMutation() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9893879Z QWARN  : TestAutoAnalysis::rerunAfterBusyMutation() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9894396Z QWARN  : TestAutoAnalysis::rerunAfterBusyMutation() This plugin does not support propagateSizeHints()
+2026-11-18T20:50:37.9894789Z PASS   : TestAutoAnalysis::rerunAfterBusyMutation()
+2026-11-18T20:50:37.9895316Z PASS   : TestAutoAnalysis::cleanupTestCase()
+2026-11-18T20:50:37.9895604Z Totals: 6 passed, 0 failed, 0 skipped, 0 blacklisted, 4342ms
+2026-11-18T20:50:37.9895896Z ********* Finished testing of TestAutoAnalysis *********
+2026-11-18T20:50:37.9896152Z ********* Start testing of TestViewerTheme *********
+2026-11-18T20:50:37.9896577Z Config: Using QtTest library 6.10.2, Qt 6.10.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 15.2.0), ubuntu 26.04
+2026-11-18T20:50:37.9897004Z PASS   : TestViewerTheme::initTestCase()
+2026-11-18T20:50:37.9897305Z PASS   : TestViewerTheme::themeAppliesFusionPaletteAndStylesheet()
+2026-11-18T20:50:37.9897604Z PASS   : TestViewerTheme::cleanupTestCase()
+2026-11-18T20:50:37.9897861Z Totals: 3 passed, 0 failed, 0 skipped, 0 blacklisted, 0ms
+2026-11-18T20:50:37.9898127Z ********* Finished testing of TestViewerTheme *********
+2026-11-18T20:50:37.9898288Z 
+2026-11-18T20:50:37.9898406Z Errors while running CTest
+2026-11-18T20:50:37.9898527Z 
+2026-11-18T20:50:37.9898614Z 0% tests passed, 1 tests failed out of 1
+2026-11-18T20:50:37.9898913Z 
+2026-11-18T20:50:37.9898993Z Total Test time (real) = 105.69 sec
+2026-11-18T20:50:37.9899134Z 
+2026-11-18T20:50:37.9899209Z The following tests FAILED:
+2026-11-18T20:50:37.9899417Z 	  1 - viewer_tests (Failed)
+2026-11-18T20:50:37.9910168Z ##[error]Process completed with exit code 8.
+2026-11-18T20:50:38.0036199Z Post job cleanup.
+2026-11-18T20:50:38.0784172Z [command]/usr/bin/git version
+2026-11-18T20:50:38.0829090Z git version 2.56.1
+2026-11-18T20:50:38.0864036Z Temporarily overriding HOME='/home/runner/work/_temp/49413ad2-af6b-4ab7-8a32-6dc7fda387a3' before making global git config changes
+2026-11-18T20:50:38.0866164Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-18T20:50:38.0869181Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/InMemDBViewer/InMemDBViewer/InMemDB
+2026-11-18T20:50:38.0911179Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-18T20:50:38.0947713Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-18T20:50:38.1267381Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-18T20:50:38.1314899Z http.https://github.com/.extraheader
+2026-11-18T20:50:38.1316253Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-11-18T20:50:38.1366234Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-18T20:50:38.1663957Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-18T20:50:38.1707118Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-18T20:50:38.2163317Z Post job cleanup.
+2026-11-18T20:50:38.2957682Z [command]/usr/bin/git version
+2026-11-18T20:50:38.3004075Z git version 2.56.1
+2026-11-18T20:50:38.3038668Z Temporarily overriding HOME='/home/runner/work/_temp/e7c80f6b-065d-424d-b78c-4b343affb57d' before making global git config changes
+2026-11-18T20:50:38.3039729Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-18T20:50:38.3044298Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/InMemDBViewer/InMemDBViewer/InMemDBViewer
+2026-11-18T20:50:38.3094760Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-18T20:50:38.3146029Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-18T20:50:38.3453496Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-18T20:50:38.3485640Z http.https://github.com/.extraheader
+2026-11-18T20:50:38.3496839Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-11-18T20:50:38.3540884Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-18T20:50:38.3857877Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-18T20:50:38.3896598Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-18T20:50:38.4320734Z Cleaning up orphan processes
+2026-11-18T20:50:38.4665610Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
