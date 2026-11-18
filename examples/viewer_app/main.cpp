@@ -55,9 +55,12 @@ public:
         analysisWidget_->setCore(core_);
         auto* tabs = new QTabWidget(this);
         tabs->setObjectName(QStringLiteral("areaTabs"));
-        tabs->addTab(viewWidget_, QStringLiteral("Datenbetrachtung"));
-        tabs->addTab(designWidget_, QStringLiteral("Datenbank-Design"));
-        tabs->addTab(analysisWidget_, QStringLiteral("Analyse (Discovery + Analyse)"));
+        tabs->addTab(viewWidget_, style()->standardIcon(QStyle::SP_DirIcon),
+                     QStringLiteral("Datenbetrachtung"));
+        tabs->addTab(designWidget_, style()->standardIcon(QStyle::SP_FileDialogDetailedView),
+                     QStringLiteral("Datenbank-Design"));
+        tabs->addTab(analysisWidget_, style()->standardIcon(QStyle::SP_MediaPlay),
+                     QStringLiteral("Analyse (Discovery + Analyse)"));
         setCentralWidget(tabs);
 
         // unten: Ausgabe als einklappbares Dock; Titel zeigt Fehler-Zaehler

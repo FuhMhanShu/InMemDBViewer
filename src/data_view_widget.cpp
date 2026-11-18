@@ -24,7 +24,11 @@
 #include <QLineEdit>
 #include <QMessageBox>
 #include <QPlainTextEdit>
-#include <QPushButton>
+#include <QStyle>
+#include <QToolButton>
+#include "tool_button.hpp"
+
+#include <thread>
 #include <QSplitter>
 #include <QTabWidget>
 #include <QTableView>
@@ -88,9 +92,9 @@ DataViewWidget::DataViewWidget(QWidget* parent) : QWidget(parent), impl_(std::ma
     auto* structLayout = new QVBoxLayout(structWidget);
     structLayout->setContentsMargins(0, 0, 0, 0);
     auto* structBar = new QHBoxLayout();
-    auto* pngBtn = new QPushButton(QStringLiteral("PNG exportieren…"), structWidget);
-    auto* svgBtn = new QPushButton(QStringLiteral("SVG exportieren…"), structWidget);
-    auto* mmdBtn = new QPushButton(QStringLiteral("Mermaid exportieren…"), structWidget);
+    auto* pngBtn = detail::makeToolButton(structWidget, QStyle::SP_DialogSaveButton, QStringLiteral("PNG exportieren…"));
+    auto* svgBtn = detail::makeToolButton(structWidget, QStyle::SP_DialogSaveButton, QStringLiteral("SVG exportieren…"));
+    auto* mmdBtn = detail::makeToolButton(structWidget, QStyle::SP_DialogSaveButton, QStringLiteral("Mermaid exportieren…"));
     auto* summaryLabel = new QLabel(structWidget);
     structBar->addWidget(pngBtn);
     structBar->addWidget(svgBtn);
@@ -113,8 +117,8 @@ DataViewWidget::DataViewWidget(QWidget* parent) : QWidget(parent), impl_(std::ma
     impl_->queryEdit = new QLineEdit(tableWidget);
     impl_->queryEdit->setPlaceholderText(QStringLiteral("z. B. age >= 18 && name.contains('a')"));
     impl_->queryEdit->setClearButtonEnabled(true);
-    auto* applyBtn = new QPushButton(QStringLiteral("Anwenden"), tableWidget);
-    auto* resetBtn = new QPushButton(QStringLiteral("Zurücksetzen"), tableWidget);
+    auto* applyBtn = detail::makeToolButton(tableWidget, QStyle::SP_DialogApplyButton, QStringLiteral("Anwenden"));
+    auto* resetBtn = detail::makeToolButton(tableWidget, QStyle::SP_DialogResetButton, QStringLiteral("Zurücksetzen"));
     impl_->diagLabel = new QLabel(tableWidget);
     filterBar->addWidget(impl_->queryEdit, 1);
     filterBar->addWidget(applyBtn);
@@ -124,9 +128,9 @@ DataViewWidget::DataViewWidget(QWidget* parent) : QWidget(parent), impl_(std::ma
     // Bearbeiten-Leiste (DE-05): neues/loeschen Dokument + Hinweis auf Zellen-Edit
     auto* docBar = new QHBoxLayout();
     docBar->addWidget(new QLabel(QStringLiteral("Bearbeiten:"), tableWidget));
-    auto* newDocBtn = new QPushButton(QStringLiteral("Dokument neu…"), tableWidget);
+    auto* newDocBtn = detail::makeToolButton(tableWidget, QStyle::SP_FileIcon, QStringLiteral("Dokument neu…"));
     newDocBtn->setToolTip(QStringLiteral("Neues Dokument als JSON-Objekt in der aktuellen Collection anlegen (wird geprueft)"));
-    auto* delDocBtn = new QPushButton(QStringLiteral("Dokument löschen"), tableWidget);
+    auto* delDocBtn = detail::makeToolButton(tableWidget, QStyle::SP_TrashIcon, QStringLiteral("Dokument löschen"));
     delDocBtn->setToolTip(QStringLiteral("Ausgewaehlte Zeile (Dokument) loeschen – mit Sicherheitsabfrage"));
     auto* editHint = new QLabel(
         QStringLiteral("Doppelklick auf eine Zelle ändert den Wert (vom Programm geprüft und geloggt)."), tableWidget);
@@ -144,8 +148,8 @@ DataViewWidget::DataViewWidget(QWidget* parent) : QWidget(parent), impl_(std::ma
     impl_->tableView->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::EditKeyPressed);
     impl_->tableView->horizontalHeader()->setStretchLastSection(true);
     tableLayout->addWidget(impl_->tableView, 1);
-    connect(newDocBtn, &QPushButton::clicked, this, &DataViewWidget::insertDocumentDialog);
-    connect(delDocBtn, &QPushButton::clicked, this, &DataViewWidget::deleteSelectedDocument);
+    connect(newDocBtn, &QToolButton::clicked, this, &DataViewWidget::insertDocumentDialog);
+    connect(delDocBtn, &QToolButton::clicked, this, &DataViewWidget::deleteSelectedDocument);
     auto* aggBar = new QHBoxLayout();
     aggBar->addWidget(new QLabel(QStringLiteral("Aggregat:"), tableWidget));
     impl_->aggOpBox = new QComboBox(tableWidget);
@@ -154,7 +158,7 @@ DataViewWidget::DataViewWidget(QWidget* parent) : QWidget(parent), impl_(std::ma
     impl_->aggFieldBox = new QComboBox(tableWidget);
     impl_->aggFieldBox->setEditable(true);
     impl_->aggResultLabel = new QLabel(tableWidget);
-    auto* aggBtn = new QPushButton(QStringLiteral("Berechnen"), tableWidget);
+    auto* aggBtn = detail::makeToolButton(tableWidget, QStyle::SP_MediaPlay, QStringLiteral("Berechnen"));
     aggBar->addWidget(impl_->aggOpBox);
     aggBar->addWidget(impl_->aggFieldBox, 1);
     aggBar->addWidget(aggBtn);
@@ -188,6 +192,13 @@ DataViewWidget::DataViewWidget(QWidget* parent) : QWidget(parent), impl_(std::ma
             &DataViewWidget::documentSelected);
     connect(impl_->controller, &detail::DataViewController::metricsTextChanged, impl_->metricsBox,
             &QTextBrowser::setHtml);
+    // UI-09: Ergebnis der asynchronen Query -> Diagnose/ Aggregate-Felder aktualisieren
+    connect(impl_->controller, &detail::DataViewController::queryApplied, this, [this](int, bool, std::size_t) {
+        impl_->diagLabel->setText(queryDiagnostics());
+        impl_->aggFieldBox->clear();
+        for (int c = 1; c < impl_->tableModel->columnCount(); ++c)
+            impl_->aggFieldBox->addItem(impl_->tableModel->headerData(c, Qt::Horizontal).toString());
+    });
 
     // Interaktionen
     connect(impl_->dbTree->selectionModel(), &QItemSelectionModel::currentRowChanged, this,
@@ -209,10 +220,10 @@ DataViewWidget::DataViewWidget(QWidget* parent) : QWidget(parent), impl_(std::ma
                                                 detail::DocumentTableModel::IdRole)
                             .toULongLong());
             });
-    connect(applyBtn, &QPushButton::clicked, this, [this] { applyQuery(impl_->queryEdit->text()); });
+    connect(applyBtn, &QToolButton::clicked, this, [this] { applyQuery(impl_->queryEdit->text()); });
     connect(impl_->queryEdit, &QLineEdit::returnPressed, this, [this] { applyQuery(impl_->queryEdit->text()); });
-    connect(resetBtn, &QPushButton::clicked, this, &DataViewWidget::resetQuery);
-    connect(aggBtn, &QPushButton::clicked, this, [this] {
+    connect(resetBtn, &QToolButton::clicked, this, &DataViewWidget::resetQuery);
+    connect(aggBtn, &QToolButton::clicked, this, [this] {
         if (!impl_->core || impl_->controller->currentCollection().isEmpty())
             return;
         auto coll = impl_->core->database().collection(impl_->controller->currentCollection().toStdString());
@@ -232,15 +243,21 @@ DataViewWidget::DataViewWidget(QWidget* parent) : QWidget(parent), impl_(std::ma
                 return;
             }
         }
-        try {
-            auto res = coll.aggregate(aggOp, field.toStdString(), q);
-            impl_->aggResultLabel->setText(res ? QString::fromStdString(memdb::toString(*res))
-                                               : QStringLiteral("(leer)"));
-        } catch (const std::exception& e) {
-            impl_->aggResultLabel->setText(QStringLiteral("Fehler: %1").arg(QString::fromUtf8(e.what())));
-        }
+        // UI-09: Aggregation im Worker-Thread – UI blockiert nicht
+        impl_->aggResultLabel->setText(QStringLiteral("\u2026"));
+        std::thread([this, coll, aggOp, field, q] {
+            QString result;
+            try {
+                auto res = coll.aggregate(aggOp, field.toStdString(), q);
+                result = res ? QString::fromStdString(memdb::toString(*res)) : QStringLiteral("(leer)");
+            } catch (const std::exception& e) {
+                result = QStringLiteral("Fehler: %1").arg(QString::fromUtf8(e.what()));
+            }
+            QMetaObject::invokeMethod(this, [this, result] { impl_->aggResultLabel->setText(result); },
+                                      Qt::QueuedConnection);
+        }).detach();
     });
-    connect(pngBtn, &QPushButton::clicked, this, [this] {
+    connect(pngBtn, &QToolButton::clicked, this, [this] {
         const QString path = QFileDialog::getSaveFileName(this, QStringLiteral("Struktur als PNG"), QString(),
                                                           QStringLiteral("PNG (*.png)"));
         if (!path.isEmpty()) {
@@ -249,7 +266,7 @@ DataViewWidget::DataViewWidget(QWidget* parent) : QWidget(parent), impl_(std::ma
                                   : QStringLiteral("PNG-Export fehlgeschlagen."));
         }
     });
-    connect(svgBtn, &QPushButton::clicked, this, [this] {
+    connect(svgBtn, &QToolButton::clicked, this, [this] {
         const QString path = QFileDialog::getSaveFileName(this, QStringLiteral("Struktur als SVG"), QString(),
                                                           QStringLiteral("SVG (*.svg)"));
         if (!path.isEmpty()) {
@@ -257,7 +274,7 @@ DataViewWidget::DataViewWidget(QWidget* parent) : QWidget(parent), impl_(std::ma
             emit statusMessage(QStringLiteral("SVG exportiert: %1").arg(path));
         }
     });
-    connect(mmdBtn, &QPushButton::clicked, this, [this] {
+    connect(mmdBtn, &QToolButton::clicked, this, [this] {
         const QString path = QFileDialog::getSaveFileName(this, QStringLiteral("Mermaid exportieren"), QString(),
                                                           QStringLiteral("Mermaid (*.mmd *.md)"));
         if (!path.isEmpty()) {
@@ -294,16 +311,19 @@ QString DataViewWidget::queryDiagnostics() const {
 }
 
 void DataViewWidget::applyQuery(const QString& dsl) {
-    QString error;
-    if (!impl_->controller->applyQuery(dsl, &error)) {
-        impl_->diagLabel->setText(QStringLiteral("Fehler: %1").arg(error));
-        emit statusMessage(QStringLiteral("Query-Fehler: %1").arg(error));
+    if (!impl_->core || impl_->controller->currentCollection().isEmpty())
+        return;
+    // DSL synchron validieren (billig) -> Fehler sofort anzeigen
+    try {
+        memdb::parseQuery(dsl.toStdString());
+    } catch (const std::exception& e) {
+        const QString msg = QString::fromUtf8(e.what());
+        impl_->diagLabel->setText(QStringLiteral("Fehler: %1").arg(msg));
+        emit statusMessage(QStringLiteral("Query-Fehler: %1").arg(msg));
         return;
     }
-    impl_->diagLabel->setText(queryDiagnostics());
-    impl_->aggFieldBox->clear();
-    for (int c = 1; c < impl_->tableModel->columnCount(); ++c)
-        impl_->aggFieldBox->addItem(impl_->tableModel->headerData(c, Qt::Horizontal).toString());
+    // UI-09: findIds im Worker-Thread – UI blockiert nicht; Ergebnis via queryApplied
+    impl_->controller->applyQueryAsync(dsl);
 }
 
 void DataViewWidget::resetQuery() {

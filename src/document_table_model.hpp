@@ -28,6 +28,9 @@ public:
 
     /// @brief DSL-Filter anwenden; false + error bei QueryError.
     bool applyQuery(const QString& dsl, QString* error = nullptr);
+    /// @brief Fertiges Query-Ergebnis uebernehmen (z. B. asynchron im Worker-Thread gerechnet, UI-09).
+    void setQueryIds(const QString& dsl, std::vector<memdb::DocumentId> ids, bool usedIndex,
+                     std::size_t candidates);
     void clearQuery();
     QString query() const { return query_; }
 

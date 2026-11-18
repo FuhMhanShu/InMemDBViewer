@@ -9,6 +9,11 @@
 
 #include <memdb/memdb.hpp>
 
+#include <QTimer>
+
+#include <thread>
+#include <vector>
+
 namespace memdb::viewer::detail {
 
 DataViewController::DataViewController(ViewerCore* core, DatabaseModel* dbModel,
@@ -22,6 +27,12 @@ DataViewController::DataViewController(ViewerCore* core, DatabaseModel* dbModel,
                 if (!updateField(id, field, value, &err))
                     tableModel_->refresh(); // Anzeige auf alten Wert zuruecksetzen
             });
+    // UI-08: Ansichts-Refresh nach Change-Events debounced – SingleShot-Timer, der bei
+    // laufendem Timer neu startet (sonst ein Model-Reset pro Event, z. B. bei Massen-Inserts)
+    debounce_ = new QTimer(this);
+    debounce_->setSingleShot(true);
+    debounce_->setInterval(200);
+    connect(debounce_, &QTimer::timeout, this, [this] { onCollectionsChanged(); });
     setCore(core);
 }
 
@@ -34,10 +45,10 @@ void DataViewController::setCore(ViewerCore* core) {
     dbModel_->setDatabase(&core_->database());
     connect(core_, &ViewerCore::databaseLoaded, this, [this](const QString&) { refreshAll(); });
     connect(core_, &ViewerCore::databaseCleared, this, [this] { refreshAll(); });
-    connect(core_, &ViewerCore::collectionsChanged, this, [this] { onCollectionsChanged(); });
-    connect(core_, &ViewerCore::collectionChanged, this, [this](const QString& name) { onCollectionChanged(name); });
+    connect(core_, &ViewerCore::collectionsChanged, this, [this] { scheduleRefresh(); });
+    connect(core_, &ViewerCore::collectionChanged, this, [this](const QString&) { scheduleRefresh(); });
     // jede verifizierte Mutation (DE-01) -> Struktur/Models neu aufbauen (Schema/Indizes feuern kein collectionChanged)
-    connect(core_, &ViewerCore::dataMutated, this, [this] { onCollectionsChanged(); });
+    connect(core_, &ViewerCore::dataMutated, this, [this] { scheduleRefresh(); });
     refreshAll();
 }
 
@@ -68,22 +79,17 @@ void DataViewController::onCollectionsChanged() {
             treeModel_->clearDocument();
             emit collectionSelected(QString());
         }
+    } else {
+        tableModel_->refresh(); // Inhalt der aktuellen Collection aktualisieren (debounced)
     }
     emit metricsTextChanged(metricsText());
 }
 
-void DataViewController::onCollectionChanged(const QString& name) {
-    if (!core_)
-        return;
-    if (name.startsWith(QLatin1String("__")))
-        scene_->rebuild(core_->database(), core_->references()); // Referenzen geaendert
-    if (name == current_) {
-        tableModel_->refresh();
-        emit metricsTextChanged(metricsText());
-    }
-    if (name == current_ || name.startsWith(QLatin1String("__")))
-        dbModel_->refresh();
-}
+void DataViewController::scheduleRefresh() {
+    // SingleShot-Timer neu starten, falls er noch laeuft (Debounce, UI-08)
+    if (debounce_)
+        debounce_->start();
+} 
 
 void DataViewController::selectCollection(const QString& name) {
     if (!core_ || name.isEmpty() || !core_->database().hasCollection(name.toStdString()))
@@ -116,6 +122,39 @@ bool DataViewController::applyQuery(const QString& dsl, QString* error) {
         emit statusMessage(QStringLiteral("Query-Fehler: %1").arg(*error));
     }
     return ok;
+}
+
+void DataViewController::applyQueryAsync(const QString& dsl) {
+    if (!core_ || current_.isEmpty())
+        return;
+    // Query im Worker-Thread rechnen (UI blockiert nicht, UI-09); Collection-Handle ist mutex-geschuetzt
+    auto coll = core_->database().collection(current_.toStdString());
+    std::thread([this, coll, dsl] {
+        std::vector<memdb::DocumentId> ids;
+        bool usedIndex = false;
+        std::size_t cand = 0;
+        try {
+            ids = coll.findIds(dsl.toStdString());
+            usedIndex = coll.metrics().lastQueryUsedIndex;
+            cand = coll.lastQueryCandidateCount();
+        } catch (const std::exception&) {
+            ids.clear();
+        }
+        QMetaObject::invokeMethod(this, [this, dsl, ids = std::move(ids), usedIndex, cand] {
+            if (!core_)
+                return;
+            tableModel_->setQueryIds(dsl, std::move(ids), usedIndex, cand);
+            const std::size_t total = core_->database().hasCollection(current_.toStdString())
+                                          ? core_->database().collection(current_.toStdString()).size()
+                                          : 0;
+            emit queryApplied(tableModel_->rowCount(), usedIndex, cand);
+            emit statusMessage(QStringLiteral("Filter „%1“: %2 Treffer (Index: %3, Kandidaten: %4 von %5)")
+                                   .arg(dsl, QString::number(tableModel_->rowCount()),
+                                        usedIndex ? QStringLiteral("ja") : QStringLiteral("nein"))
+                                   .arg(cand)
+                                   .arg(total));
+        }, Qt::QueuedConnection);
+    }).detach();
 }
 
 void DataViewController::clearQuery() {

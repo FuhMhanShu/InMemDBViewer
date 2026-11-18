@@ -21,7 +21,9 @@
 #include <QListView>
 #include <QMimeData>
 #include <QPlainTextEdit>
-#include <QPushButton>
+#include <QStyle>
+#include <QToolButton>
+#include "tool_button.hpp"
 #include <QSpinBox>
 #include <QSplitter>
 #include <QUrl>
@@ -36,11 +38,11 @@ struct DataInputWidget::Impl {
     QLabel* formatsLabel = nullptr;
     QListView* historyView = nullptr;
     QPlainTextEdit* log = nullptr;
-    QPushButton* openFileBtn = nullptr;
-    QPushButton* openFolderBtn = nullptr;
-    QPushButton* csvClipboardBtn = nullptr;
-    QPushButton* optionsBtn = nullptr;
-    QPushButton* clearBtn = nullptr;
+    QToolButton* openFileBtn = nullptr;
+    QToolButton* openFolderBtn = nullptr;
+    QToolButton* csvClipboardBtn = nullptr;
+    QToolButton* optionsBtn = nullptr;
+    QToolButton* clearBtn = nullptr;
     QFrame* dropFrame = nullptr;
 };
 
@@ -131,15 +133,15 @@ DataInputWidget::DataInputWidget(QWidget* parent) : QWidget(parent), impl_(std::
     title->setFont(bold);
     header->addWidget(title);
     header->addStretch();
-    impl_->openFileBtn = new QPushButton(QStringLiteral("Datei(en) oeffnen…"), this);
+    impl_->openFileBtn = detail::makeToolButton(this, QStyle::SP_DialogOpenButton, QStringLiteral("Datei(en) oeffnen…"));
     impl_->openFileBtn->setToolTip(QStringLiteral("Eine oder mehrere Dateien importieren (Strg+O)"));
-    impl_->openFolderBtn = new QPushButton(QStringLiteral("Ordner oeffnen…"), this);
+    impl_->openFolderBtn = detail::makeToolButton(this, QStyle::SP_DirIcon, QStringLiteral("Ordner oeffnen…"));
     impl_->openFolderBtn->setToolTip(QStringLiteral("Alle unterstuetzten Dateien eines Ordners importieren"));
-    impl_->csvClipboardBtn = new QPushButton(QStringLiteral("CSV aus Zwischenablage…"), this);
+    impl_->csvClipboardBtn = detail::makeToolButton(this, QStyle::SP_FileDialogListView, QStringLiteral("CSV aus Zwischenablage…"));
     impl_->csvClipboardBtn->setToolTip(QStringLiteral("CSV-Text aus der Zwischenablage als neue Collection importieren (DE-04, mit Optionen-Dialog)"));
-    impl_->optionsBtn = new QPushButton(QStringLiteral("Optionen…"), this);
+    impl_->optionsBtn = detail::makeToolButton(this, QStyle::SP_FileDialogInfoView, QStringLiteral("Optionen…"));
     impl_->optionsBtn->setToolTip(QStringLiteral("Import-Optionen (FA-21): Batch, Indizes, Schema, PK, Fremdschluessel"));
-    impl_->clearBtn = new QPushButton(QStringLiteral("Verlauf leeren"), this);
+    impl_->clearBtn = detail::makeToolButton(this, QStyle::SP_TrashIcon, QStringLiteral("Verlauf leeren"));
     header->addWidget(impl_->openFileBtn);
     header->addWidget(impl_->openFolderBtn);
     header->addWidget(impl_->csvClipboardBtn);
@@ -192,11 +194,11 @@ DataInputWidget::DataInputWidget(QWidget* parent) : QWidget(parent), impl_(std::
     impl_->model = new detail::ImportModel(this);
     impl_->historyView->setModel(impl_->model);
 
-    connect(impl_->openFileBtn, &QPushButton::clicked, this, &DataInputWidget::openFileDialog);
-    connect(impl_->openFolderBtn, &QPushButton::clicked, this, &DataInputWidget::openFolderDialog);
-    connect(impl_->csvClipboardBtn, &QPushButton::clicked, this, &DataInputWidget::importCsvFromClipboard);
-    connect(impl_->clearBtn, &QPushButton::clicked, impl_->model, &detail::ImportModel::clearHistory);
-    connect(impl_->optionsBtn, &QPushButton::clicked, this, [this] {
+    connect(impl_->openFileBtn, &QToolButton::clicked, this, &DataInputWidget::openFileDialog);
+    connect(impl_->openFolderBtn, &QToolButton::clicked, this, &DataInputWidget::openFolderDialog);
+    connect(impl_->csvClipboardBtn, &QToolButton::clicked, this, &DataInputWidget::importCsvFromClipboard);
+    connect(impl_->clearBtn, &QToolButton::clicked, impl_->model, &detail::ImportModel::clearHistory);
+    connect(impl_->optionsBtn, &QToolButton::clicked, this, [this] {
         if (!impl_->core)
             return;
         ImportOptionsDialog dlg(impl_->core->importOptions(), this);

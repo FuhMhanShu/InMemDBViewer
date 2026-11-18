@@ -6,7 +6,7 @@
 |---|---|
 | Projekttitel | InMemDBViewer – Daten laden, betrachten und analysieren für [InMemDB](https://github.com/FuhMhanShu/InMemDB) |
 | Version | 1.2 |
-| Status | v1.0 umgesetzt (4 Branches nach Abschnitt 8 gemerged: Anforderungen, Dateneingabe, Datenbetrachtung, Datenanalyse; die bisherige Demo-Implementierung v0.1–v0.4 wurde verworfen, siehe Abschnitt 3). v1.1 „Design & Bearbeiten“ (Abschnitt 4.5): Schritte A–D umgesetzt (verifizierte Mutationen + Ausgabe-Panel + DatabaseDesignWidget + Clipboard-CSV + Dokument-CRUD + Auto-Discovery/Analyse nach jeder Mutation via `dataMutated()` mit Debounce). v1.2 „Bedienoberfläche & Ergonomie“ (Abschnitt 4.6) umgesetzt: zentrales Theme, schlankes Tab-/Dock-Layout, Toolbar mit Icons. |
+| Status | v1.0 umgesetzt (4 Branches nach Abschnitt 8 gemerged: Anforderungen, Dateneingabe, Datenbetrachtung, Datenanalyse; die bisherige Demo-Implementierung v0.1–v0.4 wurde verworfen, siehe Abschnitt 3). v1.1 „Design & Bearbeiten“ (Abschnitt 4.5): Schritte A–D umgesetzt (verifizierte Mutationen + Ausgabe-Panel + DatabaseDesignWidget + Clipboard-CSV + Dokument-CRUD + Auto-Discovery/Analyse nach jeder Mutation via `dataMutated()` mit Debounce). v1.2 „Bedienoberfläche & Ergonomie“ (Abschnitt 4.6) umgesetzt: zentrales Theme, Tab-/Dock-Layout, Icons + kompakte QToolButtons, Debounce der Change-Events, asynchrone Query/Aggregation (UI-07…UI-09). |
 | Sprache | Deutsch (UI und Doku) |
 | Technologie | C++17, Qt (Widgets + Graphics View Framework), qmake (.pro/.pri) **und** CMake |
 | Bereitstellungsform | Wiederverwendbare **C++/Qt-Bibliothek** (statische Library, öffentliche Header unter `include/memdbviewer/`, Implementierung in `src/`, Namespace `memdb::viewer`, Einbindung via `InMemDBViewer.pri` bzw. CMake-Target) **plus** lauffähige Anwendung unter `examples/viewer_app/` |
@@ -152,6 +152,9 @@ Prioritäten: **M** = Muss, **S** = Soll, **K** = Kann. InMemDB-Referenzen in Kl
 | UI-04 | **Statusleiste mit Kontext-Hinweis** (Drag & Drop, letzte Aktion, Fehler) statt leerer Leiste. | S |
 | UI-05 | **Konsistente Optik**: Rundungen, Alternating-Rows, Selektionsfarbe, gestrichelter Drop-Bereich; Health-Ampel (grün/gelb/rot) bleibt farbcodiert. | S |
 | UI-06 | **Ausgabe-Dock mit Fehler-Zähler** im Titel („Ausgabe (n Fehler)“). | K |
+| UI-07 | **Icons + kompakte Buttons**: alle Widget-Buttons als `QToolButton` (autoRaise, Text neben Icon) mit QStyle-Standard-Icons (`QStyle::SP_*`), zentrale Factory `detail::makeToolButton` in `src/tool_button.hpp`; Tabs und Toolbar ebenfalls mit Icons. | S |
+| UI-08 | **Debounce bei Change-Events**: Ansichts-Refresh (Datenbetrachtung + Design) nach `collectionChanged`/`collectionsChanged`/`dataMutated` gebündelt über SingleShot-Timer (200 ms), der bei laufendem Timer neu startet – kein Model-Reset pro Event (kritisch bei Massen-Inserts >100k). | M |
+| UI-09 | **Performance große Datenmengen (>100k)**: Tabelle bleibt virtualisiert (nur IDs); Feld-Spalten per Sampling (max. 500 Dokumente via `findById`, kein Voll-Scan pro Refresh); DSL-Query (`findIds`) und Aggregationen laufen im Worker-Thread (UI blockiert nicht), Ergebnis per queued Signal. | M |
 
 ---
 

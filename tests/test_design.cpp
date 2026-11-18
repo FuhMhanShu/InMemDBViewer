@@ -20,7 +20,7 @@
 #include <QDialog>
 #include <QLineEdit>
 #include <QPlainTextEdit>
-#include <QPushButton>
+#include <QAbstractButton>
 #include <QSignalSpy>
 #include <QTableView>
 #include <QTemporaryDir>
@@ -337,8 +337,8 @@ void TestDatabaseDesignWidget::reflectsCoreState() {
 
 namespace {
 /// @brief Sucht einen Button anhand eines Text-Fragments.
-QPushButton* findButton(QWidget* w, const QString& fragment) {
-    for (auto* b : w->findChildren<QPushButton*>())
+QAbstractButton* findButton(QWidget* w, const QString& fragment) {
+    for (auto* b : w->findChildren<QAbstractButton*>()) // QPushButton/QToolButton
         if (b->text().contains(fragment))
             return b;
     return nullptr;
@@ -408,7 +408,7 @@ void TestClipboardCsvImport::importsFromClipboardWithDialog() {
     DataInputWidget w;
     w.setCore(&core);
     w.show();
-    QPushButton* btn = findButton(&w, QStringLiteral("Zwischenablage"));
+    QAbstractButton* btn = findButton(&w, QStringLiteral("Zwischenablage"));
     QVERIFY(btn);
     acceptModalDialog(100, [](QDialog* d) {
         for (auto* le : d->findChildren<QLineEdit*>())
@@ -441,7 +441,7 @@ void TestClipboardCsvImport::emptyClipboardReportsStatus() {
     DataInputWidget w;
     w.setCore(&core);
     w.show();
-    QPushButton* btn = findButton(&w, QStringLiteral("Zwischenablage"));
+    QAbstractButton* btn = findButton(&w, QStringLiteral("Zwischenablage"));
     QVERIFY(btn);
     QSignalSpy statusSpy(&w, &DataInputWidget::statusMessage);
     btn->click();
@@ -538,7 +538,7 @@ void TestDocumentCrudWidget::insertAndDeleteDocument() {
     const std::size_t before = core.database().collection("users").size();
     const int mutBefore = mutSpy.count();
     // "Dokument neu…" -> JSON-Dialog ausfuellen -> OK
-    QPushButton* newBtn = findButton(&w, QStringLiteral("Dokument neu"));
+    QAbstractButton* newBtn = findButton(&w, QStringLiteral("Dokument neu"));
     QVERIFY(newBtn);
     acceptModalDialog(100, [](QDialog* d) {
         if (auto* pe = d->findChild<QPlainTextEdit*>())
@@ -558,7 +558,7 @@ void TestDocumentCrudWidget::insertAndDeleteDocument() {
     QTRY_VERIFY_WITH_TIMEOUT(rowOfName(model, nameCol, QStringLiteral("Linus")) >= 0, 3000);
     const int linusRow = rowOfName(model, nameCol, QStringLiteral("Linus"));
     table->selectRow(linusRow);
-    QPushButton* delBtn = findButton(&w, QStringLiteral("Dokument löschen"));
+    QAbstractButton* delBtn = findButton(&w, QStringLiteral("Dokument löschen"));
     QVERIFY(delBtn);
     delBtn->click(); // Offscreen: ohne Rueckfrage
     QTRY_COMPARE_WITH_TIMEOUT(core.database().collection("users").size(), before, 3000);
@@ -580,7 +580,7 @@ void TestDocumentCrudWidget::invalidJsonIsLogged() {
     QTRY_COMPARE_WITH_TIMEOUT(w.currentCollection(), QStringLiteral("users"), 3000);
     const std::size_t before = core.database().collection("users").size();
     const int logBefore = logSpy.count();
-    QPushButton* newBtn = findButton(&w, QStringLiteral("Dokument neu"));
+    QAbstractButton* newBtn = findButton(&w, QStringLiteral("Dokument neu"));
     QVERIFY(newBtn);
     acceptModalDialog(100, [](QDialog* d) {
         if (auto* pe = d->findChild<QPlainTextEdit*>())

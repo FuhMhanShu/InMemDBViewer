@@ -16,7 +16,10 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
-#include <QPushButton>
+#include <QStyle>
+#include <QTimer>
+#include <QToolButton>
+#include "tool_button.hpp"
 #include <QSpinBox>
 #include <QStringListModel>
 #include <QSplitter>
@@ -46,6 +49,7 @@ struct DatabaseDesignWidget::Impl {
     QCheckBox *refHasFromId = nullptr, *refHasToId = nullptr;
     QLineEdit* refRelation = nullptr;
     QString current;
+    QTimer* debounce = nullptr; // UI-08: bündelt Change-Events
 };
 
 DatabaseDesignWidget::DatabaseDesignWidget(QWidget* parent) : QWidget(parent), impl_(std::make_unique<Impl>()) {
@@ -59,9 +63,9 @@ DatabaseDesignWidget::DatabaseDesignWidget(QWidget* parent) : QWidget(parent), i
     impl_->collList = new QListWidget(collBox);
     collLayout->addWidget(impl_->collList, 1);
     auto* collBtns = new QHBoxLayout();
-    auto* addCollBtn = new QPushButton(QStringLiteral("Anlegen…"), collBox);
-    auto* delCollBtn = new QPushButton(QStringLiteral("Löschen"), collBox);
-    auto* clearCollBtn = new QPushButton(QStringLiteral("Leeren"), collBox);
+    auto* addCollBtn = detail::makeToolButton(collBox, QStyle::SP_FileIcon, QStringLiteral("Anlegen…"));
+    auto* delCollBtn = detail::makeToolButton(collBox, QStyle::SP_TrashIcon, QStringLiteral("Löschen"));
+    auto* clearCollBtn = detail::makeToolButton(collBox, QStyle::SP_DialogResetButton, QStringLiteral("Leeren"));
     collBtns->addWidget(addCollBtn);
     collBtns->addWidget(delCollBtn);
     collBtns->addWidget(clearCollBtn);
@@ -83,10 +87,10 @@ DatabaseDesignWidget::DatabaseDesignWidget(QWidget* parent) : QWidget(parent), i
     impl_->schemaTable->horizontalHeader()->setStretchLastSection(true);
     schemaLayout->addWidget(impl_->schemaTable, 1);
     auto* schemaBtns = new QHBoxLayout();
-    auto* addFieldBtn = new QPushButton(QStringLiteral("Feld +"), schemaWidget);
-    auto* delFieldBtn = new QPushButton(QStringLiteral("Feld −"), schemaWidget);
-    auto* applySchemaBtn = new QPushButton(QStringLiteral("Schema anwenden (validiert)"), schemaWidget);
-    auto* removeSchemaBtn = new QPushButton(QStringLiteral("Schema entfernen"), schemaWidget);
+    auto* addFieldBtn = detail::makeToolButton(schemaWidget, QStyle::SP_FileDialogNewFolder, QStringLiteral("Feld +"));
+    auto* delFieldBtn = detail::makeToolButton(schemaWidget, QStyle::SP_TrashIcon, QStringLiteral("Feld −"));
+    auto* applySchemaBtn = detail::makeToolButton(schemaWidget, QStyle::SP_DialogApplyButton, QStringLiteral("Schema anwenden (validiert)"));
+    auto* removeSchemaBtn = detail::makeToolButton(schemaWidget, QStyle::SP_TrashIcon, QStringLiteral("Schema entfernen"));
     applySchemaBtn->setToolTip(QStringLiteral("Setzt das strikte Schema (FA-20); InMemDB prueft alle vorhandenen Dokumente – Fehler landen in der Ausgabe"));
     schemaBtns->addWidget(addFieldBtn);
     schemaBtns->addWidget(delFieldBtn);
@@ -109,8 +113,8 @@ DatabaseDesignWidget::DatabaseDesignWidget(QWidget* parent) : QWidget(parent), i
     indexForm->addWidget(new QLabel(QStringLiteral("Feldpfad:"), indexWidget));
     indexForm->addWidget(impl_->indexField, 1);
     impl_->indexUnique = new QCheckBox(QStringLiteral("unique"), indexWidget);
-    auto* addIndexBtn = new QPushButton(QStringLiteral("Index anlegen"), indexWidget);
-    auto* delIndexBtn = new QPushButton(QStringLiteral("Index löschen"), indexWidget);
+    auto* addIndexBtn = detail::makeToolButton(indexWidget, QStyle::SP_FileDialogDetailedView, QStringLiteral("Index anlegen"));
+    auto* delIndexBtn = detail::makeToolButton(indexWidget, QStyle::SP_TrashIcon, QStringLiteral("Index löschen"));
     indexForm->addWidget(impl_->indexUnique);
     indexForm->addWidget(addIndexBtn);
     indexForm->addWidget(delIndexBtn);
@@ -156,9 +160,9 @@ DatabaseDesignWidget::DatabaseDesignWidget(QWidget* parent) : QWidget(parent), i
     refForm->addRow(QStringLiteral("Relation:"), impl_->refRelation);
     refLayout->addLayout(refForm);
     auto* refBtns = new QHBoxLayout();
-    auto* addRefBtn = new QPushButton(QStringLiteral("Verknüpfen"), refWidget);
-    auto* delRefBtn = new QPushButton(QStringLiteral("Ausgewählte entfernen"), refWidget);
-    auto* pruneBtn = new QPushButton(QStringLiteral("Dangling bereinigen"), refWidget);
+    auto* addRefBtn = detail::makeToolButton(refWidget, QStyle::SP_CommandLink, QStringLiteral("Verknüpfen"));
+    auto* delRefBtn = detail::makeToolButton(refWidget, QStyle::SP_TrashIcon, QStringLiteral("Ausgewählte entfernen"));
+    auto* pruneBtn = detail::makeToolButton(refWidget, QStyle::SP_DialogResetButton, QStringLiteral("Dangling bereinigen"));
     refBtns->addWidget(addRefBtn);
     refBtns->addWidget(delRefBtn);
     refBtns->addWidget(pruneBtn);
@@ -172,14 +176,19 @@ DatabaseDesignWidget::DatabaseDesignWidget(QWidget* parent) : QWidget(parent), i
 
     // ---- Controller (MVC) ----
     impl_->controller = new detail::DesignController(nullptr, this);
-    connect(impl_->controller, &detail::DesignController::changed, this, &DatabaseDesignWidget::refresh);
+    // UI-08: Refresh nach Change-Events debounced (SingleShot-Timer, startet bei laufendem Timer neu)
+    impl_->debounce = new QTimer(this);
+    impl_->debounce->setSingleShot(true);
+    impl_->debounce->setInterval(200);
+    connect(impl_->debounce, &QTimer::timeout, this, &DatabaseDesignWidget::refresh);
+    connect(impl_->controller, &detail::DesignController::changed, this, [this] { impl_->debounce->start(); });
 
     // ---- Interaktionen ----
     connect(impl_->collList, &QListWidget::currentTextChanged, this, [this](const QString& name) {
         impl_->current = name;
         loadCollectionDetail(name);
     });
-    connect(addCollBtn, &QPushButton::clicked, this, [this] {
+    connect(addCollBtn, &QToolButton::clicked, this, [this] {
         bool ok = false;
         const QString name = QInputDialog::getText(this, QStringLiteral("Collection anlegen"),
                                                    QStringLiteral("Name:"), QLineEdit::Normal, QString(), &ok);
@@ -188,23 +197,23 @@ DatabaseDesignWidget::DatabaseDesignWidget(QWidget* parent) : QWidget(parent), i
             refresh();
         }
     });
-    connect(delCollBtn, &QPushButton::clicked, this, [this] {
+    connect(delCollBtn, &QToolButton::clicked, this, [this] {
         if (!impl_->current.isEmpty())
             impl_->controller->dropCollection(impl_->current);
         refresh();
     });
-    connect(clearCollBtn, &QPushButton::clicked, this, [this] {
+    connect(clearCollBtn, &QToolButton::clicked, this, [this] {
         if (!impl_->current.isEmpty())
             impl_->controller->clearCollection(impl_->current);
         refresh();
     });
-    connect(addFieldBtn, &QPushButton::clicked, this, [this] { addSchemaRow(detail::FieldDef{}); });
-    connect(delFieldBtn, &QPushButton::clicked, this, [this] {
+    connect(addFieldBtn, &QToolButton::clicked, this, [this] { addSchemaRow(detail::FieldDef{}); });
+    connect(delFieldBtn, &QToolButton::clicked, this, [this] {
         const int row = impl_->schemaTable->currentRow();
         if (row >= 0)
             impl_->schemaTable->removeRow(row);
     });
-    connect(applySchemaBtn, &QPushButton::clicked, this, [this] {
+    connect(applySchemaBtn, &QToolButton::clicked, this, [this] {
         if (impl_->current.isEmpty())
             return;
         std::vector<detail::FieldDef> fields;
@@ -223,18 +232,18 @@ DatabaseDesignWidget::DatabaseDesignWidget(QWidget* parent) : QWidget(parent), i
         refresh();
         emit statusMessage(QStringLiteral("Schema für „%1“ angewendet (ggf. Fehler in der Ausgabe).").arg(impl_->current));
     });
-    connect(removeSchemaBtn, &QPushButton::clicked, this, [this] {
+    connect(removeSchemaBtn, &QToolButton::clicked, this, [this] {
         if (!impl_->current.isEmpty())
             impl_->controller->removeSchema(impl_->current);
         refresh();
     });
-    connect(addIndexBtn, &QPushButton::clicked, this, [this] {
+    connect(addIndexBtn, &QToolButton::clicked, this, [this] {
         if (!impl_->current.isEmpty())
             impl_->controller->addIndex(impl_->current, impl_->indexField->currentText().trimmed(),
                                         impl_->indexUnique->isChecked());
         refresh();
     });
-    connect(delIndexBtn, &QPushButton::clicked, this, [this] {
+    connect(delIndexBtn, &QToolButton::clicked, this, [this] {
         auto* item = impl_->indexList->currentItem();
         if (item && !impl_->current.isEmpty()) {
             const QString field = item->data(Qt::UserRole).toString();
@@ -242,7 +251,7 @@ DatabaseDesignWidget::DatabaseDesignWidget(QWidget* parent) : QWidget(parent), i
         }
         refresh();
     });
-    connect(addRefBtn, &QPushButton::clicked, this, [this] {
+    connect(addRefBtn, &QToolButton::clicked, this, [this] {
         impl_->controller->addReference(impl_->refFromColl->currentText(),
                                         static_cast<quint64>(impl_->refFromId->value()), impl_->refHasFromId->isChecked(),
                                         impl_->refToColl->currentText(),
@@ -250,7 +259,7 @@ DatabaseDesignWidget::DatabaseDesignWidget(QWidget* parent) : QWidget(parent), i
                                         impl_->refRelation->text().trimmed());
         refresh();
     });
-    connect(delRefBtn, &QPushButton::clicked, this, [this] {
+    connect(delRefBtn, &QToolButton::clicked, this, [this] {
         const int row = impl_->refTable->currentRow();
         if (row < 0)
             return;
@@ -264,7 +273,7 @@ DatabaseDesignWidget::DatabaseDesignWidget(QWidget* parent) : QWidget(parent), i
         impl_->controller->removeReference(from, fid, hasFrom, to, tid, hasTo, rel);
         refresh();
     });
-    connect(pruneBtn, &QPushButton::clicked, this, [this] {
+    connect(pruneBtn, &QToolButton::clicked, this, [this] {
         impl_->controller->pruneDangling();
         refresh();
     });
